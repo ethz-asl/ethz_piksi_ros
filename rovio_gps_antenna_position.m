@@ -29,11 +29,12 @@ R_I_C = quat2rotm(q_I_C);
 
 T_I_C = [R_I_C, I_p_I_C;
          0.0, 0.0, 0.0, 1.0];
-     
- M_r_M_V_omog = T_I_C * [MavImu_r_MavImu_Gps_x; 
-                         MavImu_r_MavImu_Gps_y;
-                         MavImu_r_MavImu_Gps_z;
-                         1.0];
+
+% homogeneous coordinates
+M_r_M_V = T_I_C * [MavImu_r_MavImu_Gps_x; 
+                   MavImu_r_MavImu_Gps_y;
+                   MavImu_r_MavImu_Gps_z;
+                   1.0];
  
 %% Print result
  format longg;
