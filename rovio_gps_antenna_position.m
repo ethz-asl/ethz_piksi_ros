@@ -23,7 +23,7 @@ MavImu_r_MavImu_Gps_z = 0.11; % [m]
 %% Transformation
 % from sensor IMU (C frame in MSF) to MAV IMU (I frame in MSF)
 q_I_C = [q_ic_w, q_ic_x, q_ic_y, q_ic_z];
-I_p_I_C = [p_ic_x, p_ic_y, p_ic_z];
+I_p_I_C = [p_ic_x; p_ic_y; p_ic_z];
 
 R_I_C = quat2rotm(q_I_C);
 
