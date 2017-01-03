@@ -38,5 +38,5 @@ M_r_M_V = T_I_C * [MavImu_r_MavImu_Gps_x;
  
 %% Print result
  format longg;
- display(['Rovio MrMV: ' num2str(M_r_M_V_omog(1), '%.5f') ', ' num2str(M_r_M_V_omog(2), '%.5f') ', ' num2str(M_r_M_V_omog(3), '%.5f')]);
+ display(['Rovio MrMV: ' num2str(M_r_M_V(1), '%.5f') ', ' num2str(M_r_M_V(2), '%.5f') ', ' num2str(M_r_M_V(3), '%.5f')]);
 
