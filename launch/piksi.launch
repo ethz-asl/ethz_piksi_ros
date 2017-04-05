@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-
-<launch>
-
-  <node pkg="piksi_rtk_gps" type="piksi.py" name="piksi" output="screen">
-    <rosparam file="$(find piksi_rtk_gps)/cfg/piksi_driver_settings.yaml"/>
-  </node>
-
-</launch>
