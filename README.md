@@ -15,9 +15,11 @@ The following code will automatically download the required version of libsbp, i
 
 ```
 #from the repository folder
-chmod +x install/configure_environment.sh  #make sure the script is excutable
-./install/configure_environment.sh         # WARNING: as side effect this script will add a line to your .bashrc
-                                           # that appends the python subfolder of this repo to your $PYTHONPATH variable.
+chmod +x install/install_piksi.sh  #make sure the script is excutable
+./install/install_piksi.sh         # WARNING, this script will:
+                                   # 1. Add a line to your .bashrc to append the python subfolder of this repo to your $PYTHONPATH variable.
+                                   # 2. Create udev rule for Piksi
+                                   # 3. Add you to dialout, if you are not within this group
 ```
 ## Corrections Over Wifi
 It is possible to send/receive corrections over Wifi between multiple Piksi modules.
