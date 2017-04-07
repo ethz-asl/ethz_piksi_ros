@@ -85,37 +85,7 @@ class Piksi:
         self.publishers = self.advertise_topics()
 
         # Create callbacks
-        self.handler.add_callback(self.navsatfix_callback, msg_type=SBP_MSG_POS_LLH)
-        self.handler.add_callback(self.baseline_callback, msg_type=SBP_MSG_BASELINE_NED)
-        self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
-        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
-        # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
-        self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE_DEPA)
-        # TODO fix me!
-        '''self.init_callback('baseline_ecef', msg_baseline_ecef,
-                           SBP_MSG_BASELINE_ECEF, MsgBaselineECEF,
-                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
-        self.init_callback('baseline_ned', msg_baseline_ned,
-                           SBP_MSG_BASELINE_NED, MsgBaselineNED,
-                           'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback('dops', msg_dops,
-                           SBP_MSG_DOPS, MsgDops, 'tow', 'gdop', 'pdop', 'tdop', 'hdop', 'vdop')
-        self.init_callback('gps_time', msg_gps_time,
-                           SBP_MSG_GPS_TIME, MsgGPSTime, 'wn', 'tow', 'ns', 'flags')
-        self.init_callback('pos_ecef', msg_pos_ecef,
-                           SBP_MSG_POS_ECEF, MsgPosECEF,
-                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
-        self.init_callback('pos_llh', msg_pos_llh,
-                           SBP_MSG_POS_LLH, MsgPosLLH,
-                           'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback('vel_ecef', msg_vel_ecef,
-                           SBP_MSG_VEL_ECEF, MsgVelECEF,
-                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
-        self.init_callback('vel_ned', msg_vel_ned,
-                           SBP_MSG_VEL_NED, MsgVelNED,
-                           'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback('log', msg_log,
-                           SBP_MSG_LOG, MsgLog, 'level', 'text')'''
+        self.create_callbacks()
 
         # Init messages with "memory"
         self.navsatfix_msg = self.init_navsatfix_msg()
@@ -131,6 +101,44 @@ class Piksi:
 
         # Spin
         rospy.spin()
+
+    def create_callbacks(self):
+
+        # Callbacks manually coded
+        self.handler.add_callback(self.navsatfix_callback, msg_type=SBP_MSG_POS_LLH)
+        self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
+        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
+        # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
+        self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE_DEPA)
+
+        # Callbacks generated based on ROS message definition
+        self.init_callback('baseline_ecef', BaselineEcef,
+                           SBP_MSG_BASELINE_ECEF, MsgBaselineECEF,
+                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
+        self.init_callback('baseline_ned', BaselineNed,
+                           SBP_MSG_BASELINE_NED, MsgBaselineNED,
+                           'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
+        self.init_callback('dops', Dops,
+                           SBP_MSG_DOPS, MsgDops, 'tow', 'gdop', 'pdop', 'tdop', 'hdop', 'vdop')
+        self.init_callback('gps_time', GpsTime,
+                           SBP_MSG_GPS_TIME, MsgGPSTime, 'wn', 'tow', 'ns', 'flags')
+        self.init_callback('pos_ecef', PosEcef,
+                           SBP_MSG_POS_ECEF, MsgPosECEF,
+                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
+        self.init_callback('vel_ecef', VelEcef,
+                           SBP_MSG_VEL_ECEF, MsgVelECEF,
+                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
+        self.init_callback('vel_ned', VelNed,
+                           SBP_MSG_VEL_NED, MsgVelNED,
+                           'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
+        self.init_callback('log', Log,
+                           SBP_MSG_LOG, MsgLog, 'level', 'text')
+
+        # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix
+        #self.init_callback('pos_llh', PosLlh,
+        #                   SBP_MSG_POS_LLH, MsgPosLLH,
+        #                   'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
+
 
     def init_num_corrections_msg(self):
 
@@ -196,8 +204,8 @@ class Piksi:
                                                  GpsTime, queue_size=10)
         publishers['pos_ecef'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
                                                  PosEcef, queue_size=10)
-        publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
-                                                PosLlh, queue_size=10)
+        #publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
+        #                                        PosLlh, queue_size=10)
         publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + '/vel_ecef',
                                                  VelEcef, queue_size=10)
         publishers['vel_ned'] = rospy.Publisher(rospy.get_name() + '/vel_ned',
@@ -258,6 +266,7 @@ class Piksi:
 
         def callback(msg, **metadata):
             sbp_message = sbp_type(msg)
+            ros_message.header.stamp = rospy.Time.now()
             for attr in attrs:
                 setattr(ros_message, attr, getattr(sbp_message, attr))
             pub.publish(ros_message)
@@ -361,26 +370,6 @@ class Piksi:
             # Update debug msg and publish
             self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == 1) else False
             self.publish_receiver_state_msg()
-
-    def baseline_callback(self, msg_raw, **metadata):
-        """
-        Callback function for SBP_MSG_BASELINE_NED message types.
-        Publishes PiksiBaseline messages.
-        """
-        msg = MsgBaselineNED(msg_raw)
-
-        baseline_msg = BaselineNed()
-        baseline_msg.header.stamp = rospy.Time.now()
-        baseline_msg.tow = msg.tow
-        baseline_msg.n = msg.n
-        baseline_msg.e = msg.e
-        baseline_msg.d = msg.d
-        baseline_msg.h_accuracy = msg.h_accuracy
-        baseline_msg.v_accuracy = msg.v_accuracy
-        baseline_msg.n_sats = msg.n_sats
-        baseline_msg.flags = msg.flags
-
-        self.publishers['baseline_ned'].publish(baseline_msg)
 
     def heartbeat_callback(self, msg_raw, **metadata):
         """
