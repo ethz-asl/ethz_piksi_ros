@@ -59,8 +59,8 @@ class Piksi:
         self.handler = Handler(self.framer)
 
         # Read settings
-        self.var_spp = rospy.get_param('~var_spp', [33.0, 25.0, 64.0])
-        self.var_rtk_float = rospy.get_param('~var_rtk_float', [33.0, 25.0, 64.0])
+        self.var_spp = rospy.get_param('~var_spp', [25.0, 25.0, 64.0])
+        self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
 
         self.base_station_ip_for_latency_estimation = rospy.get_param(
