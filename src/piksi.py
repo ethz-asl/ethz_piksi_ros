@@ -50,38 +50,18 @@ class Piksi:
         except SystemExit:
             rospy.logerr("Piksi not found on serial port '%s'", serial_port)
 
-        self.base_station_mode = rospy.get_param('~base_station_mode', False)
-        self.udp_broadcast_addr = rospy.get_param('~broadcast_addr', '255.255.255.255')
-        self.udp_port = rospy.get_param('~broadcast_port', 26078)
-
         # Create a handler to connect Piksi driver to callbacks
         self.framer = Framer(self.driver.read, self.driver.write, verbose=True)
         self.handler = Handler(self.framer)
 
-        # Read settings
-        self.var_spp = rospy.get_param('~var_spp', [25.0, 25.0, 64.0])
-        self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
-        self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
-
+        # Corrections over WiFi settings
+        self.base_station_mode = rospy.get_param('~base_station_mode', False)
+        self.udp_broadcast_addr = rospy.get_param('~broadcast_addr', '255.255.255.255')
+        self.udp_port = rospy.get_param('~broadcast_port', 26078)
         self.base_station_ip_for_latency_estimation = rospy.get_param(
-                                                            '~base_station_ip_for_latency_estimation',
-                                                            '10.10.50.1')
-
-        # Advertise topics
-        self.publishers = self.advertise_topics()
-
-        # Define fixed attributes of the NavSatFixed message
-        self.navsatfix_msg = NavSatFix()
-        self.navsatfix_msg.header.frame_id = rospy.get_param('~frame_id', 'gps')
-        self.navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
-        self.navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
-
-        self.handler.add_callback(self.navsatfix_callback, msg_type=SBP_MSG_POS_LLH)
-
-        # Generate publisher and callback function for PiksiBaseline messages
-        self.handler.add_callback(self.baseline_callback, msg_type=SBP_MSG_BASELINE_NED)
-
-        # subscribe to OBS messages and relay them via UDP if in base station mode
+            '~base_station_ip_for_latency_estimation',
+            '10.10.50.1')
+        # Subscribe to OBS messages and relay them via UDP if in base station mode
         if self.base_station_mode:
             rospy.loginfo("Starting in base station mode")
             self._multicaster = UdpHelpers.SbpUdpMulticaster(self.udp_broadcast_addr, self.udp_port)
@@ -96,6 +76,22 @@ class Piksi:
             rospy.loginfo("Starting in client station mode")
             self._multicast_recv = UdpHelpers.SbpUdpMulticastReceiver(self.udp_port, self.multicast_callback)
 
+        # Covariance settings
+        self.var_spp = rospy.get_param('~var_spp', [25.0, 25.0, 64.0])
+        self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
+        self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
+
+        # Advertise topics
+        self.publishers = self.advertise_topics()
+
+        # Create callbacks
+        self.handler.add_callback(self.navsatfix_callback, msg_type=SBP_MSG_POS_LLH)
+        self.handler.add_callback(self.baseline_callback, msg_type=SBP_MSG_BASELINE_NED)
+        self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
+        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
+        # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
+        self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE_DEPA)
+        # TODO fix me!
         '''self.init_callback('baseline_ecef', msg_baseline_ecef,
                            SBP_MSG_BASELINE_ECEF, MsgBaselineECEF,
                            'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
@@ -121,11 +117,11 @@ class Piksi:
         self.init_callback('log', msg_log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')'''
 
-        # Generate publisher and callback function for System messages
-        self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
-
-        # Generate publisher and callback function for Tracking messages
-        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
+        # Define fixed attributes of the NavSatFixed message
+        self.navsatfix_msg = NavSatFix()
+        self.navsatfix_msg.header.frame_id = rospy.get_param('~frame_id', 'gps')
+        self.navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
+        self.navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
 
         # Generate publisher and callback function for Debug messages
         # init debug msg, required even tough publish_piksidebug is false to avoid run time errors
@@ -139,10 +135,6 @@ class Piksi:
         self.debug_msg.io_error = 255  # Unkown
         self.debug_msg.swift_nap_error = 255  # Unkown
         self.debug_msg.external_antenna_present = 255  # Unkown
-
-        # uart state
-        # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
-        self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE_DEPA)
 
         # corrections over wifi message, if we are not the base station
         self.num_wifi_corrections = PiksiNumCorrections()
