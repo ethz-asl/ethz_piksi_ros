@@ -25,4 +25,3 @@ int32 latency_avg
 int32 latency_lmin
 int32 latency_lmax
 int32 latency_current
-
