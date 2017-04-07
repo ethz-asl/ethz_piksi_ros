@@ -117,30 +117,12 @@ class Piksi:
         self.init_callback('log', msg_log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')'''
 
-        # Define fixed attributes of the NavSatFixed message
-        self.navsatfix_msg = NavSatFix()
-        self.navsatfix_msg.header.frame_id = rospy.get_param('~frame_id', 'gps')
-        self.navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
-        self.navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
-
-        # Generate publisher and callback function for Debug messages
-        # init debug msg, required even tough publish_piksidebug is false to avoid run time errors
-        self.debug_msg = PiksiDebug()
-        self.debug_msg.num_sat = 0  # Unkown
-        self.debug_msg.rtk_mode_fix = False  # Unkown
-        self.debug_msg.sat = []  # Unkown
-        self.debug_msg.cn0 = []  # Unkown
-        self.debug_msg.tracking_running = []  # Unkown
-        self.debug_msg.system_error = 255  # Unkown
-        self.debug_msg.io_error = 255  # Unkown
-        self.debug_msg.swift_nap_error = 255  # Unkown
-        self.debug_msg.external_antenna_present = 255  # Unkown
+        # Init messages with "memory"
+        self.navsatfix_msg = self.init_navsatfix_msg()
+        self.debug_msg = self.init_debug_msg()
+        self.num_wifi_corrections = self.init_num_corrections_msg()
 
         # corrections over wifi message, if we are not the base station
-        self.num_wifi_corrections = PiksiNumCorrections()
-        self.num_wifi_corrections.header.seq = 0
-        self.num_wifi_corrections.received_corrections = 0
-        self.num_wifi_corrections.latency = -1
         if not self.base_station_mode:
             # start new thread to periodically ping base station
             threading.Thread(target=self.ping_base_station_over_wifi).start()
@@ -149,6 +131,39 @@ class Piksi:
 
         # Spin
         rospy.spin()
+
+    def init_num_corrections_msg(self):
+
+        num_wifi_corrections = PiksiNumCorrections()
+        num_wifi_corrections.header.seq = 0
+        num_wifi_corrections.received_corrections = 0
+        num_wifi_corrections.latency = -1
+
+        return num_wifi_corrections
+
+    def init_debug_msg(self):
+
+        debug_msg = PiksiDebug()
+        debug_msg.num_sat = 0  # Unkown
+        debug_msg.rtk_mode_fix = False  # Unkown
+        debug_msg.sat = []  # Unkown
+        debug_msg.cn0 = []  # Unkown
+        debug_msg.tracking_running = []  # Unkown
+        debug_msg.system_error = 255  # Unkown
+        debug_msg.io_error = 255  # Unkown
+        debug_msg.swift_nap_error = 255  # Unkown
+        debug_msg.external_antenna_present = 255  # Unkown
+
+        return debug_msg
+
+    def init_navsatfix_msg(self):
+
+        navsatfix_msg = NavSatFix()
+        navsatfix_msg.header.frame_id = rospy.get_param('~frame_id', 'gps')
+        navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
+        navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
+
+        return navsatfix_msg
 
     def advertise_topics(self):
         """
