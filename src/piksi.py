@@ -79,8 +79,6 @@ class Piksi:
         self.handler.add_callback(self.navsatfix_callback, msg_type=SBP_MSG_POS_LLH)
 
         # Generate publisher and callback function for PiksiBaseline messages
-
-        self.baseline_msg = PiksiBaseline()
         self.handler.add_callback(self.baseline_callback, msg_type=SBP_MSG_BASELINE_NED)
 
         # subscribe to OBS messages and relay them via UDP if in base station mode
@@ -124,13 +122,9 @@ class Piksi:
                            SBP_MSG_LOG, MsgLog, 'level', 'text')'''
 
         # Generate publisher and callback function for System messages
-
-        self.heartbeat_msg = msg_heartbeat()
         self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
 
         # Generate publisher and callback function for Tracking messages
-
-        self.tracking_state_msg = msg_tracking_state()
         self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
 
         # Generate publisher and callback function for Debug messages
@@ -370,13 +364,14 @@ class Piksi:
         """
         msg = MsgBaselineNED(msg_raw)
 
-        self.baseline_msg.header.stamp = rospy.Time.now()
-        self.baseline_msg.baseline.x = msg.n
-        self.baseline_msg.baseline.y = msg.e
-        self.baseline_msg.baseline.z = msg.d
-        self.baseline_msg.mode_fixed = msg.flags
+        baseline_msg = PiksiBaseline()
+        baseline_msg.header.stamp = rospy.Time.now()
+        baseline_msg.baseline.x = msg.n
+        baseline_msg.baseline.y = msg.e
+        baseline_msg.baseline.z = msg.d
+        baseline_msg.mode_fixed = msg.flags
 
-        self.publishers['baseline_ned'].publish(self.baseline_msg)
+        self.publishers['baseline_ned'].publish(baseline_msg)
 
     def heartbeat_callback(self, msg_raw, **metadata):
         """
@@ -385,20 +380,21 @@ class Piksi:
         """
         msg = MsgHeartbeat(msg_raw)
 
-        self.heartbeat_msg.system_error = msg.flags & 0x01
-        self.heartbeat_msg.io_error = msg.flags & 0x02
-        self.heartbeat_msg.swift_nap_error = msg.flags & 0x04
-        self.heartbeat_msg.sbp_minor_version = (msg.flags & 0xFF00) >> 8
-        self.heartbeat_msg.sbp_major_version = (msg.flags & 0xFF0000) >> 16
-        self.heartbeat_msg.external_antenna_present = (msg.flags & 0x80000000) >> 31
+        heartbeat_msg = msg_heartbeat()
+        heartbeat_msg.system_error = msg.flags & 0x01
+        heartbeat_msg.io_error = msg.flags & 0x02
+        heartbeat_msg.swift_nap_error = msg.flags & 0x04
+        heartbeat_msg.sbp_minor_version = (msg.flags & 0xFF00) >> 8
+        heartbeat_msg.sbp_major_version = (msg.flags & 0xFF0000) >> 16
+        heartbeat_msg.external_antenna_present = (msg.flags & 0x80000000) >> 31
 
-        self.publishers['heartbeat'].publish(self.heartbeat_msg)
+        self.publishers['heartbeat'].publish(heartbeat_msg)
 
         # Update debug msg and publish
-        self.debug_msg.system_error = self.heartbeat_msg.system_error
-        self.debug_msg.io_error = self.heartbeat_msg.io_error
-        self.debug_msg.swift_nap_error = self.heartbeat_msg.swift_nap_error
-        self.debug_msg.external_antenna_present = self.heartbeat_msg.external_antenna_present
+        self.debug_msg.system_error = heartbeat_msg.system_error
+        self.debug_msg.io_error = heartbeat_msg.io_error
+        self.debug_msg.swift_nap_error = heartbeat_msg.swift_nap_error
+        self.debug_msg.external_antenna_present = heartbeat_msg.external_antenna_present
         self.publish_piksidebug_msg()
 
     def tracking_state_callback(self, msg_raw, **metadata):
@@ -408,36 +404,37 @@ class Piksi:
         """
         msg = MsgTrackingState(msg_raw)
 
-        self.tracking_state_msg.state = []
-        self.tracking_state_msg.sat = []
-        self.tracking_state_msg.code = []
-        self.tracking_state_msg.cn0 = []
+        tracking_state_msg = msg_tracking_state()
+        tracking_state_msg.state = []
+        tracking_state_msg.sat = []
+        tracking_state_msg.code = []
+        tracking_state_msg.cn0 = []
 
         for single_tracking_state in msg.states:
             # take only running tracking
             track_running = single_tracking_state.state & 0x01
             if track_running:
-                self.tracking_state_msg.state.append(single_tracking_state.state)
-                self.tracking_state_msg.sat.append(single_tracking_state.sid.sat)
-                self.tracking_state_msg.code.append(single_tracking_state.sid.code)
-                self.tracking_state_msg.cn0.append(single_tracking_state.cn0)
+                tracking_state_msg.state.append(single_tracking_state.state)
+                tracking_state_msg.sat.append(single_tracking_state.sid.sat)
+                tracking_state_msg.code.append(single_tracking_state.sid.code)
+                tracking_state_msg.cn0.append(single_tracking_state.cn0)
 
         # publish if there's at least one element in each array
-        if len(self.tracking_state_msg.state) \
-                and len(self.tracking_state_msg.sat) \
-                and len(self.tracking_state_msg.code) \
-                and len(self.tracking_state_msg.cn0):
+        if len(tracking_state_msg.state) \
+                and len(tracking_state_msg.sat) \
+                and len(tracking_state_msg.code) \
+                and len(tracking_state_msg.cn0):
 
-            self.publishers['tracking_state'].publish(self.tracking_state_msg)
+            self.publishers['tracking_state'].publish(tracking_state_msg)
 
             # Update debug msg and publish
             self.debug_msg.num_sat = 0  # count number of satellites used to track
-            for tracking_running in self.tracking_state_msg.state:
+            for tracking_running in tracking_state_msg.state:
                 self.debug_msg.num_sat += tracking_running
 
-            self.debug_msg.sat = self.tracking_state_msg.sat
-            self.debug_msg.cn0 = self.tracking_state_msg.cn0
-            self.debug_msg.tracking_running = self.tracking_state_msg.state
+            self.debug_msg.sat = tracking_state_msg.sat
+            self.debug_msg.cn0 = tracking_state_msg.cn0
+            self.debug_msg.tracking_running = tracking_state_msg.state
             self.publish_piksidebug_msg()
 
     def publish_piksidebug_msg(self):
