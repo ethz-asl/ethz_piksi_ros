@@ -67,13 +67,8 @@ class Piksi:
                                                             '~base_station_ip_for_latency_estimation',
                                                             '10.10.50.1')
 
-        # Generate publisher and callback function for navsatfix messages
-        self.pub_rtk_float = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
-                                             NavSatFix, queue_size=10)
-        self.pub_rtk_fix = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
-                                           NavSatFix, queue_size=10)
-        self.pub_spp = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
-                                           NavSatFix, queue_size=10)
+        # Advertise topics
+        self.publishers = self.advertise_topics()
 
         # Define fixed attributes of the NavSatFixed message
         self.navsatfix_msg = NavSatFix()
@@ -84,8 +79,7 @@ class Piksi:
         self.handler.add_callback(self.navsatfix_callback, msg_type=SBP_MSG_POS_LLH)
 
         # Generate publisher and callback function for PiksiBaseline messages
-        self.pub_piksibaseline = rospy.Publisher(rospy.get_name() + '/piksibaseline',
-                                                 PiksiBaseline, queue_size=10)
+
         self.baseline_msg = PiksiBaseline()
         self.handler.add_callback(self.baseline_callback, msg_type=SBP_MSG_BASELINE_NED)
 
@@ -104,43 +98,38 @@ class Piksi:
             rospy.loginfo("Starting in client station mode")
             self._multicast_recv = UdpHelpers.SbpUdpMulticastReceiver(self.udp_port, self.multicast_callback)
 
-        # Initialize Navigation messages
-        self.init_callback_and_publisher('baseline_ecef', msg_baseline_ecef,
-                                         SBP_MSG_BASELINE_ECEF, MsgBaselineECEF,
-                                         'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
-        self.init_callback_and_publisher('baseline_ned', msg_baseline_ned,
-                                         SBP_MSG_BASELINE_NED, MsgBaselineNED,
-                                         'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback_and_publisher('dops', msg_dops,
-                                         SBP_MSG_DOPS, MsgDops, 'tow', 'gdop', 'pdop', 'tdop', 'hdop', 'vdop')
-        self.init_callback_and_publisher('gps_time', msg_gps_time,
-                                         SBP_MSG_GPS_TIME, MsgGPSTime, 'wn', 'tow', 'ns', 'flags')
-        self.init_callback_and_publisher('pos_ecef', msg_pos_ecef,
-                                         SBP_MSG_POS_ECEF, MsgPosECEF,
-                                         'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
-        self.init_callback_and_publisher('pos_llh', msg_pos_llh,
-                                         SBP_MSG_POS_LLH, MsgPosLLH,
-                                         'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback_and_publisher('vel_ecef', msg_vel_ecef,
-                                         SBP_MSG_VEL_ECEF, MsgVelECEF,
-                                         'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
-        self.init_callback_and_publisher('vel_ned', msg_vel_ned,
-                                         SBP_MSG_VEL_NED, MsgVelNED,
-                                         'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-
-        # Initialize Logging messages
-        self.init_callback_and_publisher('log', msg_log,
-                                         SBP_MSG_LOG, MsgLog, 'level', 'text')
+        '''self.init_callback('baseline_ecef', msg_baseline_ecef,
+                           SBP_MSG_BASELINE_ECEF, MsgBaselineECEF,
+                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
+        self.init_callback('baseline_ned', msg_baseline_ned,
+                           SBP_MSG_BASELINE_NED, MsgBaselineNED,
+                           'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
+        self.init_callback('dops', msg_dops,
+                           SBP_MSG_DOPS, MsgDops, 'tow', 'gdop', 'pdop', 'tdop', 'hdop', 'vdop')
+        self.init_callback('gps_time', msg_gps_time,
+                           SBP_MSG_GPS_TIME, MsgGPSTime, 'wn', 'tow', 'ns', 'flags')
+        self.init_callback('pos_ecef', msg_pos_ecef,
+                           SBP_MSG_POS_ECEF, MsgPosECEF,
+                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
+        self.init_callback('pos_llh', msg_pos_llh,
+                           SBP_MSG_POS_LLH, MsgPosLLH,
+                           'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
+        self.init_callback('vel_ecef', msg_vel_ecef,
+                           SBP_MSG_VEL_ECEF, MsgVelECEF,
+                           'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
+        self.init_callback('vel_ned', msg_vel_ned,
+                           SBP_MSG_VEL_NED, MsgVelNED,
+                           'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
+        self.init_callback('log', msg_log,
+                           SBP_MSG_LOG, MsgLog, 'level', 'text')'''
 
         # Generate publisher and callback function for System messages
-        self.pub_heartbeat = rospy.Publisher(rospy.get_name() + '/heartbeat',
-                                             msg_heartbeat, queue_size=10)
+
         self.heartbeat_msg = msg_heartbeat()
         self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
 
         # Generate publisher and callback function for Tracking messages
-        self.pub_tracking_state = rospy.Publisher(rospy.get_name() + '/tracking_state',
-                                                  msg_tracking_state, queue_size=10)
+
         self.tracking_state_msg = msg_tracking_state()
         self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
 
@@ -157,14 +146,9 @@ class Piksi:
         self.debug_msg.swift_nap_error = 255  # Unkown
         self.debug_msg.external_antenna_present = 255  # Unkown
 
-        self.pub_piksidebug = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
-                                              PiksiDebug, queue_size=10)
-
         # uart state
         # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
         self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE_DEPA)
-        self.pub_piksi_uart_state = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
-                                                    msg_uart_state, queue_size=10)
 
         # corrections over wifi message, if we are not the base station
         self.num_wifi_corrections = PiksiNumCorrections()
@@ -172,8 +156,6 @@ class Piksi:
         self.num_wifi_corrections.received_corrections = 0
         self.num_wifi_corrections.latency = -1
         if not self.base_station_mode:
-            self.pub_piksi_wifi_corrections = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
-                                                              PiksiNumCorrections, queue_size=10)
             # start new thread to periodically ping base station
             threading.Thread(target=self.ping_base_station_over_wifi).start()
 
@@ -181,6 +163,54 @@ class Piksi:
 
         # Spin
         rospy.spin()
+
+    def advertise_topics(self):
+        """
+        Adverties topics
+        :return: python dictionary, with topic names used as keys and publishers as values
+        """
+        publishers = {}
+
+        publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
+                                                  NavSatFix, queue_size=10)
+        publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
+                                                NavSatFix, queue_size=10)
+        publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
+                                            NavSatFix, queue_size=10)
+        publishers['piksibaseline'] = rospy.Publisher(rospy.get_name() + '/piksibaseline',
+                                                      PiksiBaseline, queue_size=10)
+        publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
+                                                  msg_heartbeat, queue_size=10)
+        publishers['tracking_state'] = rospy.Publisher(rospy.get_name() + '/tracking_state',
+                                                       msg_tracking_state, queue_size=10)
+        publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
+                                                       PiksiDebug, queue_size=10)
+        publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
+                                                   msg_uart_state, queue_size=10)
+        publishers['baseline_ecef'] = rospy.Publisher(rospy.get_name() + 'baseline_ecef',
+                                                      msg_baseline_ecef, queue_size=10)
+        publishers['baseline_ned'] = rospy.Publisher(rospy.get_name() + 'baseline_ned',
+                                                     PiksiBaseline, queue_size=10)
+        publishers['dops'] = rospy.Publisher(rospy.get_name() + 'dops',
+                                             msg_dops, queue_size=10)
+        publishers['gps_time'] = rospy.Publisher(rospy.get_name() + 'gps_time',
+                                                 msg_gps_time, queue_size=10)
+        publishers['pos_ecef'] = rospy.Publisher(rospy.get_name() + 'pos_ecef',
+                                                 msg_pos_ecef, queue_size=10)
+        publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + 'pos_llh',
+                                                msg_pos_llh, queue_size=10)
+        publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + 'vel_ecef',
+                                                 msg_vel_ecef, queue_size=10)
+        publishers['vel_ned'] = rospy.Publisher(rospy.get_name() + 'vel_ned',
+                                                msg_vel_ned, queue_size=10)
+        publishers['log'] = rospy.Publisher(rospy.get_name() + 'log',
+                                            msg_log, queue_size=10)
+
+        if not self.base_station_mode:
+            publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
+                                                             PiksiNumCorrections, queue_size=10)
+
+        return publishers
 
     def ping_base_station_over_wifi(self):
         """
@@ -235,9 +265,9 @@ class Piksi:
 
         return callback
 
-    def init_callback_and_publisher(self, topic_name, ros_datatype, sbp_msg_type, callback_data_type, *attrs):
+    def init_callback(self, topic_name, ros_datatype, sbp_msg_type, callback_data_type, *attrs):
         """
-        Initializes the callback function and ROS publisher for an SBP
+        Initializes the callback function  for an SBP
         message type.
         Inputs: 'topic_name' name of ROS topic for publisher
                 'ros_datatype' ROS custom message type
@@ -245,15 +275,16 @@ class Piksi:
                 'callback_data_type' name of SBP message type for SBP library
                 '*attrs' array of attributes in ROS/SBP message
         """
-        if not rospy.has_param('~publish_' + topic_name):
-            rospy.set_param('~publish_' + topic_name, False)
-        if rospy.get_param('~publish_' + topic_name):
-            pub = rospy.Publisher(rospy.get_name() + '/' + topic_name, ros_datatype, queue_size=10)
+        # check that required topic has been advertised
+        if topic_name in self.publishers:
             ros_message = ros_datatype()
 
             # Add callback function
+            pub = self.publishers[topic_name]
             callback_function = self.make_callback(callback_data_type, ros_message, pub, attrs)
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
+        else:
+            rospy.logerr(topic_name + " was not advertised correctly, it cannot be published.")
 
     def callback_sbp_obs(self, msg, **metadata):
         # rospy.logwarn("CALLBACK SBP OBS")
@@ -286,7 +317,8 @@ class Piksi:
             self.num_wifi_corrections.header.stamp.secs = now.secs
             self.num_wifi_corrections.header.stamp.nsecs = now.nsecs
             self.num_wifi_corrections.received_corrections += 1
-            self.pub_piksi_wifi_corrections.publish(self.num_wifi_corrections)
+            if not self.base_station_mode:
+                self.publishers['wifi_corrections'].publish(self.num_wifi_corrections)
 
         else:
             rospy.logwarn("Received external SBP msg, but Piksi not connected.")
@@ -309,7 +341,7 @@ class Piksi:
             self.navsatfix_msg.position_covariance = [self.var_spp[0], 0, 0,
                                                       0, self.var_spp[1], 0,
                                                       0, 0, self.var_spp[2]]
-            self.pub_spp.publish(self.navsatfix_msg)
+            self.publishers['spp'].publish(self.navsatfix_msg)
 
         # RTK GPS messages
         elif msg.flags == 1 or msg.flags == 2:
@@ -320,12 +352,12 @@ class Piksi:
                 self.navsatfix_msg.position_covariance = [self.var_rtk_float[0], 0, 0,
                                                           0, self.var_rtk_float[1], 0,
                                                           0, 0, self.var_rtk_float[2]]
-                self.pub_rtk_float.publish(self.navsatfix_msg)
+                self.publishers['rtk_float'].publish(self.navsatfix_msg)
             else:  # RTK fix
                 self.navsatfix_msg.position_covariance = [self.var_rtk_fix[0], 0, 0,
                                                           0, self.var_rtk_fix[1], 0,
                                                           0, 0, self.var_rtk_fix[2]]
-                self.pub_rtk_fix.publish(self.navsatfix_msg)
+                self.publishers['rtk_fix'].publish(self.navsatfix_msg)
 
             # Update debug msg and publish
             self.debug_msg.rtk_mode_fix = True if (msg.flags == 1) else False
@@ -344,7 +376,7 @@ class Piksi:
         self.baseline_msg.baseline.z = msg.d
         self.baseline_msg.mode_fixed = msg.flags
 
-        self.pub_piksibaseline.publish(self.baseline_msg)
+        self.publishers['baseline_ned'].publish(self.baseline_msg)
 
     def heartbeat_callback(self, msg_raw, **metadata):
         """
@@ -360,7 +392,7 @@ class Piksi:
         self.heartbeat_msg.sbp_major_version = (msg.flags & 0xFF0000) >> 16
         self.heartbeat_msg.external_antenna_present = (msg.flags & 0x80000000) >> 31
 
-        self.pub_heartbeat.publish(self.heartbeat_msg)
+        self.publishers['heartbeat'].publish(self.heartbeat_msg)
 
         # Update debug msg and publish
         self.debug_msg.system_error = self.heartbeat_msg.system_error
@@ -396,7 +428,7 @@ class Piksi:
                 and len(self.tracking_state_msg.code) \
                 and len(self.tracking_state_msg.cn0):
 
-            self.pub_tracking_state.publish(self.tracking_state_msg)
+            self.publishers['tracking_state'].publish(self.tracking_state_msg)
 
             # Update debug msg and publish
             self.debug_msg.num_sat = 0  # count number of satellites used to track
@@ -412,7 +444,7 @@ class Piksi:
         """
         Callback function to publish PiksiDebug msg.
         """
-        self.pub_piksidebug.publish(self.debug_msg)
+        self.publishers['receiver_state'].publish(self.debug_msg)
 
     def uart_state_callback(self, msg_raw, **metadata):
         """
@@ -443,7 +475,7 @@ class Piksi:
         uart_state_msg.latency_lmax = msg.latency.lmax
         uart_state_msg.latency_current = msg.latency.current
 
-        self.pub_piksi_uart_state.publish(uart_state_msg)
+        self.publishers['uart_state'].publish(uart_state_msg)
 
 # Main function.
 if __name__ == '__main__':
