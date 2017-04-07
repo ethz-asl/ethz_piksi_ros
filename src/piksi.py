@@ -181,23 +181,23 @@ class Piksi:
                                                        PiksiDebug, queue_size=10)
         publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
                                                    msg_uart_state, queue_size=10)
-        publishers['baseline_ecef'] = rospy.Publisher(rospy.get_name() + 'baseline_ecef',
+        publishers['baseline_ecef'] = rospy.Publisher(rospy.get_name() + '/baseline_ecef',
                                                       msg_baseline_ecef, queue_size=10)
-        publishers['baseline_ned'] = rospy.Publisher(rospy.get_name() + 'baseline_ned',
+        publishers['baseline_ned'] = rospy.Publisher(rospy.get_name() + '/baseline_ned',
                                                      PiksiBaseline, queue_size=10)
-        publishers['dops'] = rospy.Publisher(rospy.get_name() + 'dops',
+        publishers['dops'] = rospy.Publisher(rospy.get_name() + '/dops',
                                              msg_dops, queue_size=10)
-        publishers['gps_time'] = rospy.Publisher(rospy.get_name() + 'gps_time',
+        publishers['gps_time'] = rospy.Publisher(rospy.get_name() + '/gps_time',
                                                  msg_gps_time, queue_size=10)
-        publishers['pos_ecef'] = rospy.Publisher(rospy.get_name() + 'pos_ecef',
+        publishers['pos_ecef'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
                                                  msg_pos_ecef, queue_size=10)
-        publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + 'pos_llh',
+        publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
                                                 msg_pos_llh, queue_size=10)
-        publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + 'vel_ecef',
+        publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + '/vel_ecef',
                                                  msg_vel_ecef, queue_size=10)
-        publishers['vel_ned'] = rospy.Publisher(rospy.get_name() + 'vel_ned',
+        publishers['vel_ned'] = rospy.Publisher(rospy.get_name() + '/vel_ned',
                                                 msg_vel_ned, queue_size=10)
-        publishers['log'] = rospy.Publisher(rospy.get_name() + 'log',
+        publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
                                             msg_log, queue_size=10)
 
         if not self.base_station_mode:
