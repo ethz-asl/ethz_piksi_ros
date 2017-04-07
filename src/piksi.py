@@ -8,13 +8,9 @@
 #
 
 import rospy
-import sys
-
 # Import message types
-from std_msgs.msg import Header
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from piksi_rtk_gps.msg import *
-
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client import Handler, Framer
@@ -25,13 +21,12 @@ from sbp.tracking import *  # WARNING: tracking is part of the draft messages, c
 from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could be removed in future releases of libsbp
 from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
 import sbp.version
-
 # networking stuff
 import UdpHelpers
 import time
 import subprocess
 import re
-import threading, time
+import threading
 
 class Piksi:
     def __init__(self):
