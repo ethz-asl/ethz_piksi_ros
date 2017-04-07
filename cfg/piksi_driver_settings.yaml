@@ -43,16 +43,8 @@ publish_wifi_corrections_received: true # will not be published if base_station_
 
 # Covariances to be published in the NavSatFix message
 # Single Point Positioning (SPP)
-var_spp_x: 25
-var_spp_y: 25
-var_spp_z: 64
-
+var_spp: [33.0, 25.0, 64.0]
 # RTK float mode
-var_rtk_float_x: 25
-var_rtk_float_y: 25
-var_rtk_float_z: 64
-
+var_rtk_float: [33.0, 25.0, 64.0]
 # RTK fix mode
-var_rtk_fix_x: 0.0049
-var_rtk_fix_y: 0.0049
-var_rtk_fix_z: 0.01
+var_rtk_fix: [0.0049, 0.0049, 0.01]

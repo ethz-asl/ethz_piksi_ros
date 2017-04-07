@@ -59,15 +59,9 @@ class Piksi:
         self.handler = Handler(self.framer)
 
         # Read settings
-        self.var_spp_x = rospy.get_param('~var_spp_x', 25.0)
-        self.var_spp_y = rospy.get_param('~var_spp_y', 25.0)
-        self.var_spp_z = rospy.get_param('~var_spp_z', 64.0)
-        self.var_rtk_float_x = rospy.get_param('~var_rtk_float_x', 25.0)
-        self.var_rtk_float_y = rospy.get_param('~var_rtk_float_y', 25.0)
-        self.var_rtk_float_z = rospy.get_param('~var_rtk_float_z', 64.0)
-        self.var_rtk_fix_x = rospy.get_param('~var_rtk_fix_x', 0.0049)
-        self.var_rtk_fix_y = rospy.get_param('~var_rtk_fix_y', 0.0049)
-        self.var_rtk_fix_z = rospy.get_param('~var_rtk_fix_z', 0.01)
+        self.var_spp = rospy.get_param('~var_spp', [33.0, 25.0, 64.0])
+        self.var_rtk_float = rospy.get_param('~var_rtk_float', [33.0, 25.0, 64.0])
+        self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
 
         # Navigation settings
         self.publish_spp = rospy.get_param('~publish_navsatfix_spp', False)
@@ -336,9 +330,9 @@ class Piksi:
         # SPP GPS messages
         if msg.flags == 0 and self.publish_spp:
             self.navsatfix_msg.status.status = NavSatStatus.STATUS_FIX
-            self.navsatfix_msg.position_covariance = [self.var_spp_x, 0, 0,
-                                                      0, self.var_spp_y, 0,
-                                                      0, 0, self.var_spp_z]
+            self.navsatfix_msg.position_covariance = [self.var_spp[0], 0, 0,
+                                                      0, self.var_spp[1], 0,
+                                                      0, 0, self.var_spp[2]]
             self.pub_spp.publish(self.navsatfix_msg)
 
         # RTK GPS messages
@@ -347,14 +341,14 @@ class Piksi:
             self.navsatfix_msg.status.status = NavSatStatus.STATUS_GBAS_FIX
 
             if msg.flags == 2:  # RTK float
-                self.navsatfix_msg.position_covariance = [self.var_rtk_float_x, 0, 0,
-                                                          0, self.var_rtk_float_y, 0,
-                                                          0, 0, self.var_rtk_float_z]
+                self.navsatfix_msg.position_covariance = [self.var_rtk_float[0], 0, 0,
+                                                          0, self.var_rtk_float[1], 0,
+                                                          0, 0, self.var_rtk_float[2]]
                 self.pub_rtk_float.publish(self.navsatfix_msg)
             else:  # RTK fix
-                self.navsatfix_msg.position_covariance = [self.var_rtk_fix_x, 0, 0,
-                                                          0, self.var_rtk_fix_y, 0,
-                                                          0, 0, self.var_rtk_fix_z]
+                self.navsatfix_msg.position_covariance = [self.var_rtk_fix[0], 0, 0,
+                                                          0, self.var_rtk_fix[1], 0,
+                                                          0, 0, self.var_rtk_fix[2]]
                 self.pub_rtk_fix.publish(self.navsatfix_msg)
 
             # Update debug msg and publish
