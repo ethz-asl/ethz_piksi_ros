@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<data>
+  <profile>
+    <description_file>xbp24c-th_2001.xml</description_file>
+    <settings>
+      <setting command="CH">16</setting>
+      <setting command="ID">26</setting>
+      <setting command="DH">0</setting>
+      <setting command="DL">0</setting>
+      <setting command="MY">0</setting>
+      <setting command="MM">3</setting>
+      <setting command="RR">0</setting>
+      <setting command="RN">0</setting>
+      <setting command="NT">19</setting>
+      <setting command="NO">0</setting>
+      <setting command="TO">0</setting>
+      <setting command="C8">0</setting>
+      <setting command="CE">0</setting>
+      <setting command="SC">1FFE</setting>
+      <setting command="SD">4</setting>
+      <setting command="A1">0</setting>
+      <setting command="A2">0</setting>
+      <setting command="EE">0</setting>
+      <setting command="KY"></setting>
+      <setting command="NI">0x20</setting>
+      <setting command="PL">4</setting>
+      <setting command="CA">28</setting>
+      <setting command="SM">0</setting>
+      <setting command="ST">1388</setting>
+      <setting command="SP">0</setting>
+      <setting command="DP">3E8</setting>
+      <setting command="SO">0</setting>
+      <setting command="BD">6</setting>
+      <setting command="NB">0</setting>
+      <setting command="RO">3</setting>
+      <setting command="D7">1</setting>
+      <setting command="D6">0</setting>
+      <setting command="AP">0</setting>
+      <setting command="D0">0</setting>
+      <setting command="D1">0</setting>
+      <setting command="D2">0</setting>
+      <setting command="D3">0</setting>
+      <setting command="D4">0</setting>
+      <setting command="D5">1</setting>
+      <setting command="D8">0</setting>
+      <setting command="P0">1</setting>
+      <setting command="M0">0</setting>
+      <setting command="P1">0</setting>
+      <setting command="M1">0</setting>
+      <setting command="P2">0</setting>
+      <setting command="PR">FF</setting>
+      <setting command="PD">FF</setting>
+      <setting command="IU">1</setting>
+      <setting command="IT">1</setting>
+      <setting command="IC">0</setting>
+      <setting command="IR">0</setting>
+      <setting command="PT">FF</setting>
+      <setting command="RP">28</setting>
+      <setting command="IA">FFFFFFFFFFFFFFFF</setting>
+      <setting command="T0">FF</setting>
+      <setting command="T1">FF</setting>
+      <setting command="T2">FF</setting>
+      <setting command="T3">FF</setting>
+      <setting command="T4">FF</setting>
+      <setting command="T5">FF</setting>
+      <setting command="T6">FF</setting>
+      <setting command="T7">FF</setting>
+      <setting command="DD">10000</setting>
+      <setting command="CT">64</setting>
+      <setting command="GT">3E8</setting>
+      <setting command="CC">2B</setting>
+    </settings>
+  </profile>
+</data>
