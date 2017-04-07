@@ -119,7 +119,7 @@ class Piksi:
 
         # Init messages with "memory"
         self.navsatfix_msg = self.init_navsatfix_msg()
-        self.debug_msg = self.init_debug_msg()
+        self.receiver_state_msg = self.init_receiver_state_msg()
         self.num_wifi_corrections = self.init_num_corrections_msg()
 
         # corrections over wifi message, if we are not the base station
@@ -134,27 +134,27 @@ class Piksi:
 
     def init_num_corrections_msg(self):
 
-        num_wifi_corrections = PiksiNumCorrections()
+        num_wifi_corrections = InfoWifiCorrections()
         num_wifi_corrections.header.seq = 0
         num_wifi_corrections.received_corrections = 0
         num_wifi_corrections.latency = -1
 
         return num_wifi_corrections
 
-    def init_debug_msg(self):
+    def init_receiver_state_msg(self):
 
-        debug_msg = PiksiDebug()
-        debug_msg.num_sat = 0  # Unkown
-        debug_msg.rtk_mode_fix = False  # Unkown
-        debug_msg.sat = []  # Unkown
-        debug_msg.cn0 = []  # Unkown
-        debug_msg.tracking_running = []  # Unkown
-        debug_msg.system_error = 255  # Unkown
-        debug_msg.io_error = 255  # Unkown
-        debug_msg.swift_nap_error = 255  # Unkown
-        debug_msg.external_antenna_present = 255  # Unkown
+        receiver_state_msg = ReceiverState()
+        receiver_state_msg.num_sat = 0  # Unkown
+        receiver_state_msg.rtk_mode_fix = False  # Unkown
+        receiver_state_msg.sat = []  # Unkown
+        receiver_state_msg.cn0 = []  # Unkown
+        receiver_state_msg.tracking_running = []  # Unkown
+        receiver_state_msg.system_error = 255  # Unkown
+        receiver_state_msg.io_error = 255  # Unkown
+        receiver_state_msg.swift_nap_error = 255  # Unkown
+        receiver_state_msg.external_antenna_present = 255  # Unkown
 
-        return debug_msg
+        return receiver_state_msg
 
     def init_navsatfix_msg(self):
 
@@ -178,38 +178,36 @@ class Piksi:
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
                                             NavSatFix, queue_size=10)
-        publishers['piksibaseline'] = rospy.Publisher(rospy.get_name() + '/piksibaseline',
-                                                      PiksiBaseline, queue_size=10)
         publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
-                                                  msg_heartbeat, queue_size=10)
+                                                  Heartbeat, queue_size=10)
         publishers['tracking_state'] = rospy.Publisher(rospy.get_name() + '/tracking_state',
-                                                       msg_tracking_state, queue_size=10)
+                                                       TrackingState, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
-                                                       PiksiDebug, queue_size=10)
+                                                       ReceiverState, queue_size=10)
         publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
-                                                   msg_uart_state, queue_size=10)
+                                                   UartState, queue_size=10)
         publishers['baseline_ecef'] = rospy.Publisher(rospy.get_name() + '/baseline_ecef',
-                                                      msg_baseline_ecef, queue_size=10)
+                                                      BaselineEcef, queue_size=10)
         publishers['baseline_ned'] = rospy.Publisher(rospy.get_name() + '/baseline_ned',
-                                                     PiksiBaseline, queue_size=10)
+                                                     BaselineNed, queue_size=10)
         publishers['dops'] = rospy.Publisher(rospy.get_name() + '/dops',
-                                             msg_dops, queue_size=10)
+                                             Dops, queue_size=10)
         publishers['gps_time'] = rospy.Publisher(rospy.get_name() + '/gps_time',
-                                                 msg_gps_time, queue_size=10)
+                                                 GpsTime, queue_size=10)
         publishers['pos_ecef'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
-                                                 msg_pos_ecef, queue_size=10)
+                                                 PosEcef, queue_size=10)
         publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
-                                                msg_pos_llh, queue_size=10)
+                                                PosLlh, queue_size=10)
         publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + '/vel_ecef',
-                                                 msg_vel_ecef, queue_size=10)
+                                                 VelEcef, queue_size=10)
         publishers['vel_ned'] = rospy.Publisher(rospy.get_name() + '/vel_ned',
-                                                msg_vel_ned, queue_size=10)
+                                                VelNed, queue_size=10)
         publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
-                                            msg_log, queue_size=10)
+                                            Log, queue_size=10)
 
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
-                                                             PiksiNumCorrections, queue_size=10)
+                                                             InfoWifiCorrections, queue_size=10)
 
         return publishers
 
@@ -361,8 +359,8 @@ class Piksi:
                 self.publishers['rtk_fix'].publish(self.navsatfix_msg)
 
             # Update debug msg and publish
-            self.debug_msg.rtk_mode_fix = True if (msg.flags == 1) else False
-            self.publish_piksidebug_msg()
+            self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == 1) else False
+            self.publish_receiver_state_msg()
 
     def baseline_callback(self, msg_raw, **metadata):
         """
@@ -371,12 +369,16 @@ class Piksi:
         """
         msg = MsgBaselineNED(msg_raw)
 
-        baseline_msg = PiksiBaseline()
+        baseline_msg = BaselineNed()
         baseline_msg.header.stamp = rospy.Time.now()
-        baseline_msg.baseline.x = msg.n
-        baseline_msg.baseline.y = msg.e
-        baseline_msg.baseline.z = msg.d
-        baseline_msg.mode_fixed = msg.flags
+        baseline_msg.tow = msg.tow
+        baseline_msg.n = msg.n
+        baseline_msg.e = msg.e
+        baseline_msg.d = msg.d
+        baseline_msg.h_accuracy = msg.h_accuracy
+        baseline_msg.v_accuracy = msg.v_accuracy
+        baseline_msg.n_sats = msg.n_sats
+        baseline_msg.flags = msg.flags
 
         self.publishers['baseline_ned'].publish(baseline_msg)
 
@@ -387,7 +389,8 @@ class Piksi:
         """
         msg = MsgHeartbeat(msg_raw)
 
-        heartbeat_msg = msg_heartbeat()
+        heartbeat_msg = Heartbeat()
+        heartbeat_msg.header.stamp = rospy.Time.now()
         heartbeat_msg.system_error = msg.flags & 0x01
         heartbeat_msg.io_error = msg.flags & 0x02
         heartbeat_msg.swift_nap_error = msg.flags & 0x04
@@ -398,11 +401,11 @@ class Piksi:
         self.publishers['heartbeat'].publish(heartbeat_msg)
 
         # Update debug msg and publish
-        self.debug_msg.system_error = heartbeat_msg.system_error
-        self.debug_msg.io_error = heartbeat_msg.io_error
-        self.debug_msg.swift_nap_error = heartbeat_msg.swift_nap_error
-        self.debug_msg.external_antenna_present = heartbeat_msg.external_antenna_present
-        self.publish_piksidebug_msg()
+        self.receiver_state_msg.system_error = heartbeat_msg.system_error
+        self.receiver_state_msg.io_error = heartbeat_msg.io_error
+        self.receiver_state_msg.swift_nap_error = heartbeat_msg.swift_nap_error
+        self.receiver_state_msg.external_antenna_present = heartbeat_msg.external_antenna_present
+        self.publish_receiver_state_msg()
 
     def tracking_state_callback(self, msg_raw, **metadata):
         """
@@ -411,7 +414,8 @@ class Piksi:
         """
         msg = MsgTrackingState(msg_raw)
 
-        tracking_state_msg = msg_tracking_state()
+        tracking_state_msg = TrackingState()
+        tracking_state_msg.header.stamp = rospy.Time.now()
         tracking_state_msg.state = []
         tracking_state_msg.sat = []
         tracking_state_msg.code = []
@@ -435,20 +439,20 @@ class Piksi:
             self.publishers['tracking_state'].publish(tracking_state_msg)
 
             # Update debug msg and publish
-            self.debug_msg.num_sat = 0  # count number of satellites used to track
+            self.receiver_state_msg.num_sat = 0  # count number of satellites used to track
             for tracking_running in tracking_state_msg.state:
-                self.debug_msg.num_sat += tracking_running
+                self.receiver_state_msg.num_sat += tracking_running
 
-            self.debug_msg.sat = tracking_state_msg.sat
-            self.debug_msg.cn0 = tracking_state_msg.cn0
-            self.debug_msg.tracking_running = tracking_state_msg.state
-            self.publish_piksidebug_msg()
+            self.receiver_state_msg.sat = tracking_state_msg.sat
+            self.receiver_state_msg.cn0 = tracking_state_msg.cn0
+            self.receiver_state_msg.tracking_running = tracking_state_msg.state
+            self.publish_receiver_state_msg()
 
-    def publish_piksidebug_msg(self):
+    def publish_receiver_state_msg(self):
         """
         Callback function to publish PiksiDebug msg.
         """
-        self.publishers['receiver_state'].publish(self.debug_msg)
+        self.publishers['receiver_state'].publish(self.receiver_state_msg)
 
     def uart_state_callback(self, msg_raw, **metadata):
         """
@@ -458,7 +462,8 @@ class Piksi:
         # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
         msg = MsgUartStateDepa(msg_raw)
 
-        uart_state_msg = msg_uart_state()
+        uart_state_msg = UartState()
+        uart_state_msg.header.stamp = rospy.Time.now()
 
         uart_state_msg.uart_a_tx_throughput = msg.uart_a.tx_throughput
         uart_state_msg.uart_a_rx_throughput = msg.uart_a.rx_throughput

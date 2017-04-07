@@ -1,5 +1,7 @@
 # Miscellaneous information form different SBP messages
 
+Header header
+
 uint8 num_sat                   #Number of satellites
 bool rtk_mode_fix 	            #1 = Fixed, 0 = Float
 uint16[] sat                    #Constellation-specific satellite identifier
