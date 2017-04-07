@@ -63,24 +63,6 @@ class Piksi:
         self.var_rtk_float = rospy.get_param('~var_rtk_float', [33.0, 25.0, 64.0])
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
 
-        # Navigation settings
-        self.publish_spp = rospy.get_param('~publish_navsatfix_spp', False)
-        self.publish_piksibaseline = rospy.get_param('~publish_piksibaseline', False)
-
-        # Logging settings
-        self.publish_log = rospy.get_param('~publish_log', False)
-
-        # System settings
-        self.publish_heartbeat = rospy.get_param('~publish_heartbeat', True)
-
-        # Tracking settings
-        self.publish_tracking_state = rospy.get_param('~publish_tracking_state', True)
-
-        # Debug settings
-        self.publish_piksidebug = rospy.get_param('~publish_piksidebug', True)
-        self.publish_uart_state = rospy.get_param('~publish_uart_state', True)
-        self.publish_wifi_corrections_received = rospy.get_param('~publish_wifi_corrections_received',
-                                                                 True)
         self.base_station_ip_for_latency_estimation = rospy.get_param(
                                                             '~base_station_ip_for_latency_estimation',
                                                             '10.10.50.1')
@@ -90,8 +72,7 @@ class Piksi:
                                              NavSatFix, queue_size=10)
         self.pub_rtk_fix = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                            NavSatFix, queue_size=10)
-        if self.publish_spp:
-            self.pub_spp = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
+        self.pub_spp = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
                                            NavSatFix, queue_size=10)
 
         # Define fixed attributes of the NavSatFixed message
@@ -103,11 +84,10 @@ class Piksi:
         self.handler.add_callback(self.navsatfix_callback, msg_type=SBP_MSG_POS_LLH)
 
         # Generate publisher and callback function for PiksiBaseline messages
-        if self.publish_piksibaseline:
-            self.pub_piksibaseline = rospy.Publisher(rospy.get_name() + '/piksibaseline',
-                                                     PiksiBaseline, queue_size=10)
-            self.baseline_msg = PiksiBaseline()
-            self.handler.add_callback(self.baseline_callback, msg_type=SBP_MSG_BASELINE_NED)
+        self.pub_piksibaseline = rospy.Publisher(rospy.get_name() + '/piksibaseline',
+                                                 PiksiBaseline, queue_size=10)
+        self.baseline_msg = PiksiBaseline()
+        self.handler.add_callback(self.baseline_callback, msg_type=SBP_MSG_BASELINE_NED)
 
         # subscribe to OBS messages and relay them via UDP if in base station mode
         if self.base_station_mode:
@@ -153,18 +133,16 @@ class Piksi:
                                          SBP_MSG_LOG, MsgLog, 'level', 'text')
 
         # Generate publisher and callback function for System messages
-        if self.publish_heartbeat:
-            self.pub_heartbeat = rospy.Publisher(rospy.get_name() + '/heartbeat',
-                                                 msg_heartbeat, queue_size=10)
-            self.heartbeat_msg = msg_heartbeat()
-            self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
+        self.pub_heartbeat = rospy.Publisher(rospy.get_name() + '/heartbeat',
+                                             msg_heartbeat, queue_size=10)
+        self.heartbeat_msg = msg_heartbeat()
+        self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
 
         # Generate publisher and callback function for Tracking messages
-        if self.publish_tracking_state:
-            self.pub_tracking_state = rospy.Publisher(rospy.get_name() + '/tracking_state',
-                                                      msg_tracking_state, queue_size=10)
-            self.tracking_state_msg = msg_tracking_state()
-            self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
+        self.pub_tracking_state = rospy.Publisher(rospy.get_name() + '/tracking_state',
+                                                  msg_tracking_state, queue_size=10)
+        self.tracking_state_msg = msg_tracking_state()
+        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
 
         # Generate publisher and callback function for Debug messages
         # init debug msg, required even tough publish_piksidebug is false to avoid run time errors
@@ -178,23 +156,22 @@ class Piksi:
         self.debug_msg.io_error = 255  # Unkown
         self.debug_msg.swift_nap_error = 255  # Unkown
         self.debug_msg.external_antenna_present = 255  # Unkown
-        if self.publish_piksidebug:
-            self.pub_piksidebug = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
-                                                  PiksiDebug, queue_size=10)
+
+        self.pub_piksidebug = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
+                                              PiksiDebug, queue_size=10)
 
         # uart state
-        if self.publish_uart_state:
-            # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
-            self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE_DEPA)
-            self.pub_piksi_uart_state = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
-                                                        msg_uart_state, queue_size=10)
+        # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
+        self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE_DEPA)
+        self.pub_piksi_uart_state = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
+                                                    msg_uart_state, queue_size=10)
 
         # corrections over wifi message, if we are not the base station
         self.num_wifi_corrections = PiksiNumCorrections()
         self.num_wifi_corrections.header.seq = 0
         self.num_wifi_corrections.received_corrections = 0
         self.num_wifi_corrections.latency = -1
-        if self.publish_wifi_corrections_received and not self.base_station_mode:
+        if not self.base_station_mode:
             self.pub_piksi_wifi_corrections = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
                                                               PiksiNumCorrections, queue_size=10)
             # start new thread to periodically ping base station
@@ -207,7 +184,7 @@ class Piksi:
 
     def ping_base_station_over_wifi(self):
         """
-        Ping base station pereiodically without blocking the driver
+        Ping base station periodically without blocking the driver
         """
 
         ping_deadline_seconds = 3
@@ -304,13 +281,12 @@ class Piksi:
             self.framer(msg, **metadata)
             
             # publish debug message about wifi corrections, if enabled
-            if self.publish_wifi_corrections_received:
-                self.num_wifi_corrections.header.seq += 1
-                now = rospy.get_rostime()
-                self.num_wifi_corrections.header.stamp.secs = now.secs
-                self.num_wifi_corrections.header.stamp.nsecs = now.nsecs
-                self.num_wifi_corrections.received_corrections += 1
-                self.pub_piksi_wifi_corrections.publish(self.num_wifi_corrections)
+            self.num_wifi_corrections.header.seq += 1
+            now = rospy.get_rostime()
+            self.num_wifi_corrections.header.stamp.secs = now.secs
+            self.num_wifi_corrections.header.stamp.nsecs = now.nsecs
+            self.num_wifi_corrections.received_corrections += 1
+            self.pub_piksi_wifi_corrections.publish(self.num_wifi_corrections)
 
         else:
             rospy.logwarn("Received external SBP msg, but Piksi not connected.")
@@ -328,7 +304,7 @@ class Piksi:
         self.navsatfix_msg.altitude = msg.height
 
         # SPP GPS messages
-        if msg.flags == 0 and self.publish_spp:
+        if msg.flags == 0:
             self.navsatfix_msg.status.status = NavSatStatus.STATUS_FIX
             self.navsatfix_msg.position_covariance = [self.var_spp[0], 0, 0,
                                                       0, self.var_spp[1], 0,
@@ -436,8 +412,7 @@ class Piksi:
         """
         Callback function to publish PiksiDebug msg.
         """
-        if self.publish_piksidebug:
-            self.pub_piksidebug.publish(self.debug_msg)
+        self.pub_piksidebug.publish(self.debug_msg)
 
     def uart_state_callback(self, msg_raw, **metadata):
         """

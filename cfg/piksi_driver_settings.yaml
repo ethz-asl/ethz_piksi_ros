@@ -12,35 +12,6 @@ base_station_ip_for_latency_estimation: 10.10.50.1 # ip base station if you want
 # Coordinate frame of the GPS receiver with respect to the base link
 frame_id: 'base_link'
 
-# ROS message types to be published
-publish_navsatfix_rtk: true
-publish_navsatfix_spp: true
-publish_piksibaseline: true
-
-# SBP Navigation message types to be published
-publish_gps_time: true
-publish_dops: true
-publish_pos_ecef: true
-publish_pos_llh: true
-publish_baseline_ecef: true
-publish_baseline_ned: true
-publish_vel_ecef: true
-publish_vel_ned: true
-
-# Logging message types to be published
-publish_log: true
-
-# System message types to be published
-publish_heartbeat: true
-
-# Tracking message types to be published
-publish_tracking_state: true
-
-# Custom debug messages
-publish_piksidebug: true #published only if at least one of the following is pub: heartbeat, tracking_state, navsatfix_rtk
-publish_uart_state: true
-publish_wifi_corrections_received: true # will not be published if base_station_mode is true
-
 # Covariances to be published in the NavSatFix message
 # Single Point Positioning (SPP)
 var_spp: [33.0, 25.0, 64.0]
