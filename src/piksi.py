@@ -10,7 +10,7 @@
 import rospy
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
-from piksi_rtk_gps.msg import *
+from piksi_rtk_msgs.msg import *
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client import Handler, Framer

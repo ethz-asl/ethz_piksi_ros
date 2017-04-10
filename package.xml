@@ -13,11 +13,8 @@
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
 
-  <depend>message_generation</depend>
-  <depend>message_runtime</depend>
   <depend>rospy</depend>
-  <depend>std_msgs</depend>
-  <depend>geometry_msgs</depend>
+  <depend>piksi_rtk_msgs</depend>
   <depend>sensor_msgs</depend>
 
 </package>
