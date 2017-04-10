@@ -36,7 +36,7 @@ import threading
 class Piksi:
     LIB_SBP_VERSION = '1.2.1'  # sbp version used to test this driver
 
-    # Geodetic Constants
+    # Geodetic Constants.
     kSemimajorAxis = 6378137
     kSemiminorAxis = 6356752.3142
     kFirstEccentricitySquared = 6.69437999014 * 0.001
@@ -419,7 +419,6 @@ class Piksi:
         navsatfix_msg.latitude = latitude
         navsatfix_msg.longitude = longitude
         navsatfix_msg.altitude = height
-
         navsatfix_msg.status.status = status
         navsatfix_msg.position_covariance = [variance[0], 0, 0,
                                              0, variance[1], 0,
@@ -635,7 +634,6 @@ class Piksi:
         point_msg.z = up
 
         return point_msg
-
 
 # Main function.
 if __name__ == '__main__':
