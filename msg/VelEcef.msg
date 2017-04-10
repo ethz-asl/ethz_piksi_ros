@@ -3,10 +3,10 @@
 
 Header header
 
-uint32 tow
-int32 x
-int32 y
-int32 z
-uint16 accuracy
-uint8 n_sats
-uint8 flags
+uint32 tow      # GPS Time of Week.
+int32 x         # Velocity ECEF X coordinate [mm/s].
+int32 y         # Velocity ECEF Y coordinate [mm/s].
+int32 z         # Velocity ECEF Z coordinate [mm/s].
+uint16 accuracy # Velocity accuracy estimate (not implemented). Defaults to 0.
+uint8 n_sats    # Number of satellites used in solution.
+uint8 flags     # Status flags (reserved), see MSG_VEL_ECEF message description in SBP documentation.

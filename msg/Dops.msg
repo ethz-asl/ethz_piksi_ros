@@ -3,9 +3,9 @@
 
 Header header
 
-uint32 tow
-uint16 gdop
-uint16 pdop
-uint16 tdop
-uint16 hdop
-uint16 vdop
+uint32 tow  # GPS Time of Week [ms].
+uint16 gdop # Geometric Dilution of Precision.
+uint16 pdop # Position Dilution of Precision.
+uint16 tdop # Time Dilution of Precision.
+uint16 hdop # Horizontal Dilution of Precision.
+uint16 vdop # Vertical Dilution of Precision.

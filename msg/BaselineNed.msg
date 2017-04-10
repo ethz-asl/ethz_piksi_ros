@@ -5,11 +5,11 @@
 
 Header header
 
-uint32 tow
-int32 n
-int32 e
-int32 d
-uint16 h_accuracy
-uint16 v_accuracy
-uint8 n_sats
-uint8 flags
+uint32 tow          # GPS Time of Week [ms].
+int32 n             # Baseline North coordinate [mm].
+int32 e             # Baseline East coordinate[mm].
+int32 d             # Baseline Down coordinate [mm].
+uint16 h_accuracy   # Horizontal position accuracy estimate (not implemented). Defaults to 0.
+uint16 v_accuracy   # Vertical position accuracy estimate (not implemented). Defaults to 0.
+uint8 n_sats        # Number of satellites used in solution
+uint8 flags         # Status flags, see MSG_BASELINE_NED message description in SBP documentation.

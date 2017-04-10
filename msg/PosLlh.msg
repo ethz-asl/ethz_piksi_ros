@@ -6,11 +6,11 @@
 
 Header header
 
-uint32 tow
-float64 lat
-float64 lon
-float64 height
-uint16 h_accuracy
-uint16 v_accuracy
-uint8 n_sats
-uint8 flags
+uint32 tow          # GPS Time of Week [ms].
+float64 lat         # Latitude [deg].
+float64 lon         # Longitude [deg].
+float64 height      # Height [deg].
+uint16 h_accuracy   # Horizontal position accuracy estimate (not implemented). Defaults to 0.
+uint16 v_accuracy   # Vertical position accuracy estimate (not implemented). Defaults to 0.
+uint8 n_sats        # Number of satellites used in solution.
+uint8 flags         # Status flags, see MSG_POS_ECEF message description in SBP documentation.

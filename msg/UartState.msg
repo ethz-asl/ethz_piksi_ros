@@ -7,21 +7,21 @@
 
 Header header
 
-float64 uart_a_tx_throughput
-float64 uart_a_rx_throughput
-uint16 uart_a_crc_error_count
-uint16 uart_a_io_error_count
-uint8 uart_a_tx_buffer_level
-uint8 uart_a_rx_buffer_level
+float64 uart_a_tx_throughput    # UART transmit throughput [kB/s].
+float64 uart_a_rx_throughput    # UART transmit throughput [kB/s].
+uint16 uart_a_crc_error_count   # UART CRC error count.
+uint16 uart_a_io_error_count    # UART IO error count.
+uint8 uart_a_tx_buffer_level    # UART transmit buffer percentage utilization (ranges from 0 to 255).
+uint8 uart_a_rx_buffer_level    # UART transmit buffer percentage utilization (ranges from 0 to 255).
 
-float64 uart_b_tx_throughput
-float64 uart_b_rx_throughput
-uint16 uart_b_crc_error_count
-uint16 uart_b_io_error_count
-uint8 uart_b_tx_buffer_level
-uint8 uart_b_rx_buffer_level
+float64 uart_b_tx_throughput    # UART transmit throughput [kB/s].
+float64 uart_b_rx_throughput    # UART transmit throughput [kB/s].
+uint16 uart_b_crc_error_count   # UART CRC error count.
+uint16 uart_b_io_error_count    # UART IO error count.
+uint8 uart_b_tx_buffer_level    # UART transmit buffer percentage utilization (ranges from 0 to 255).
+uint8 uart_b_rx_buffer_level    # UART transmit buffer percentage utilization (ranges from 0 to 255).
 
-int32 latency_avg
-int32 latency_lmin
-int32 latency_lmax
-int32 latency_current
+int32 latency_avg               # Average latency [ms].
+int32 latency_lmin              # Minimum latency [ms].
+int32 latency_lmax              # Maximum latency [ms].
+int32 latency_current           # Smoothed estimate of the current latency.

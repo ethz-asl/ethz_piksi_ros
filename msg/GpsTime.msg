@@ -8,7 +8,7 @@
 
 Header header
 
-uint32 wn
-uint32 tow
-int32 ns
-uint8 flags
+uint32 wn   # GPS week number.
+uint32 tow  # GPS time of week rounded to the nearest millisecond [ms].
+int32 ns    # Nanosecond residual of millisecond-rounded TOW (ranges from -500000 to 500000) [ns].
+uint8 flags # Status flags (reserved).
