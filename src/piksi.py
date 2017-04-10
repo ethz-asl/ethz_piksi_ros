@@ -30,11 +30,17 @@ import threading
 
 class Piksi:
 
+    LIB_SBP_VERSION = '1.2.1' # sbp version used to test this driver
+
     def __init__(self):
         # Print info.
         rospy.sleep(0.5)  # wait for a while for init to complete before printing
         rospy.loginfo(rospy.get_name() + " start")
         rospy.loginfo("libsbp version currently used: " + sbp.version.get_git_version())
+
+        if Piksi.LIB_SBP_VERSION != sbp.version.get_git_version():
+            rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!" % (
+            sbp.version.get_git_version(), Piksi.LIB_SBP_VERSION))
 
         # Open a connection to Piksi.
         serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
