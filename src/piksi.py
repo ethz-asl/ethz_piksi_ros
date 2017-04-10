@@ -113,8 +113,8 @@ class Piksi:
 
         if rospy.has_param('~latitude0_deg') and rospy.has_param('~longitude0_deg') and rospy.has_param(
                 '~altitude0_deg'):
-            latitude0 = math.radians(rospy.get_param('~latitude0_deg'))
-            longitude0 = math.radians(rospy.get_param('~longitude0_deg'))
+            latitude0 = rospy.get_param('~latitude0_deg')
+            longitude0 = rospy.get_param('~longitude0_deg')
             altitude0 = rospy.get_param('~altitude0_deg')
 
             # Set origin ENU frame to coordinate specified by rosparam.
