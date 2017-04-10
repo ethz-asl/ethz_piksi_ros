@@ -636,6 +636,7 @@ class Piksi:
 
         return point_msg
 
+
 # Main function.
 if __name__ == '__main__':
     rospy.init_node('piksi')
