@@ -66,6 +66,12 @@ class Piksi:
         self.framer = Framer(self.driver.read, self.driver.write, verbose=True)
         self.handler = Handler(self.framer)
 
+        self.debug_mode = rospy.get_param('~debug_mode', False)
+        if self.debug_mode:
+            rospy.loginfo("Piksi driver started in debug mode, every available topic will be published.")
+        else:
+            rospy.loginfo("Piksi driver started in normal mode.")
+
         # Corrections over WiFi settings.
         self.base_station_mode = rospy.get_param('~base_station_mode', False)
         self.udp_broadcast_addr = rospy.get_param('~broadcast_addr', '255.255.255.255')
@@ -200,8 +206,6 @@ class Piksi:
         """
         publishers = {}
 
-        publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
-                                                  NavSatFix, queue_size=10)
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
@@ -214,21 +218,13 @@ class Piksi:
                                                        ReceiverState, queue_size=10)
         publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
                                                    UartState, queue_size=10)
-        publishers['baseline_ecef'] = rospy.Publisher(rospy.get_name() + '/baseline_ecef',
-                                                      BaselineEcef, queue_size=10)
         publishers['baseline_ned'] = rospy.Publisher(rospy.get_name() + '/baseline_ned',
                                                      BaselineNed, queue_size=10)
-        publishers['dops'] = rospy.Publisher(rospy.get_name() + '/dops',
-                                             Dops, queue_size=10)
         publishers['gps_time'] = rospy.Publisher(rospy.get_name() + '/gps_time',
                                                  GpsTime, queue_size=10)
-        publishers['pos_ecef'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
-                                                 PosEcef, queue_size=10)
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
-        publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + '/vel_ecef',
-                                                 VelEcef, queue_size=10)
         publishers['vel_ned'] = rospy.Publisher(rospy.get_name() + '/vel_ned',
                                                 VelNed, queue_size=10)
         publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
@@ -238,14 +234,27 @@ class Piksi:
                                                      PoseWithCovarianceStamped, queue_size=10)
         publishers['enu_point_fix'] = rospy.Publisher(rospy.get_name() + '/enu_point_fix',
                                                       PointStamped, queue_size=10)
-        publishers['enu_pose_float'] = rospy.Publisher(rospy.get_name() + '/enu_pose_float',
-                                                     PoseWithCovarianceStamped, queue_size=10)
-        publishers['enu_point_float'] = rospy.Publisher(rospy.get_name() + '/enu_point_float',
-                                                      PointStamped, queue_size=10)
         publishers['enu_pose_spp'] = rospy.Publisher(rospy.get_name() + '/enu_pose_spp',
                                                      PoseWithCovarianceStamped, queue_size=10)
         publishers['enu_point_spp'] = rospy.Publisher(rospy.get_name() + '/enu_point_spp',
                                                       PointStamped, queue_size=10)
+
+        # Topics published only if in "debug mode"
+        if self.debug_mode:
+            publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
+                                                      NavSatFix, queue_size=10)
+            publishers['baseline_ecef'] = rospy.Publisher(rospy.get_name() + '/baseline_ecef',
+                                                          BaselineEcef, queue_size=10)
+            publishers['dops'] = rospy.Publisher(rospy.get_name() + '/dops',
+                                                 Dops, queue_size=10)
+            publishers['pos_ecef'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
+                                                     PosEcef, queue_size=10)
+            publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + '/vel_ecef',
+                                                     VelEcef, queue_size=10)
+            publishers['enu_pose_float'] = rospy.Publisher(rospy.get_name() + '/enu_pose_float',
+                                                           PoseWithCovarianceStamped, queue_size=10)
+            publishers['enu_point_float'] = rospy.Publisher(rospy.get_name() + '/enu_point_float',
+                                                            PointStamped, queue_size=10)
 
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
@@ -324,8 +333,6 @@ class Piksi:
             pub = self.publishers[topic_name]
             callback_function = self.make_callback(callback_data_type, ros_message, pub, attrs)
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
-        else:
-            rospy.logerr(topic_name + " was not advertised correctly, it cannot be published.")
 
     def callback_sbp_obs(self, msg, **metadata):
         # rospy.logwarn("CALLBACK SBP OBS")
@@ -374,7 +381,7 @@ class Piksi:
         # RTK GPS messages.
         elif msg.flags == 1 or msg.flags == 2:
 
-            if msg.flags == 2:  # RTK float.
+            if msg.flags == 2 and not self.debug_mode:  # RTK float only in debug mode.
                 self.publish_rtk_float(msg.lat, msg.lon, msg.height)
             else:  # RTK fix.
                 # Use first RTK fix to set origin ENU frame, if it was not set by rosparam
