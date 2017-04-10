@@ -8,9 +8,12 @@
 #
 
 import rospy
+import math
+import numpy as np
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from piksi_rtk_msgs.msg import *
+from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client import Handler, Framer
@@ -32,6 +35,13 @@ import threading
 
 class Piksi:
     LIB_SBP_VERSION = '1.2.1'  # sbp version used to test this driver
+
+    # Geodetic Constants
+    kSemimajorAxis = 6378137
+    kSemiminorAxis = 6356752.3142
+    kFirstEccentricitySquared = 6.69437999014 * 0.001
+    kSecondEccentricitySquared = 6.73949674228 * 0.001
+    kFlattening = 1 / 298.257223563
 
     def __init__(self):
         # Print info.
@@ -78,10 +88,32 @@ class Piksi:
             rospy.loginfo("Starting in client station mode")
             self._multicast_recv = UdpHelpers.SbpUdpMulticastReceiver(self.udp_port, self.multicast_callback)
 
-        # Covariance settings.
+        # Navsatfix settings.
         self.var_spp = rospy.get_param('~var_spp', [25.0, 25.0, 64.0])
         self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
+        self.navsatfix_frame_id = rospy.get_param('~navsatfix_frame_id', 'gps')
+
+        # Local ENU frame settings
+        self.origin_enu_set = False
+        self.latitude0 = 0.0
+        self.longitude0 = 0.0
+        self.altitude0 = 0.0
+        self.initial_ecef_x = 0.0
+        self.initial_ecef_y = 0.0
+        self.initial_ecef_z = 0.0
+        self.ecef_to_ned_matrix = np.eye(3)
+        self.enu_frame_id = rospy.get_param('~enu_frame_id', 'enu')
+
+        if rospy.has_param('~latitude0_deg') and rospy.has_param('~longitude0_deg') and rospy.has_param(
+                '~altitude0_deg'):
+            latitude0 = math.radians(rospy.get_param('~latitude0_deg'))
+            longitude0 = math.radians(rospy.get_param('~longitude0_deg'))
+            altitude0 = rospy.get_param('~altitude0_deg')
+
+            # Set origin ENU frame to coordinate specified by rosparam.
+            self.init_geodetic_reference(latitude0, longitude0, altitude0)
+            rospy.loginfo("Origin ENU frame set by rosparam.")
 
         # Advertise topics.
         self.publishers = self.advertise_topics()
@@ -90,7 +122,6 @@ class Piksi:
         self.create_callbacks()
 
         # Init messages with "memory".
-        self.navsatfix_msg = self.init_navsatfix_msg()
         self.receiver_state_msg = self.init_receiver_state_msg()
         self.num_wifi_corrections = self.init_num_corrections_msg()
 
@@ -162,14 +193,6 @@ class Piksi:
 
         return receiver_state_msg
 
-    def init_navsatfix_msg(self):
-        navsatfix_msg = NavSatFix()
-        navsatfix_msg.header.frame_id = rospy.get_param('~frame_id', 'gps')
-        navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
-        navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
-
-        return navsatfix_msg
-
     def advertise_topics(self):
         """
         Adverties topics.
@@ -210,6 +233,19 @@ class Piksi:
                                                 VelNed, queue_size=10)
         publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
                                             Log, queue_size=10)
+        # Points in ENU frame.
+        publishers['enu_pose_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_fix',
+                                                     PoseWithCovarianceStamped, queue_size=10)
+        publishers['enu_point_fix'] = rospy.Publisher(rospy.get_name() + '/enu_point_fix',
+                                                      PointStamped, queue_size=10)
+        publishers['enu_pose_float'] = rospy.Publisher(rospy.get_name() + '/enu_pose_float',
+                                                     PoseWithCovarianceStamped, queue_size=10)
+        publishers['enu_point_float'] = rospy.Publisher(rospy.get_name() + '/enu_point_float',
+                                                      PointStamped, queue_size=10)
+        publishers['enu_pose_spp'] = rospy.Publisher(rospy.get_name() + '/enu_pose_spp',
+                                                     PoseWithCovarianceStamped, queue_size=10)
+        publishers['enu_point_spp'] = rospy.Publisher(rospy.get_name() + '/enu_point_spp',
+                                                      PointStamped, queue_size=10)
 
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
@@ -331,38 +367,75 @@ class Piksi:
     def navsatfix_callback(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
 
-        self.navsatfix_msg.header.stamp = rospy.Time.now()
-        self.navsatfix_msg.latitude = msg.lat
-        self.navsatfix_msg.longitude = msg.lon
-        self.navsatfix_msg.altitude = msg.height
-
         # SPP GPS messages.
         if msg.flags == 0:
-            self.navsatfix_msg.status.status = NavSatStatus.STATUS_FIX
-            self.navsatfix_msg.position_covariance = [self.var_spp[0], 0, 0,
-                                                      0, self.var_spp[1], 0,
-                                                      0, 0, self.var_spp[2]]
-            self.publishers['spp'].publish(self.navsatfix_msg)
+            self.publish_spp(msg.lat, msg.lon, msg.height)
 
         # RTK GPS messages.
         elif msg.flags == 1 or msg.flags == 2:
 
-            self.navsatfix_msg.status.status = NavSatStatus.STATUS_GBAS_FIX
-
             if msg.flags == 2:  # RTK float.
-                self.navsatfix_msg.position_covariance = [self.var_rtk_float[0], 0, 0,
-                                                          0, self.var_rtk_float[1], 0,
-                                                          0, 0, self.var_rtk_float[2]]
-                self.publishers['rtk_float'].publish(self.navsatfix_msg)
+                self.publish_rtk_float(msg.lat, msg.lon, msg.height)
             else:  # RTK fix.
-                self.navsatfix_msg.position_covariance = [self.var_rtk_fix[0], 0, 0,
-                                                          0, self.var_rtk_fix[1], 0,
-                                                          0, 0, self.var_rtk_fix[2]]
-                self.publishers['rtk_fix'].publish(self.navsatfix_msg)
+                # Use first RTK fix to set origin ENU frame, if it was not set by rosparam
+                if not self.origin_enu_set:
+                    self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
+
+                self.publish_rtk_fix(msg.lat, msg.lon, msg.height)
 
             # Update debug msg and publish.
             self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == 1) else False
             self.publish_receiver_state_msg()
+
+    def publish_spp(self, latitude, longitude, height):
+        self.publish_gps_point(latitude, longitude, height, self.var_spp, NavSatStatus.STATUS_FIX,
+                               self.publishers['spp'],
+                               self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'])
+
+    def publish_rtk_float(self, latitude, longitude, height):
+        self.publish_gps_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
+                               self.publishers['rtk_float'],
+                               self.publishers['enu_pose_float'], self.publishers['enu_point_float'])
+
+    def publish_rtk_fix(self, latitude, longitude, height):
+        self.publish_gps_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
+                               self.publishers['rtk_fix'],
+                               self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'])
+
+    def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point):
+        # Navsatfix message.
+        navsatfix_msg = NavSatFix()
+        navsatfix_msg.header.stamp = rospy.Time.now()
+        navsatfix_msg.header.frame_id = self.navsatfix_frame_id
+        navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
+        navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
+        navsatfix_msg.latitude = latitude
+        navsatfix_msg.longitude = longitude
+        navsatfix_msg.altitude = height
+
+        navsatfix_msg.status.status = status
+        navsatfix_msg.position_covariance = [variance[0], 0, 0,
+                                             0, variance[1], 0,
+                                             0, 0, variance[2]]
+        # Local Enu coordinate
+        (east, north, up) = self.geodetic_to_enu(latitude, longitude, height)
+
+        # Pose message.
+        pose_msg = PoseWithCovarianceStamped()
+        pose_msg.header.stamp = navsatfix_msg.header.stamp
+        pose_msg.header.frame_id = self.enu_frame_id
+        pose_msg.pose = self.enu_to_pose_msg(east, north, up, variance)
+
+        # Point message.
+        point_msg = PointStamped()
+        point_msg.header.stamp = navsatfix_msg.header.stamp
+        point_msg.header.frame_id = self.enu_frame_id
+        point_msg.point = self.enu_to_point_msg(east, north, up)
+
+        # Publish.
+        pub_navsatfix.publish(navsatfix_msg)
+        pub_pose.publish(pose_msg)
+        pub_point.publish(point_msg)
 
     def heartbeat_callback(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
@@ -453,6 +526,108 @@ class Piksi:
 
         self.publishers['uart_state'].publish(uart_state_msg)
 
+    def init_geodetic_reference(self, latitude, longitude, altitude):
+        if self.origin_enu_set:
+            return
+
+        self.latitude0 = math.radians(latitude)
+        self.longitude0 = math.radians(longitude)
+        self.altitude0 = altitude
+
+        (self.initial_ecef_x, self.initial_ecef_y, self.initial_ecef_z) = self.geodetic_to_ecef(latitude, longitude,
+                                                                                                altitude)
+        # Compute ECEF to NED
+        phiP = math.atan2(self.initial_ecef_z,
+                          math.sqrt(math.pow(self.initial_ecef_x, 2) + math.pow(self.initial_ecef_y, 2)))
+        self.ecef_to_ned_matrix = self.n_re(phiP, self.longitude0)
+
+        self.origin_enu_set = True
+
+        rospy.loginfo("Origin ENU frame set to: %.6f, %.6f, %.2f" % (latitude, longitude, altitude))
+
+    def geodetic_to_ecef(self, latitude, longitude, altitude):
+        # Convert geodetic coordinates to ECEF.
+        # http://code.google.com/p/pysatel/source/browse/trunk/coord.py?r=22
+        lat_rad = math.radians(latitude)
+        lon_rad = math.radians(longitude)
+        xi = math.sqrt(1 - Piksi.kFirstEccentricitySquared * math.sin(lat_rad) * math.sin(lat_rad))
+        x = (Piksi.kSemimajorAxis / xi + altitude) * math.cos(lat_rad) * math.cos(lon_rad)
+        y = (Piksi.kSemimajorAxis / xi + altitude) * math.cos(lat_rad) * math.sin(lon_rad)
+        z = (Piksi.kSemimajorAxis / xi * (1 - Piksi.kFirstEccentricitySquared) + altitude) * math.sin(lat_rad)
+
+        return x, y, z
+
+    def ecef_to_ned(self, x, y, z):
+        # Converts ECEF coordinate position into local-tangent-plane NED.
+        # Coordinates relative to given ECEF coordinate frame.
+        vect = np.array([0.0, 0.0, 0.0])
+        vect[0] = x - self.initial_ecef_x
+        vect[1] = y - self.initial_ecef_y
+        vect[2] = z - self.initial_ecef_z
+        ret = self.ecef_to_ned_matrix.dot(vect)
+        n = ret[0]
+        e = ret[1]
+        d = -ret[2]
+
+        return n, e, d
+
+    def geodetic_to_enu(self, latitude, longitude, altitude):
+        # Geodetic position to local ENU frame
+        (x, y, z) = self.geodetic_to_ecef(latitude, longitude, altitude)
+        (north, east, down) = self.ecef_to_ned(x, y, z)
+
+        # return East, North, Up coordinate
+        return east, north, -down
+
+    def n_re(self, lat_radians, lon_radians):
+        s_lat = math.sin(lat_radians)
+        s_lon = math.sin(lon_radians)
+        c_lat = math.cos(lat_radians)
+        c_lon = math.cos(lon_radians)
+
+        ret = np.eye(3)
+        ret[0, 0] = -s_lat * c_lon
+        ret[0, 1] = -s_lat * s_lon
+        ret[0, 2] = c_lat
+        ret[1, 0] = -s_lon
+        ret[1, 1] = c_lon
+        ret[1, 2] = 0.0
+        ret[2, 0] = c_lat * c_lon
+        ret[2, 1] = c_lat * s_lon
+        ret[2, 2] = s_lat
+
+        return ret
+
+    def enu_to_pose_msg(self, east, north, up, variance):
+        pose_msg = PoseWithCovariance()
+
+        # Fill covariance using variance parameter of GPS.
+        pose_msg.covariance[6 * 0 + 0] = variance[0]
+        pose_msg.covariance[6 * 1 + 1] = variance[1]
+        pose_msg.covariance[6 * 2 + 2] = variance[2]
+
+        # Fill pose section.
+        pose_msg.pose.position.x = east
+        pose_msg.pose.position.y = north
+        pose_msg.pose.position.z = up
+
+        # GPS points do not have orientation
+        pose_msg.pose.orientation.x = 0.0
+        pose_msg.pose.orientation.y = 0.0
+        pose_msg.pose.orientation.z = 0.0
+        pose_msg.pose.orientation.w = 1.0
+
+        return pose_msg
+
+    def enu_to_point_msg(self, east, north, up):
+        point_msg = Point()
+
+        # Fill pose section.
+        point_msg.x = east
+        point_msg.y = north
+        point_msg.z = up
+
+        return point_msg
 
 # Main function.
 if __name__ == '__main__':

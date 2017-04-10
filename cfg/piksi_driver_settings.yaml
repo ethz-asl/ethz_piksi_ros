@@ -8,7 +8,7 @@ broadcast_addr: 10.10.50.255
 broadcast_port: 26078
 base_station_ip_for_latency_estimation: 10.10.50.1 # ip base station if you want to estimate latency.
 # Coordinate frame of the GPS receiver with respect to the base link.
-frame_id: 'base_link'
+navsatfix_frame_id: 'base_link'
 
 # Variance to be published in the NavSatFix message (in diagonal part).
 # Single Point Positioning (SPP).
