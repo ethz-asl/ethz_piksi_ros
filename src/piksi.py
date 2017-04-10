@@ -19,7 +19,8 @@ from sbp.logging import *
 from sbp.system import *
 from sbp.tracking import *  # WARNING: tracking is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could be removed in future releases of libsbp.
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH, SBP_MSG_BASE_POS_ECEF
+from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH, \
+    SBP_MSG_BASE_POS_ECEF
 import sbp.version
 # networking stuff
 import UdpHelpers
@@ -28,9 +29,9 @@ import subprocess
 import re
 import threading
 
-class Piksi:
 
-    LIB_SBP_VERSION = '1.2.1' # sbp version used to test this driver
+class Piksi:
+    LIB_SBP_VERSION = '1.2.1'  # sbp version used to test this driver
 
     def __init__(self):
         # Print info.
@@ -40,7 +41,7 @@ class Piksi:
 
         if Piksi.LIB_SBP_VERSION != sbp.version.get_git_version():
             rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!" % (
-            sbp.version.get_git_version(), Piksi.LIB_SBP_VERSION))
+                sbp.version.get_git_version(), Piksi.LIB_SBP_VERSION))
 
         # Open a connection to Piksi.
         serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
@@ -135,10 +136,9 @@ class Piksi:
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
 
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
-        #self.init_callback('pos_llh', PosLlh,
+        # self.init_callback('pos_llh', PosLlh,
         #                   SBP_MSG_POS_LLH, MsgPosLLH,
         #                   'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-
 
     def init_num_corrections_msg(self):
         num_wifi_corrections = InfoWifiCorrections()
@@ -202,7 +202,7 @@ class Piksi:
         publishers['pos_ecef'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
                                                  PosEcef, queue_size=10)
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
-        #publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
+        # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
         publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + '/vel_ecef',
                                                  VelEcef, queue_size=10)
@@ -230,7 +230,7 @@ class Piksi:
                        "-w", str(ping_deadline_seconds),  # deadline before stopping attempt
                        "-c", "1",  # number of pings to send
                        self.base_station_ip_for_latency_estimation]
-            ping = subprocess.Popen(command, stdout = subprocess.PIPE)
+            ping = subprocess.Popen(command, stdout=subprocess.PIPE)
 
             out, error = ping.communicate()
             # search for 'min/avg/max/mdev' round trip delay time (rtt) numbers.
@@ -260,6 +260,7 @@ class Piksi:
                 'attrs' array of attributes in SBP/ROS message.
         Returns: callback function 'callback'.
         """
+
         def callback(msg, **metadata):
             sbp_message = sbp_type(msg)
             ros_message.header.stamp = rospy.Time.now()
@@ -314,7 +315,7 @@ class Piksi:
         # rospy.logwarn("MULTICAST Callback")
         if self.framer:
             self.framer(msg, **metadata)
-            
+
             # publish debug message about wifi corrections, if enabled
             self.num_wifi_corrections.header.seq += 1
             now = rospy.get_rostime()
@@ -451,6 +452,7 @@ class Piksi:
         uart_state_msg.latency_current = msg.latency.current
 
         self.publishers['uart_state'].publish(uart_state_msg)
+
 
 # Main function.
 if __name__ == '__main__':
