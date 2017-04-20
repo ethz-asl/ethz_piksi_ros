@@ -380,7 +380,7 @@ class Piksi:
         # RTK GPS messages.
         elif msg.flags == 1 or msg.flags == 2:
 
-            if msg.flags == 2 and not self.debug_mode:  # RTK float only in debug mode.
+            if msg.flags == 2 and self.debug_mode:  # RTK float only in debug mode.
                 self.publish_rtk_float(msg.lat, msg.lon, msg.height)
             else:  # RTK fix.
                 # Use first RTK fix to set origin ENU frame, if it was not set by rosparam
