@@ -362,8 +362,7 @@ class Piksi:
             # publish debug message about wifi corrections, if enabled
             self.num_wifi_corrections.header.seq += 1
             now = rospy.get_rostime()
-            self.num_wifi_corrections.header.stamp.secs = now.secs
-            self.num_wifi_corrections.header.stamp.nsecs = now.nsecs
+            self.num_wifi_corrections.header.stamp = rospy.Time.now()
             self.num_wifi_corrections.received_corrections += 1
             if not self.base_station_mode:
                 self.publishers['wifi_corrections'].publish(self.num_wifi_corrections)
@@ -502,6 +501,7 @@ class Piksi:
             self.publish_receiver_state_msg()
 
     def publish_receiver_state_msg(self):
+        self.receiver_state_msg.header.stamp = rospy.Time.now()
         self.publishers['receiver_state'].publish(self.receiver_state_msg)
 
     def uart_state_callback(self, msg_raw, **metadata):
