@@ -449,7 +449,7 @@ class Piksi:
         point_msg.header.frame_id = self.enu_frame_id
         point_msg.point = self.enu_to_point_msg(east, north, up)
 
-        # Trasform message.
+        # Transform message.
         transform_msg = TransformStamped()
         transform_msg.header.stamp = navsatfix_msg.header.stamp
         transform_msg.header.frame_id = self.enu_frame_id
