@@ -13,7 +13,8 @@ import numpy as np
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from piksi_rtk_msgs.msg import *
-from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped, Transform
+from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped, \
+    Transform
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client import Handler, Framer
@@ -418,7 +419,8 @@ class Piksi:
                                self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
                                self.publishers['enu_transform_fix'])
 
-    def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point, pub_transform):
+    def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point,
+                          pub_transform):
         # Navsatfix message.
         navsatfix_msg = NavSatFix()
         navsatfix_msg.header.stamp = rospy.Time.now()
@@ -668,6 +670,7 @@ class Piksi:
         transform_msg.rotation.w = 1.0
 
         return transform_msg
+
 
 # Main function.
 if __name__ == '__main__':
