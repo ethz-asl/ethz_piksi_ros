@@ -13,7 +13,7 @@ import numpy as np
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from piksi_rtk_msgs.msg import *
-from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point
+from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped, Transform
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client import Handler, Framer
@@ -110,6 +110,7 @@ class Piksi:
         self.initial_ecef_z = 0.0
         self.ecef_to_ned_matrix = np.eye(3)
         self.enu_frame_id = rospy.get_param('~enu_frame_id', 'enu')
+        self.transform_child_frame_id = rospy.get_param('~transform_child_frame_id', 'gps_receiver')
 
         if rospy.has_param('~latitude0_deg') and rospy.has_param('~longitude0_deg') and rospy.has_param(
                 '~altitude0_deg'):
@@ -234,10 +235,14 @@ class Piksi:
                                                      PoseWithCovarianceStamped, queue_size=10)
         publishers['enu_point_fix'] = rospy.Publisher(rospy.get_name() + '/enu_point_fix',
                                                       PointStamped, queue_size=10)
+        publishers['enu_transform_fix'] = rospy.Publisher(rospy.get_name() + '/enu_transform_fix',
+                                                          TransformStamped, queue_size=10)
         publishers['enu_pose_spp'] = rospy.Publisher(rospy.get_name() + '/enu_pose_spp',
                                                      PoseWithCovarianceStamped, queue_size=10)
         publishers['enu_point_spp'] = rospy.Publisher(rospy.get_name() + '/enu_point_spp',
                                                       PointStamped, queue_size=10)
+        publishers['enu_transform_spp'] = rospy.Publisher(rospy.get_name() + '/enu_transform_spp',
+                                                          TransformStamped, queue_size=10)
 
         # Topics published only if in "debug mode"
         if self.debug_mode:
@@ -255,6 +260,8 @@ class Piksi:
                                                            PoseWithCovarianceStamped, queue_size=10)
             publishers['enu_point_float'] = rospy.Publisher(rospy.get_name() + '/enu_point_float',
                                                             PointStamped, queue_size=10)
+            publishers['enu_transform_float'] = rospy.Publisher(rospy.get_name() + '/enu_transform_float',
+                                                                TransformStamped, queue_size=10)
 
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
@@ -396,19 +403,22 @@ class Piksi:
     def publish_spp(self, latitude, longitude, height):
         self.publish_gps_point(latitude, longitude, height, self.var_spp, NavSatStatus.STATUS_FIX,
                                self.publishers['spp'],
-                               self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'])
+                               self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
+                               self.publishers['enu_transform_spp'])
 
     def publish_rtk_float(self, latitude, longitude, height):
         self.publish_gps_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
                                self.publishers['rtk_float'],
-                               self.publishers['enu_pose_float'], self.publishers['enu_point_float'])
+                               self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
+                               self.publishers['enu_transform_float'])
 
     def publish_rtk_fix(self, latitude, longitude, height):
         self.publish_gps_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
                                self.publishers['rtk_fix'],
-                               self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'])
+                               self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
+                               self.publishers['enu_transform_fix'])
 
-    def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point):
+    def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point, pub_transform):
         # Navsatfix message.
         navsatfix_msg = NavSatFix()
         navsatfix_msg.header.stamp = rospy.Time.now()
@@ -437,10 +447,18 @@ class Piksi:
         point_msg.header.frame_id = self.enu_frame_id
         point_msg.point = self.enu_to_point_msg(east, north, up)
 
+        # Trasform message.
+        transform_msg = TransformStamped()
+        transform_msg.header.stamp = navsatfix_msg.header.stamp
+        transform_msg.header.frame_id = self.enu_frame_id
+        transform_msg.child_frame_id = self.transform_child_frame_id
+        transform_msg.transform = self.enu_to_transform_msg(east, north, up)
+
         # Publish.
         pub_navsatfix.publish(navsatfix_msg)
         pub_pose.publish(pose_msg)
         pub_point.publish(point_msg)
+        pub_transform.publish(transform_msg)
 
     def heartbeat_callback(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
@@ -634,6 +652,22 @@ class Piksi:
         point_msg.z = up
 
         return point_msg
+
+    def enu_to_transform_msg(self, east, north, up):
+        transform_msg = Transform()
+
+        # Fill message.
+        transform_msg.translation.x = east
+        transform_msg.translation.y = north
+        transform_msg.translation.z = up
+
+        # Set orientation to unit quaternion as it does not really metter.
+        transform_msg.rotation.x = 0.0
+        transform_msg.rotation.y = 0.0
+        transform_msg.rotation.z = 0.0
+        transform_msg.rotation.w = 1.0
+
+        return transform_msg
 
 # Main function.
 if __name__ == '__main__':
