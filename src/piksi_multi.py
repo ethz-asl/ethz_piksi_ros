@@ -56,8 +56,9 @@ class PiksiMulti:
         rospy.loginfo("libsbp version currently used: " + sbp.version.get_git_version())
 
         # Check for correct SBP library version dependent on Piksi device.
-        rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!" % (
-            sbp.version.get_git_version(), Piksi.LIB_SBP_VERSION_MULTI))
+        if PiksiMulti.LIB_SBP_VERSION_MULTI != sbp.version.get_git_version():
+            rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!" % (
+                sbp.version.get_git_version(), PiksiMulti.LIB_SBP_VERSION_MULTI))
 
         # Open a connection to Piksi.
         serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
@@ -633,10 +634,10 @@ class PiksiMulti:
         # http://code.google.com/p/pysatel/source/browse/trunk/coord.py?r=22
         lat_rad = math.radians(latitude)
         lon_rad = math.radians(longitude)
-        xi = math.sqrt(1 - Piksi.kFirstEccentricitySquared * math.sin(lat_rad) * math.sin(lat_rad))
-        x = (Piksi.kSemimajorAxis / xi + altitude) * math.cos(lat_rad) * math.cos(lon_rad)
-        y = (Piksi.kSemimajorAxis / xi + altitude) * math.cos(lat_rad) * math.sin(lon_rad)
-        z = (Piksi.kSemimajorAxis / xi * (1 - Piksi.kFirstEccentricitySquared) + altitude) * math.sin(lat_rad)
+        xi = math.sqrt(1 - PiksiMulti.kFirstEccentricitySquared * math.sin(lat_rad) * math.sin(lat_rad))
+        x = (PiksiMulti.kSemimajorAxis / xi + altitude) * math.cos(lat_rad) * math.cos(lon_rad)
+        y = (PiksiMulti.kSemimajorAxis / xi + altitude) * math.cos(lat_rad) * math.sin(lon_rad)
+        z = (PiksiMulti.kSemimajorAxis / xi * (1 - PiksiMulti.kFirstEccentricitySquared) + altitude) * math.sin(lat_rad)
 
         return x, y, z
 
