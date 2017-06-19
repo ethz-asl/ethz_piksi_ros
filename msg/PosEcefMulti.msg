@@ -10,6 +10,6 @@ uint32 tow          # GPS Time of Week [ms].
 float64 x           # ECEF X coordinate [m].
 float64 y           # ECEF Y coordinate [m].
 float64 z           # ECEF Z coordinate [m].
-uint16 accuracy     # Position accuracy estimate (not implemented). Defaults to 0.
+uint16 accuracy     # Position accuracy estimate.
 uint8 n_sats        # Number of satellites used in solution.
 uint8 flags         # Status flags, see MSG_POS_ECEF message description in SBP documentation.
