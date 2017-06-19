@@ -13,15 +13,14 @@ Based on the work of Daniel Eckert: [Original repo](https://bitbucket.org/Daniel
   * pandoc     `apt-get install pandoc`
   
 ### Installation
-The following code will automatically download the required version of libsbp, install it and add its python subfolder to your PYTHONPATH by adding a line in your .bashrc file.
+The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-VERSION_NUMBER-py2.7.egg/sbp/`.
 
 ```
 #from the repository folder
 chmod +x install/install_piksi.sh  #make sure the script is excutable
 ./install/install_piksi_v2.sh         # WARNING, this script will:
-                                      # 1. Add a line to your .bashrc to append the python subfolder of this repo to your $PYTHONPATH variable.
-                                      # 2. Create udev rule for Piksi
-                                      # 3. Add you to dialout, if you are not within this group
+                                      # 1. Create udev rule for Piksi
+                                      # 2. Add you to dialout, if you are not within this group
 ```
 ## Corrections Over Wifi
 It is possible to send/receive corrections over Wifi between multiple Piksi modules.

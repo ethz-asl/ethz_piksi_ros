@@ -5,11 +5,11 @@ echo " "
 echo "Installing SBP library for Piksi V2"
 
 GIT_REPO_LIBSBP=git@github.com:swift-nav/libsbp.git
-REPO_TAG=v1.2.1 #version you want to chechout before installing
+REPO_TAG=v1.2.1 #version you want to checkout before installing
 
 # Install libsbp in $HOME and compile it
-mkdir -p ~/software/piksi_sbp_lib_v2
-cd ~/software/piksi_sbp_lib_v2
+mkdir -p ~/piksi_sbp_lib_v2
+cd ~/piksi_sbp_lib_v2
 git clone $GIT_REPO_LIBSBP
 cd ./libsbp
 git checkout $REPO_TAG
@@ -26,10 +26,11 @@ sudo python setup.py install
 cd ..
 sudo make python
 
-echo "SBP Library Installed"
+# Remove temporary folder
+echo "Removing temporary folder"
+sudo rm -rf ~/piksi_sbp_lib_v2
 
-# Export PYTHONPATH and make sure it points to the python subdirectory of the repository
-sh -c 'echo "export PYTHONPATH=\${PYTHONPATH}:~/software/piksi_sbp_lib_v2/libsbp/python #add libsbp for RTK GPS Piksi V2 devices" >> ~/.bashrc'
+echo "SBP Library Installed"
 
 #---------------- Udev Rule ----------------
 echo " "
