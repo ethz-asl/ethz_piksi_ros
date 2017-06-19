@@ -13,7 +13,7 @@ Based on the work of Daniel Eckert: [Original repo](https://bitbucket.org/Daniel
   * pandoc     `apt-get install pandoc`
   
 ### Installation
-**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf). If you are using [Piksi Multi](https://www.swiftnav.com/piksi-multi) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps)**
+**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf). If you are using [Piksi Multi](https://www.swiftnav.com/piksi-multi) please check its driver version: piksi_multi_rtk_gps (TODO put limnk after PR)**
 
 The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-1.2.1-py2.7.egg/sbp/`.
 
