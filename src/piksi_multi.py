@@ -151,7 +151,7 @@ class PiksiMulti:
         self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE)
 
         # Callbacks generated "automatically".
-        self.init_callback('baseline_ecef_multi', BaselineEcefMulti,
+        self.init_callback('baseline_ecef_multi', BaselineEcef,
                            SBP_MSG_BASELINE_ECEF, MsgBaselineECEF,
                            'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
         self.init_callback('baseline_ned_multi', BaselineNedMulti,
@@ -283,7 +283,7 @@ class PiksiMulti:
             publishers['enu_transform_float'] = rospy.Publisher(rospy.get_name() + '/enu_transform_float',
                                                                 TransformStamped, queue_size=10)
             publishers['baseline_ecef_multi'] = rospy.Publisher(rospy.get_name() + '/baseline_ecef',
-                                                                BaselineEcefMulti, queue_size=10)
+                                                                BaselineEcef, queue_size=10)
             publishers['dops_multi'] = rospy.Publisher(rospy.get_name() + '/dops',
                                                        DopsMulti, queue_size=10)
             publishers['pos_ecef_multi'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
