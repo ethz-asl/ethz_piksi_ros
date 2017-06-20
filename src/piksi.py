@@ -545,10 +545,22 @@ class Piksi:
         uart_state_msg.uart_b_tx_buffer_level = msg.uart_b.tx_buffer_level
         uart_state_msg.uart_b_rx_buffer_level = msg.uart_b.rx_buffer_level
 
+        uart_state_msg.uart_ftdi_tx_throughput = msg.uart_ftdi.tx_throughput
+        uart_state_msg.uart_ftdi_rx_throughput = msg.uart_ftdi.rx_throughput
+        uart_state_msg.uart_ftdi_crc_error_count = msg.uart_ftdi.crc_error_count
+        uart_state_msg.uart_ftdi_io_error_count = msg.uart_ftdi.io_error_count
+        uart_state_msg.uart_ftdi_tx_buffer_level = msg.uart_ftdi.tx_buffer_level
+        uart_state_msg.uart_ftdi_rx_buffer_level = msg.uart_ftdi.rx_buffer_level
+
         uart_state_msg.latency_avg = msg.latency.avg
         uart_state_msg.latency_lmin = msg.latency.lmin
         uart_state_msg.latency_lmax = msg.latency.lmax
         uart_state_msg.latency_current = msg.latency.current
+
+        uart_state_msg.obs_period_avg = 0.0 # not implemented in deprecated UartStateA
+        uart_state_msg.obs_period_pmin = 0.0 # not implemented in deprecated UartStateA
+        uart_state_msg.obs_period_pmax = 0.0 # not implemented in deprecated UartStateA
+        uart_state_msg.obs_period_current = 0.0 # not implemented in deprecated UartStateA
 
         self.publishers['uart_state'].publish(uart_state_msg)
 
