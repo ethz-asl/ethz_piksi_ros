@@ -37,7 +37,7 @@ roslaunch piksi_multi_rtk_gps piksi_multi_mav.launch
 
 ## Corrections Over Wifi
 It is possible to send/receive corrections over Wifi between multiple Piksi modules.
-Set configurations in `cfg/piksi_driver_settings.yaml`
+Set configurations in `cfg/piksi_multi_driver_settings.yaml`
 - Base station configuration (sends corrections)
  - `base_station_mode: true`
  - `broadcast_addr: <put here Bcast address obtained from command ifconfig>`
