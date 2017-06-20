@@ -7,13 +7,12 @@ Based on the work of Daniel Eckert: [Original repo](https://bitbucket.org/Daniel
 ## Installation and Configuration
 
 ### Dependencies
-  * libsbp (tested wit: [libsbp 1.2.1](https://github.com/swift-nav/libsbp/tree/v1.2.1))
-  * python-pip `apt-get install python-pip`
-  * python-tox `apt-get install python-tox`
-  * pandoc     `apt-get install pandoc`
+  * python-pip `sudo apt-get install python-pip`
+  * python-tox `sudo apt-get install python-tox`
+  * pandoc     `sudo apt-get install pandoc`
   
 ### Installation
-**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf). If you are using [Piksi Multi](https://www.swiftnav.com/piksi-multi) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps)**
+**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf). If you are using [Piksi Multi](https://www.swiftnav.com/piksi-multi) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps).**
 
 The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-1.2.1-py2.7.egg/sbp/`.
 
@@ -24,6 +23,21 @@ chmod +x install/install_piksi.sh  #make sure the script is excutable
                                       # 1. Create udev rule for Piksi
                                       # 2. Add you to dialout, if you are not within this group
 ```
+
+## Usage
+Make sure you configured your Piksi(s) by following [these instructions](https://github.com/ethz-asl/mav_rtk_gps/wiki/Installing-and-Configuring-Piksi#settings-piksi-v2).
+
+**Base station**
+```
+roslaunch piksi_rtk_gps piksi_multi_base_station.launch
+```
+
+**MAV**
+```
+roslaunch piksi_rtk_gps piksi_multi_mav.launch
+```
+
+
 ## Corrections Over Wifi
 It is possible to send/receive corrections over Wifi between multiple Piksi modules.
 Set configurations in `cfg/piksi_driver_settings.yaml`
