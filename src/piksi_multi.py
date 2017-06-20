@@ -154,7 +154,7 @@ class PiksiMulti:
         self.init_callback('baseline_ecef_multi', BaselineEcef,
                            SBP_MSG_BASELINE_ECEF, MsgBaselineECEF,
                            'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
-        self.init_callback('baseline_ned_multi', BaselineNedMulti,
+        self.init_callback('baseline_ned_multi', BaselineNed,
                            SBP_MSG_BASELINE_NED, MsgBaselineNED,
                            'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
         self.init_callback('dops_multi', DopsMulti,
@@ -263,7 +263,7 @@ class PiksiMulti:
         publishers['gps_time_multi'] = rospy.Publisher(rospy.get_name() + '/gps_time',
                                                        GpsTimeMulti, queue_size=10)
         publishers['baseline_ned_multi'] = rospy.Publisher(rospy.get_name() + '/baseline_ned',
-                                                           BaselineNedMulti, queue_size=10)
+                                                           BaselineNed, queue_size=10)
         publishers['utc_time_multi'] = rospy.Publisher(rospy.get_name() + '/utc_time',
                                                        UtcTimeMulti, queue_size=10)
         publishers['imu_raw_multi'] = rospy.Publisher(rospy.get_name() + '/imu_raw',
