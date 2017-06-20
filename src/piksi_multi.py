@@ -239,7 +239,7 @@ class PiksiMulti:
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
                                                        ReceiverState, queue_size=10)
         publishers['uart_state_multi'] = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
-                                                         UartStateMulti, queue_size=10)
+                                                         UartState, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
@@ -570,11 +570,9 @@ class PiksiMulti:
         self.publishers['receiver_state'].publish(self.receiver_state_msg)
 
     def uart_state_callback(self, msg_raw, **metadata):
-        # for now use deprecated uart_msg, as the latest one doesn't seem to work properly with libspb 1.2.1
-#         msg = MsgUartStateDepa(msg_raw)
         msg = MsgUartState(msg_raw)
 
-        uart_state_msg = UartStateMulti()
+        uart_state_msg = UartState()
         uart_state_msg.header.stamp = rospy.Time.now()
 
         uart_state_msg.uart_a_tx_throughput = msg.uart_a.tx_throughput
