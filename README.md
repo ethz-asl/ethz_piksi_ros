@@ -49,3 +49,4 @@ Set configurations in `cfg/piksi_driver_settings.yaml`
  - `base_station_mode: false`
  - `broadcast_addr: <put here Bcast address obtained from command ifconfig>`
  - `broadcast_port: 26078`
+ - `base_station_ip_for_latency_estimation: <IP address of base station or router, to estimate latency over wifi>`
