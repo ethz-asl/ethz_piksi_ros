@@ -34,6 +34,10 @@ roslaunch piksi_multi_rtk_gps piksi_multi_base_station.launch
 ```
 roslaunch piksi_multi_rtk_gps piksi_multi_mav.launch
 ```
+Check the status of your receiver:
+```
+roslaunch mav_rtk_gui rtk_multi_info_example.launch
+```
 
 ## Corrections Over Wifi
 It is possible to send/receive corrections over Wifi between multiple Piksi modules.
