@@ -164,7 +164,7 @@ class PiksiMulti:
         self.init_callback('utc_time_multi', UtcTimeMulti,
                            SBP_MSG_UTC_TIME, MsgUtcTime,
                            'flags', 'tow', 'year', 'month', 'day', 'hours', 'minutes', 'seconds', 'ns')
-        self.init_callback('pos_ecef_multi', PosEcefMulti,
+        self.init_callback('pos_ecef_multi', PosEcef,
                            SBP_MSG_POS_ECEF, MsgPosECEF,
                            'tow', 'x', 'y', 'z', 'accuracy', 'n_sats', 'flags')
         self.init_callback('vel_ecef', VelEcef,
@@ -287,7 +287,7 @@ class PiksiMulti:
             publishers['dops_multi'] = rospy.Publisher(rospy.get_name() + '/dops',
                                                        DopsMulti, queue_size=10)
             publishers['pos_ecef_multi'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
-                                                           PosEcefMulti, queue_size=10)
+                                                           PosEcef, queue_size=10)
 
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
