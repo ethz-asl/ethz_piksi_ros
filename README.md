@@ -3,14 +3,14 @@ piksi_rtk_gps
 ROS node to read SBP messages from an attached Piksi **V2** RTK device.
 
 Based on the work of Daniel Eckert: [Original repo](https://bitbucket.org/Daniel-Eckert/mav_localization).
-  
+
 ## Installation and Configuration
 
 ### Dependencies
   * python-pip `sudo apt-get install python-pip`
   * python-tox `sudo apt-get install python-tox`
   * pandoc     `sudo apt-get install pandoc`
-  
+
 ### Installation
 **WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf). If you are using [Piksi Multi](https://www.swiftnav.com/piksi-multi) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps).**
 
@@ -18,7 +18,7 @@ The following code will automatically download the required version of libsbp an
 
 ```
 #from the repository folder
-chmod +x install/install_piksi.sh  #make sure the script is excutable
+chmod +x install/install_piksi_v2.sh  #make sure the script is excutable
 ./install/install_piksi_v2.sh         # WARNING, this script will:
                                       # 1. Create udev rule for Piksi
                                       # 2. Add you to dialout, if you are not within this group
