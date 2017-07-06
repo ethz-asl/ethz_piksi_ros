@@ -753,7 +753,7 @@ class PiksiMulti:
 
 # Main function.
 if __name__ == '__main__':
-    rospy.init_node('piksi_multi')
+    rospy.init_node('piksi')
 
     # Go to class functions that do all the heavy lifting. Do error checking.
     try:
