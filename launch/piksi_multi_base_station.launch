@@ -2,7 +2,7 @@
 
 <launch>
 
-  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="piksi_multi" output="screen">
+  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="piksi" output="screen">
     <!-- Load default settings -->
     <rosparam file="$(find piksi_multi_rtk_gps)/cfg/piksi_multi_driver_settings.yaml"/>
 
