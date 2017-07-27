@@ -4,7 +4,7 @@
 echo " "
 echo "Installing SBP library for Piksi Multi."
 
-GIT_REPO_LIBSBP=git@github.com:swift-nav/libsbp.git
+GIT_REPO_LIBSBP=https://github.com/swift-nav/libsbp.git
 REPO_TAG=v2.2.1 #version you want to checkout before installing
 
 # Install libsbp in $HOME and compile it
