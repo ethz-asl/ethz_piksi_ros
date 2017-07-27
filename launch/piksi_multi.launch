@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <arg name="node_name"                   value="piksi"/>
+  <arg name="gps_time_topic"              default="$(arg node_name)/gps_time"/>
+  <arg name="heartbeat_topic"             default="$(arg node_name)/heartbeat"/>
+  <arg name="debug_imu_aux_topic"         default="$(arg node_name)/debug/imu_aux"/>
+  <arg name="imu_raw_topic"               default="$(arg node_name)/imu_raw"/>
+  <arg name="navsatfix_rtk_fix_topic"     default="$(arg node_name)/navsatfix_rtk_fix"/>
+  <arg name="navsatfix_spp_topic"         default="$(arg node_name)/navsatfix_spp"/>
+  <arg name="tracking_state_topic"        default="$(arg node_name)/tracking_state"/>
+  <arg name="debug_receiver_state_topic"  default="$(arg node_name)/debug/receiver_state"/>
+  <arg name="debug_uart_state_topic"      default="$(arg node_name)/debug/uart_state"/>
+  <arg name="pos_ecef_topic"              default="$(arg node_name)/pos_ecef"/>
+  <arg name="vel_ned_topic"               default="$(arg node_name)/vel_ned"/>
+  <arg name="vel_ecef_topic"              default="$(arg node_name)/vel_ecef"/>
+  <arg name="log_topic"                   default="$(arg node_name)/log"/>
+  <arg name="enu_pose_fix_topic"          default="$(arg node_name)/enu_pose_fix"/>
+  <arg name="enu_point_fix_topic"         default="$(arg node_name)/enu_point_fix"/>
+  <arg name="enu_transform_fix_topic"     default="$(arg node_name)/enu_transform_fix"/>
+  <arg name="enu_pose_spp_topic"          default="$(arg node_name)/enu_pose_spp"/>
+  <arg name="enu_point_spp_topic"         default="$(arg node_name)/enu_point_spp"/>
+  <arg name="enu_transform_spp_topic"     default="$(arg node_name)/enu_transform_spp"/>
+  <arg name="utc_time_topic"              default="$(arg node_name)/utc_time"/>
+
+  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="$(arg node_name)" output="screen">
+    <!-- Load default settings -->
+    <rosparam file="$(find piksi_multi_rtk_gps)/cfg/piksi_multi_driver_settings.yaml"/>
+
+    <!-- Overwrtie needed settings -->
+    <param name="base_station_mode" value="false"/>
+    <param name="base_station_ip_for_latency_estimation" value="10.10.10.1"/>
+
+    <!-- Allow topic remapping -->
+    <remap from="$(arg node_name)/gps_time"              to="$(arg gps_time_topic)"/>
+    <remap from="$(arg node_name)/heartbeat"             to="$(arg heartbeat_topic)"/>
+    <remap from="$(arg node_name)/debug_imu_aux"         to="$(arg debug_imu_aux_topic)"/>
+    <remap from="$(arg node_name)/imu_raw"               to="$(arg imu_raw_topic)"/>
+    <remap from="$(arg node_name)/navsatfix_rtk_fix"     to="$(arg navsatfix_rtk_fix_topic)"/>
+    <remap from="$(arg node_name)/navsatfix_spp"         to="$(arg navsatfix_spp_topic)"/>
+    <remap from="$(arg node_name)/tracking_state"        to="$(arg tracking_state_topic)"/>
+    <remap from="$(arg node_name)/debug_receiver_state"  to="$(arg debug_receiver_state_topic)"/>
+    <remap from="$(arg node_name)/debug_uart_state"      to="$(arg debug_uart_state_topic)"/>
+    <remap from="$(arg node_name)/pos_ecef"              to="$(arg pos_ecef_topic)"/>
+    <remap from="$(arg node_name)/vel_ned"               to="$(arg vel_ned_topic)"/>
+    <remap from="$(arg node_name)/vel_ecef"              to="$(arg vel_ecef_topic)"/>
+    <remap from="$(arg node_name)/log"                   to="$(arg log_topic)"/>
+    <remap from="$(arg node_name)/enu_pose_fix"          to="$(arg enu_pose_fix_topic)"/>
+    <remap from="$(arg node_name)/enu_point_fix"         to="$(arg enu_point_fix_topic)"/>
+    <remap from="$(arg node_name)/enu_transform_fix"     to="$(arg enu_transform_fix_topic)"/>
+    <remap from="$(arg node_name)/enu_pose_spp"          to="$(arg enu_pose_spp_topic)"/>
+    <remap from="$(arg node_name)/enu_point_spp"         to="$(arg enu_point_spp_topic)"/>
+    <remap from="$(arg node_name)/enu_transform_spp"     to="$(arg enu_transform_spp_topic)"/>
+    <remap from="$(arg node_name)/utc_time"              to="$(arg utc_time_topic)"/>
+  </node>
+
+</launch>
