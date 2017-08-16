@@ -68,6 +68,7 @@ class PiksiMulti:
             self.driver = PySerialDriver(serial_port, baud=baud_rate)
         except SystemExit:
             rospy.logerr("Piksi not found on serial port '%s'", serial_port)
+            raise
 
         # Create a handler to connect Piksi driver to callbacks.
         self.framer = Framer(self.driver.read, self.driver.write, verbose=True)

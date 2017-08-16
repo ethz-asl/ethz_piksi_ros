@@ -24,7 +24,7 @@
   <arg name="enu_transform_spp_topic"     default="$(arg node_name)/enu_transform_spp"/>
   <arg name="utc_time_topic"              default="$(arg node_name)/utc_time"/>
 
-  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="$(arg node_name)" output="screen">
+  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="$(arg node_name)" output="screen" respawn="true">
     <!-- Load default settings -->
     <rosparam file="$(find piksi_multi_rtk_gps)/cfg/piksi_multi_driver_settings.yaml"/>
 
