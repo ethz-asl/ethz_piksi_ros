@@ -69,7 +69,7 @@ class PiksiMulti:
         except SystemExit:
             rospy.logerr("Piksi not found on serial port '%s'", serial_port)
             raise
-
+       
         # Create a handler to connect Piksi driver to callbacks.
         self.framer = Framer(self.driver.read, self.driver.write, verbose=True)
         self.handler = Handler(self.framer)
@@ -140,6 +140,12 @@ class PiksiMulti:
                                                  '/reset_piksi',
                                                   std_srvs.srv.SetBool,
                                                   self.reset_piksi_service_callback)
+
+	# Watchdog timer info
+        self.watchdog_time = rospy.get_rostime()
+        self.messages_started = False
+	# Things have 20 seconds to start or we will kill node
+        rospy.Timer(rospy.Duration(20), self.watchdog_callback, True)
 
         # Spin.
         rospy.spin()
@@ -408,8 +414,20 @@ class PiksiMulti:
         else:
             rospy.logwarn("Received external SBP msg, but Piksi not connected.")
 
+    def watchdog_callback(self, event):
+        if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 5.0):        
+            rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
+
     def pos_llh_callback(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
+
+        # Start watchdog with 5 second timeout to ensure we keep getting gps
+        if(not self.messages_started):
+            self.messages_started = True
+            rospy.Timer(rospy.Duration(5), self.watchdog_callback)
+
+        # Let watchdag know messages are still arriving
+        self.watchdog_time = rospy.get_rostime()
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
@@ -430,7 +448,6 @@ class PiksiMulti:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
     
             self.publish_rtk_fix(msg.lat, msg.lon, msg.height)
-
         # Update debug msg and publish.
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
         self.publish_receiver_state_msg()
