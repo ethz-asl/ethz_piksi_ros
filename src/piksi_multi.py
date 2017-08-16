@@ -418,8 +418,11 @@ class PiksiMulti:
             rospy.logwarn("Received external SBP msg, but Piksi not connected.")
 
     def watchdog_callback(self, event):
-        if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 10.0):        
-            rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
+        if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 10.0):
+            rospy.logwarn("Heartbeat failed, watchdog triggered.")
+            
+            if self.base_station_mode:        
+                rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
 
     def pos_llh_callback(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
