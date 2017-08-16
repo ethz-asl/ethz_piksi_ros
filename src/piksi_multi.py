@@ -144,8 +144,11 @@ class PiksiMulti:
 	# Watchdog timer info
         self.watchdog_time = rospy.get_rostime()
         self.messages_started = False
-	# Things have 20 seconds to start or we will kill node
-        rospy.Timer(rospy.Duration(20), self.watchdog_callback, True)
+	
+        # Only have start-up reset in base station mode
+        if self.base_station_mode:
+            # Things have 30 seconds to start or we will kill node
+            rospy.Timer(rospy.Duration(30), self.watchdog_callback, True)
 
         # Spin.
         rospy.spin()
@@ -415,19 +418,11 @@ class PiksiMulti:
             rospy.logwarn("Received external SBP msg, but Piksi not connected.")
 
     def watchdog_callback(self, event):
-        if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 5.0):        
+        if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 10.0):        
             rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
 
     def pos_llh_callback(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
-
-        # Start watchdog with 5 second timeout to ensure we keep getting gps
-        if(not self.messages_started):
-            self.messages_started = True
-            rospy.Timer(rospy.Duration(5), self.watchdog_callback)
-
-        # Let watchdag know messages are still arriving
-        self.watchdog_time = rospy.get_rostime()
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
@@ -515,6 +510,14 @@ class PiksiMulti:
 
     def heartbeat_callback(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
+
+        # Let watchdag know messages are still arriving
+        self.watchdog_time = rospy.get_rostime()
+
+        # Start watchdog with 10 second timeout to ensure we keep getting gps
+        if(not self.messages_started):
+            self.messages_started = True
+            rospy.Timer(rospy.Duration(10), self.watchdog_callback)
 
         heartbeat_msg = Heartbeat()
         heartbeat_msg.header.stamp = rospy.Time.now()
