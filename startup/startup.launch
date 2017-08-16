@@ -1,0 +1,11 @@
+<launch>
+  <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" >
+  </node>
+
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen">
+  </node>
+
+  <include file="$(find piksi_multi_rtk_gps)/launch/piksi_multi_base_station.launch">
+  </include>
+</launch>
+
