@@ -1,0 +1,7 @@
+# Parameters for the rqt_gps_rtk_plugin
+
+piksiReceiverStateTopic_: "/piksi/debug/receiver_state" #[-] piksi receiver state topic
+piksiBaselineNedTopic_: "/piksi/baseline_ned" #[-] piksi baseline (in NED frame) topic
+piksiWifiCorrectionsTopic_: "/piksi/debug/wifi_corrections" #[-] piksi wifi corrections topic
+piksiNavsatfixRtkFixTopic_: "/piksi/navsatfix_rtk_fix" #[-] piksi navsatfix rtk fix topic
+piksiHeartbeatTopic_: "/piksi/heartbeat" #[-] piksi heartbeat topic

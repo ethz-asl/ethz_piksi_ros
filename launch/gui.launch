@@ -1,0 +1,9 @@
+<launch>
+
+  <arg name="node_name"       value="RTK_INFO_plugin"/>
+
+  <node name="$(arg node_name)" pkg="rqt_gps_rtk_plugin" type="rqt_gps_rtk_plugin" output="screen">
+    <rosparam file="$(find rqt_gps_rtk_plugin)/config/parameters.yaml"/>
+  </node>
+
+</launch>
