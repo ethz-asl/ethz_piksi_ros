@@ -11,7 +11,7 @@
 #include <piksi_rtk_msgs/ReceiverState.h>
 #include <piksi_rtk_msgs/BaselineNed.h>
 #include <piksi_rtk_msgs/InfoWifiCorrections.h>
-#include <piksi_rtk_msgs/Heartbeat.h>
+#include <piksi_rtk_msgs/UtcTimeMulti.h>
 #include <sensor_msgs/NavSatFix.h>
 
 class GpsRtkPlugin : public rqt_gui_cpp::Plugin {
@@ -45,15 +45,14 @@ private:
   void piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg);
   void piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections& msg);
   void piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg);
-  void piksiHeartbeatCb(const piksi_rtk_msgs::Heartbeat& msg);
+  void piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg);
 
   std::string piksiReceiverStateTopic_;
   std::string piksiBaselineNedTopic_;
   std::string piksiWifiCorrectionsTopic_;
   std::string piksiNavsatfixRtkFixTopic_;
-  std::string piksiHeartbeatTopic_;
+  std::string piksiTimeTopic_;
 
-  double lastHeartbeatStamp_;
   double timeFirstSampleMovingWindow_;
   int wifiCorrectionsAvgHz_;
   int numCorrectionsFirstSampleMovingWindow_;

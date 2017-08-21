@@ -5,11 +5,11 @@
         </description>
         <qtgui>
             <group>
-                <label>TODO</label>
+                <label>Robot Tools</label>
                 <icon type="theme">folder</icon>
-                <statustip>TODO</statustip>
+                <statustip></statustip>
             </group>
-            <label>gps rtk plugin</label>
+            <label>GPS RTK Info</label>
             <icon type="theme">applications-graphics</icon>
             <statustip>An rqt plugin to give status information about Piksi GPS RTK.</statustip>
         </qtgui>

@@ -5,6 +5,8 @@
 #include <QGridLayout>
 #include <message_logger/message_logger.hpp>
 
+#include <math.h>
+
 GpsRtkPlugin::GpsRtkPlugin()
   : rqt_gui_cpp::Plugin(),
     widget_(0)
@@ -64,8 +66,8 @@ void GpsRtkPlugin::readParameters() {
   getNodeHandle().param<std::string>("piksiNavsatfixRtkFixTopic", piksiNavsatfixRtkFixTopic_, "/piksi/navsatfix_rtk_fix");
   MELO_INFO_STREAM("[GpsRtkPlugin] piksiNavsatfixRtkFixTopic: " << piksiNavsatfixRtkFixTopic_);
 
-  getNodeHandle().param<std::string>("piksiHeartbeatTopic", piksiHeartbeatTopic_, "/piksi/heartbeat");
-  MELO_INFO_STREAM("[GpsRtkPlugin] piksiHeartbeatTopic: " << piksiHeartbeatTopic_);
+  getNodeHandle().param<std::string>("piksiTimeTopic", piksiTimeTopic_, "/piksi/utc_time");
+  MELO_INFO_STREAM("[GpsRtkPlugin] piksiTimeTopic: " << piksiTimeTopic_);
 }
 
 void GpsRtkPlugin::initLabels() {
@@ -86,14 +88,14 @@ void GpsRtkPlugin::initSubscribers() {
   piksiBaselineNedSub_ = getNodeHandle().subscribe(piksiBaselineNedTopic_, 10, &GpsRtkPlugin::piksiBaselineNedCb, this);
   piksiWifiCorrectionsSub_ = getNodeHandle().subscribe(piksiWifiCorrectionsTopic_, 10, &GpsRtkPlugin::piksiWifiCorrectionsCb, this);
   piksiNavsatfixRtkFixSub_ = getNodeHandle().subscribe(piksiNavsatfixRtkFixTopic_, 10, &GpsRtkPlugin::piksiNavsatfixRtkFixCb, this);
-  piksiHeartbeatSub_ = getNodeHandle().subscribe(piksiHeartbeatTopic_, 10, &GpsRtkPlugin::piksiHeartbeatCb, this);
+  piksiHeartbeatSub_ = getNodeHandle().subscribe(piksiTimeTopic_, 10, &GpsRtkPlugin::piksiTimeCb, this);
 }
 
 void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState& msg) {
   // Type of fix
   QMetaObject::invokeMethod(ui_.label_fixType, "setText", Q_ARG(QString, msg.rtk_mode_fix ? "Fix" : "Float"));
   QMetaObject::invokeMethod(ui_.label_fixType, "setStyleSheet", Q_ARG(QString, msg.rtk_mode_fix ?
-        "QLabel {background-color: lime; color: rgb(211, 215, 207);}"
+        "QLabel {background-color: lime; color: black;}"
       : "QLabel {background-color: rgb(239, 41, 41); color: rgb(0, 0, 0);}"));
   // Number of satellites
   QMetaObject::invokeMethod(ui_.label_numSatellites, "setText", Q_ARG(QString, QString::number(msg.num_sat)));
@@ -103,22 +105,28 @@ void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {
   // Number of satellites used for RTK
   QMetaObject::invokeMethod(ui_.label_numRtkSatellites, "setText", Q_ARG(QString, QString::number(msg.n_sats)));
 
-  std::string style;
-  if (msg.n_sats < 4) {
-    style = "QLabel {background-color: red;}";
-  } else if (msg.n_sats > 4 and msg.n_sats < 7) {
-    style = "QLabel {background-color: orange;}";
-  } else if (msg.n_sats > 7) {
-    style = "QLabel {background-color: rgb(78, 154, 6);}";
+  std::string strStyle;
+  std::string strText;
+  if (msg.n_sats < 5) {
+    strStyle = "QLabel {background-color: red;}";
+    strText = "bad";
+  } else if (msg.n_sats >= 5 and msg.n_sats <= 6) {
+    strStyle = "QLabel {background-color: orange;}";
+    strText = "ok";
+  } else if (msg.n_sats > 6) {
+    strStyle = "QLabel {background-color: rgb(78, 154, 6);}";
+    strText = "good";
   }
-  QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator, "setStyleSheet", Q_ARG(QString, QString::fromStdString(style)));
+  QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator, "setText", Q_ARG(QString, QString::fromStdString(strText)));
+  QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator, "setStyleSheet", Q_ARG(QString, QString::fromStdString(strStyle)));
 
   // Baseline NED status
   double n = msg.n/1e3;
   double e = msg.e/1e3;
   double d = msg.d/1e3;
-  std::string baseline = "[" + std::to_string(n) + ", " + std::to_string(e) + ", " + std::to_string(d) + "]";
-  QMetaObject::invokeMethod(ui_.label_baseline, "setText", Q_ARG(QString, QString::fromStdString(baseline)));
+  QString baseline;// = "[" + QString::fromStdString(std::to_string(roundf(n*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(e*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(d*100)/100)) + "]";
+  baseline.sprintf("[%.2f, %.2f, %.2f]", roundf(n*100)/100, roundf(e*100)/100, roundf(d*100)/100);
+  QMetaObject::invokeMethod(ui_.label_baseline, "setText", Q_ARG(QString, baseline));
 }
 
 void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections& msg) {
@@ -149,12 +157,15 @@ void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg) {
     altitudeAvg += *it;
   }
   altitudeAvg /= altitudes_.size();
-  QMetaObject::invokeMethod(ui_.label_navsatFixAlt, "setText", Q_ARG(QString, QString::number(altitudeAvg, 'g', 2)));
+  QString text;
+  text.sprintf("%.2f", altitudeAvg);
+  QMetaObject::invokeMethod(ui_.label_navsatFixAlt, "setText", Q_ARG(QString, text));
 }
 
-void GpsRtkPlugin::piksiHeartbeatCb(const piksi_rtk_msgs::Heartbeat& msg) {
-  lastHeartbeatStamp_ = msg.header.stamp.sec;
-  QMetaObject::invokeMethod(ui_.label_nodeStatus, "setText", Q_ARG(QString, QString::number(lastHeartbeatStamp_, 'g', 2)));
+void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg) {
+  std::string time;
+  time = std::to_string(msg.hours) + ":" + std::to_string(msg.minutes) + ":" + std::to_string(msg.seconds);
+  QMetaObject::invokeMethod(ui_.label_nodeStatus, "setText", Q_ARG(QString, QString::fromStdString(time)));
 }
 /*bool hasConfiguration() const
 {
