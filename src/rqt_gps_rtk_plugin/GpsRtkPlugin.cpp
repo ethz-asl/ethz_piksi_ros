@@ -163,9 +163,11 @@ void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg) {
 }
 
 void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg) {
-  std::string time;
-  time = std::to_string(msg.hours) + ":" + std::to_string(msg.minutes) + ":" + std::to_string(msg.seconds);
-  QMetaObject::invokeMethod(ui_.label_nodeStatus, "setText", Q_ARG(QString, QString::fromStdString(time)));
+  //std::string time;
+  QString time;
+  time.sprintf("%02d:%02d:%02d", msg.hours, msg.minutes, msg.seconds);
+  //time = std::to_string(msg.hours) + ":" + std::to_string(msg.minutes) + ":" + std::to_string(msg.seconds);
+  QMetaObject::invokeMethod(ui_.label_nodeStatus, "setText", Q_ARG(QString, time));
 }
 /*bool hasConfiguration() const
 {

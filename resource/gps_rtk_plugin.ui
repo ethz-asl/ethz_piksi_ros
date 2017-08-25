@@ -72,18 +72,18 @@
      <rect>
       <x>0</x>
       <y>20</y>
-      <width>101</width>
+      <width>151</width>
       <height>25</height>
      </rect>
     </property>
     <property name="text">
-     <string>Last message:</string>
+     <string>Last message (UTC):</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_nodeStatus">
     <property name="geometry">
      <rect>
-      <x>110</x>
+      <x>160</x>
       <y>20</y>
       <width>150</width>
       <height>25</height>
