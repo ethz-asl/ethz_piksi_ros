@@ -1,5 +1,5 @@
 # General Settings.
-sampling_frequency: 1.0 # [Hz]
+sampling_frequency: 0.5 # [Hz]
 
 # KML layout
 use_linestring: True # Link 'Points' with a thin line
@@ -7,5 +7,6 @@ document_name: "PiksiRtkKml"
 placemarker_prefix_name: "WP"
 
 # Use optional messages/fields
-use_altitude: False # TODO write what happens in KML file
+use_altitude_from_enu: True # Place 'Point' at the altitude specified in 'enu_point' topic
+extrude_point: True #  Connect the point to the ground with a line, only if use_altitude_from_enu is True
 use_heading: True  # If true, heading is added to 'Point' description

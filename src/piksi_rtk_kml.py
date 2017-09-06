@@ -10,34 +10,44 @@ import os
 import time
 from piksi_rtk_msgs.msg import *
 from sensor_msgs.msg import NavSatFix
+from geometry_msgs.msg import PointStamped
 
 
 class PiksiRtkKml:
     def __init__(self):
         # KML file
         script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-        desired_path = "%s/../kml/%s.kml" % (script_path, time.strftime("%Y-%m-%d-%H-%M"))
+        desired_path = "%s/../kml/%s.kml" % (script_path, time.strftime("%Y-%m-%d-%H-%M-%S"))
         self.file_obj = open(desired_path, 'w')
         self.file_obj.write(self.kml_head(rospy.get_param('~document_name', "PiksiRtkKml")))
 
         # Settings.
         self.sampling_period = 1.0 / rospy.get_param('~sampling_frequency', 1.0)
         self.use_linestring = rospy.get_param('~use_linestring', True)
-        self.use_altitude = rospy.get_param('~use_altitude', False)
+        self.use_altitude_from_enu = rospy.get_param('~use_altitude_from_enu', False)
+        self.extrude_point = rospy.get_param('~extrude_point', False)
         self.use_heading = rospy.get_param('~use_heading', True)
-        self.use_heading = rospy.get_param('~placemarker_prefix_name', "WP")
+        self.placemarker_prefix_name = rospy.get_param('~placemarker_prefix_name', "WP")
+
+        if self.use_altitude_from_enu:
+            self.kml_altitude_mode = "relativeToGround"
+        else:
+            self.kml_altitude_mode = "absolute"
 
         # Subscribe.
         rospy.Subscriber('piksi/navsatfix_rtk_fix', NavSatFix,
                          self.navsatfix_rtk_fix_callback)
         rospy.Subscriber('piksi/baseline_heading', BaselineHeading,
                          self.baseline_heading_callback)
+        rospy.Subscriber('piksi/enu_point_fix', PointStamped,
+                         self.enu_point_callback)
 
         # Variables.
         self.waypoint_counter = 0
         self.heading_received = False
         self.last_heading = 0.0
         self.time_last_writing = rospy.get_time()
+        self.last_enu_altitude = 0.0
 
         rospy.on_shutdown(self.close_kml_file_handler)
 
@@ -48,11 +58,14 @@ class PiksiRtkKml:
         if rospy.get_time() >= (self.time_last_writing + self.sampling_period):
 
             self.waypoint_counter = self.waypoint_counter + 1
-            waypoint_name = self.use_heading + str(self.waypoint_counter)
+            waypoint_name = self.placemarker_prefix_name + str(self.waypoint_counter)
             utc_time = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(msg.header.stamp.to_sec()))
             lat = msg.latitude
             lon = msg.longitude
-            alt = msg.altitude
+            if self.use_altitude_from_enu:
+                alt = self.last_enu_altitude
+            else:
+                alt = msg.altitude
             description = ''
 
             if self.heading_received:
@@ -66,6 +79,9 @@ class PiksiRtkKml:
     def baseline_heading_callback(self, msg):
         self.heading_received = True
         self.last_heading = msg.heading
+
+    def enu_point_callback(self, msg):
+        self.last_enu_altitude = msg.point.z
 
     def close_kml_file_handler(self):
         self.file_obj.write(self.kml_tail())
@@ -93,11 +109,14 @@ class PiksiRtkKml:
             <when>%s</when>
         </TimeStamp>
         <Point>
+            <extrude>%s</extrude>
+            <altitudeMode>%s</altitudeMode>
             <coordinates>%f, %f, %f</coordinates>
         </Point>
         <description>%s</description>
     </Placemark>
-''' % (name, timestamp, lon, lat, alt, description)  # KML wants first lon and then lat.
+''' % (name, timestamp, self.extrude_point,
+       self.kml_altitude_mode, lon, lat, alt, description)  # KML wants first lon and then lat.
 
 
 # Main function.
