@@ -17,7 +17,7 @@ class PiksiRtkKml:
     def __init__(self):
         # KML file
         script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-        kml_file_name = rospy.get_param('~kml_file_prefix_name', "Piksi") + '-' +time.strftime("%Y-%m-%d-%H-%M-%S")
+        kml_file_name = rospy.get_param('~kml_file_prefix_name', "Piksi") + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
         desired_path = "%s/../kml/%s.kml" % (script_path, kml_file_name)
         self.file_obj = open(desired_path, 'w')
         self.file_obj.write(self.kml_head(rospy.get_param('~document_name', "PiksiRtkKml")))
