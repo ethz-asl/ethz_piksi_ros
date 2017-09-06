@@ -190,6 +190,8 @@ class PiksiMulti:
                            SBP_MSG_IMU_AUX, MsgImuAux, 'imu_type', 'temp', 'imu_conf')
         self.init_callback('log', Log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
+        self.init_callback('baseline_heading', BaselineHeading,
+                           SBP_MSG_BASELINE_HEADING, BaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
 
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # self.init_callback('pos_llh', PosLlh,
@@ -280,6 +282,8 @@ class PiksiMulti:
                                                       ImuRawMulti, queue_size=10)
         publishers['imu_aux_multi'] = rospy.Publisher(rospy.get_name() + '/debug/imu_aux',
                                                       ImuAuxMulti, queue_size=10)
+        publishers['baseline_heading'] = rospy.Publisher(rospy.get_name() + '/baseline_heading',
+                                                         BaselineHeading, queue_size=10)
         # Topics published only if in "debug mode".
         if self.debug_mode:
             publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
