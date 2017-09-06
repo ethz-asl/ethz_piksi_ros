@@ -2,6 +2,7 @@
 sampling_frequency: 0.5 # [Hz]
 
 # KML layout
+kml_file_prefix_name: "Piksi"
 document_name: "PiksiRtkKml"
 placemarker_prefix_name: "WP"
 
