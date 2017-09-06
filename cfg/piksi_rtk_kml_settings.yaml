@@ -1,0 +1,11 @@
+# General Settings.
+sampling_frequency: 1.0 # [Hz]
+
+# KML layout
+use_linestring: True # Link 'Points' with a thin line
+document_name: "PiksiRtkKml"
+placemarker_prefix_name: "WP"
+
+# Use optional messages/fields
+use_altitude: False # TODO write what happens in KML file
+use_heading: True  # If true, heading is added to 'Point' description
