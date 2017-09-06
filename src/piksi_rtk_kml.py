@@ -23,7 +23,6 @@ class PiksiRtkKml:
 
         # Settings.
         self.sampling_period = 1.0 / rospy.get_param('~sampling_frequency', 1.0)
-        self.use_linestring = rospy.get_param('~use_linestring', True)
         self.use_altitude_from_enu = rospy.get_param('~use_altitude_from_enu', False)
         self.extrude_point = rospy.get_param('~extrude_point', False)
         self.use_heading = rospy.get_param('~use_heading', True)

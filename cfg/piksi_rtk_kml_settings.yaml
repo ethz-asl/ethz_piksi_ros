@@ -2,7 +2,6 @@
 sampling_frequency: 0.5 # [Hz]
 
 # KML layout
-use_linestring: True # Link 'Points' with a thin line
 document_name: "PiksiRtkKml"
 placemarker_prefix_name: "WP"
 
