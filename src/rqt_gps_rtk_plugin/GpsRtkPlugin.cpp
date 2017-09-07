@@ -3,7 +3,6 @@
 #include <pluginlib/class_list_macros.h>
 #include <QStringList>
 #include <QGridLayout>
-#include <message_logger/message_logger.hpp>
 
 #include <math.h>
 
@@ -38,7 +37,7 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   numCorrectionsFirstSampleMovingWindow_ = 0;
   altitudes_.erase(altitudes_.begin(), altitudes_.end());
 
-  MELO_INFO("[GpsRtkPlugin] Initialized.");
+  ROS_INFO("[GpsRtkPlugin] Initialized.");
 }
 
 void GpsRtkPlugin::shutdownPlugin()
@@ -55,19 +54,19 @@ void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, 
 
 void GpsRtkPlugin::readParameters() {
   getNodeHandle().param<std::string>("piksiReceiverStateTopic", piksiReceiverStateTopic_, "/piksi/debug/receiver_state");
-  MELO_INFO_STREAM("[GpsRtkPlugin] piksiReceiverStateTopic: " << piksiReceiverStateTopic_);
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiReceiverStateTopic: " << piksiReceiverStateTopic_);
 
   getNodeHandle().param<std::string>("piksiBaselineNedTopic", piksiBaselineNedTopic_, "/piksi/baseline_ned");
-  MELO_INFO_STREAM("[GpsRtkPlugin] piksiBaselineNedTopic: " << piksiBaselineNedTopic_);
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiBaselineNedTopic: " << piksiBaselineNedTopic_);
 
   getNodeHandle().param<std::string>("piksiWifiCorrectionsTopic", piksiWifiCorrectionsTopic_, "/piksi/debug/wifi_corrections");
-  MELO_INFO_STREAM("[GpsRtkPlugin] piksiWifiCorrectionsTopic: " << piksiWifiCorrectionsTopic_);
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiWifiCorrectionsTopic: " << piksiWifiCorrectionsTopic_);
 
   getNodeHandle().param<std::string>("piksiNavsatfixRtkFixTopic", piksiNavsatfixRtkFixTopic_, "/piksi/navsatfix_rtk_fix");
-  MELO_INFO_STREAM("[GpsRtkPlugin] piksiNavsatfixRtkFixTopic: " << piksiNavsatfixRtkFixTopic_);
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiNavsatfixRtkFixTopic: " << piksiNavsatfixRtkFixTopic_);
 
   getNodeHandle().param<std::string>("piksiTimeTopic", piksiTimeTopic_, "/piksi/utc_time");
-  MELO_INFO_STREAM("[GpsRtkPlugin] piksiTimeTopic: " << piksiTimeTopic_);
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiTimeTopic: " << piksiTimeTopic_);
 }
 
 void GpsRtkPlugin::initLabels() {
