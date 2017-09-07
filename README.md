@@ -32,7 +32,7 @@ Gui on startup             |  Gui with running piksi node
 
 - `Num satellites (RTK)`: The number of satellites used for the RTK fix.
 
-- `NED baseline [m]`: The N(orth)E(ast)D(own) values in [m] from the (stationary) base station to the (mobile) piksi module.
+- `NED baseline [m]`: The N(orth)E(ast)D(own) distance values in [m] from the (stationary) base station to the (mobile) piksi module.
 
 - `Navsatfix altitude (avg)[m]`: The averaged altitude in [m] of the GPS RTK fix.
 
