@@ -1,7 +1,7 @@
 rqt_gps_rtk_plugin
 ======
 
-This package provides an rqt interface with status information about the GPS RTK status.
+This package provides an rqt interface with status information about GPS RTK.
 
 Dependencies
 ------
@@ -23,6 +23,24 @@ GUI
 Gui on startup             |  Gui with running piksi node
 :-------------------------:|:-------------------------:
 ![Gui on startup](https://github.com/ethz-asl/mav_rtk_gps/blob/a5fbdcdbca7cdc35833e33e94b635006998afc06/rqt_gps_rtk_plugin/gps_gui_startup.png?raw=true)  |  ![Gui with running node](https://github.com/ethz-asl/mav_rtk_gps/blob/a5fbdcdbca7cdc35833e33e94b635006998afc06/rqt_gps_rtk_plugin/gps_gui_running.png?raw=true)
+
+- `Last message (UTC)`: The (UTC) time stamp of the last received piksi message.
+
+- `Fix type`: [Fix] or [Float]: Fix, if an rtk fix exists and float if single point position information is received (i.e., no rtk fix).
+
+- `Num satellites`: The number of satellites visible to the GPS antenna attached to the piksi module.
+
+- `Num satellites (RTK)`: The number of satellites used for the RTK fix.
+
+- `NED baseline [m]`: The N(orth)E(ast)D(own) values in [m] from the (stationary) base station to the (mobile) piksi module.
+
+- `Navsatfix altitude (avg)[m]`: The averaged altitude in [m] of the GPS RTK fix.
+
+- `Num Wifi corrections`: The number of corrections received by the (mobile) piksi module via wifi.
+
+- `Wifi correction rate [Hz]`: The rate in [Hz] with which wifi corrections are received.
+
+- `Base Station ping [ms]`: The time in [ms] needed for the (mobile) robot to ping the base station, which is sending rtk correction data.
 
 License
 -------
