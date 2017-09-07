@@ -30,7 +30,7 @@ Gui on startup             |  Gui with running piksi node
 
 - `Num satellites`: The number of satellites visible to the GPS antenna attached to the piksi module.
 
-- `Num satellites (RTK)`: The number of satellites used for the RTK fix.
+- `Num satellites (RTK)`: The number of satellites used for the RTK fix. An additional graphical evaluation about the number of used rtk satellites is given: bad if 4 or less satellites are used, ok for 5-6 satellites and good if 7 or more satellites are used for rtk.
 
 - `NED baseline [m]`: The N(orth)E(ast)D(own) distance values in [m] from the (stationary) base station to the (mobile) piksi module.
 
