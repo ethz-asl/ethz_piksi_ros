@@ -6,6 +6,7 @@ This package provides an rqt interface with status information about GPS RTK.
 Dependencies
 ------
 [piksi_rtk_msgs](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_rtk_msgs)
+[Qt](https://wiki.qt.io/Install_Qt_5_on_Ubuntu)
 
 General Usage
 ------
