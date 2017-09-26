@@ -7,6 +7,6 @@
     <rosparam file="$(find piksi_rtk_kml)/cfg/piksi_rtk_kml_settings.yaml"/>
   </node>
 
-  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="piksi" output="screen"/>
+ <!-- <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="piksi" output="screen"/>-->
 
 </launch>
