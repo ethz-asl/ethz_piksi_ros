@@ -53,19 +53,19 @@ void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, 
 }
 
 void GpsRtkPlugin::readParameters() {
-  getNodeHandle().param<std::string>("piksiReceiverStateTopic", piksiReceiverStateTopic_, "/piksi/debug/receiver_state");
+  getNodeHandle().param<std::string>("piksiReceiverStateTopic", piksiReceiverStateTopic_, "piksi/debug/receiver_state");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiReceiverStateTopic: " << piksiReceiverStateTopic_);
 
-  getNodeHandle().param<std::string>("piksiBaselineNedTopic", piksiBaselineNedTopic_, "/piksi/baseline_ned");
+  getNodeHandle().param<std::string>("piksiBaselineNedTopic", piksiBaselineNedTopic_, "piksi/baseline_ned");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiBaselineNedTopic: " << piksiBaselineNedTopic_);
 
-  getNodeHandle().param<std::string>("piksiWifiCorrectionsTopic", piksiWifiCorrectionsTopic_, "/piksi/debug/wifi_corrections");
+  getNodeHandle().param<std::string>("piksiWifiCorrectionsTopic", piksiWifiCorrectionsTopic_, "piksi/debug/wifi_corrections");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiWifiCorrectionsTopic: " << piksiWifiCorrectionsTopic_);
 
-  getNodeHandle().param<std::string>("piksiNavsatfixRtkFixTopic", piksiNavsatfixRtkFixTopic_, "/piksi/navsatfix_rtk_fix");
+  getNodeHandle().param<std::string>("piksiNavsatfixRtkFixTopic", piksiNavsatfixRtkFixTopic_, "piksi/navsatfix_rtk_fix");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiNavsatfixRtkFixTopic: " << piksiNavsatfixRtkFixTopic_);
 
-  getNodeHandle().param<std::string>("piksiTimeTopic", piksiTimeTopic_, "/piksi/utc_time");
+  getNodeHandle().param<std::string>("piksiTimeTopic", piksiTimeTopic_, "piksi/utc_time");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiTimeTopic: " << piksiTimeTopic_);
 }
 
