@@ -201,6 +201,8 @@ class PiksiMulti:
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
         self.init_callback('baseline_heading', BaselineHeading,
                            SBP_MSG_BASELINE_HEADING, BaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
+        self.init_callback('age_of_corrections', AgeOfCorrections,
+                           SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
 
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # self.init_callback('pos_llh', PosLlh,
@@ -293,6 +295,8 @@ class PiksiMulti:
                                                       ImuAuxMulti, queue_size=10)
         publishers['baseline_heading'] = rospy.Publisher(rospy.get_name() + '/baseline_heading',
                                                          BaselineHeading, queue_size=10)
+        publishers['age_of_corrections'] = rospy.Publisher(rospy.get_name() + '/age_of_corrections',
+                                                           AgeOfCorrections, queue_size=10)
         # Topics published only if in "debug mode".
         if self.debug_mode:
             publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
