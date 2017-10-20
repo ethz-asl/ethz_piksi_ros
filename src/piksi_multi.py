@@ -3,7 +3,7 @@
 #
 #  Title:        piksi_multi.py
 #  Description:  ROS Driver for Piksi Multi RTK GPS module
-#  Dependencies: libsbp (https://github.com/swift-nav/libsbp), tested with v1.2.1
+#  Dependencies: libsbp (https://github.com/swift-nav/libsbp), tested with v1.2.14
 #  Based on original work of https://bitbucket.org/Daniel-Eckert/piksi_node
 #
 
@@ -26,20 +26,22 @@ from sbp.tracking import *  # WARNING: tracking is part of the draft messages, c
 from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH, \
     SBP_MSG_BASE_POS_ECEF
+from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
 from zope.interface.exceptions import Invalid
 # Piksi Multi features an IMU
 from sbp.imu import *
-import sbp.version
+# At the moment importing 'sbp.version' module causes ValueError: Cannot find the version number!
+#import sbp.version
 # networking stuff
 import UdpHelpers
 import time
 import subprocess
 import re
 import threading
-from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
+import sys
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.2.1' # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.2.14' # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -53,10 +55,16 @@ class PiksiMulti:
         # Print info.
         rospy.sleep(0.5)  # Wait for a while for init to complete before printing.
         rospy.loginfo(rospy.get_name() + " start")
-        rospy.loginfo("libsbp version currently used: " + sbp.version.get_git_version())
+
+        # Check SBP version.
+        if 'sbp.version' in sys.modules:
+            installed_sbp_version = sbp.version.get_git_version()
+        else:
+            installed_sbp_version = self.get_installed_sbp_version()
+        rospy.loginfo("libsbp version currently used: " + installed_sbp_version)
 
         # Check for correct SBP library version dependent on Piksi device.
-        if PiksiMulti.LIB_SBP_VERSION_MULTI != sbp.version.get_git_version():
+        if PiksiMulti.LIB_SBP_VERSION_MULTI != installed_sbp_version:
             rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!" % (
                 sbp.version.get_git_version(), PiksiMulti.LIB_SBP_VERSION_MULTI))
 
@@ -141,10 +149,10 @@ class PiksiMulti:
                                                   std_srvs.srv.SetBool,
                                                   self.reset_piksi_service_callback)
 
-	# Watchdog timer info
+        # Watchdog timer info
         self.watchdog_time = rospy.get_rostime()
         self.messages_started = False
-	
+
         # Only have start-up reset in base station mode
         if self.base_station_mode:
             # Things have 30 seconds to start or we will kill node
@@ -778,6 +786,24 @@ class PiksiMulti:
             response.message = "Piksi reset command not sent."
 
         return response
+
+    def get_installed_sbp_version(self):
+        command = ["pip", "show", "sbp"]
+        pip_show_output = subprocess.Popen(command, stdout=subprocess.PIPE)
+        out, error = pip_show_output.communicate()
+
+        # Search for version number, output assumed in the form "Version: X.X.X"
+        version_output = re.search("Version: \d+.\d+.\d+", out)
+
+        if version_output == None:
+            # No version found
+            rospy.logwarn("No SBP version found. Please install it by using script in 'install' folder.")
+            return -1
+        else:
+            # extract version number
+            version_output_string = version_output.group()
+            version_number = re.search("\d+.\d+.\d+", version_output_string)
+            return version_number.group()
 
 # Main function.
 if __name__ == '__main__':
