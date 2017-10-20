@@ -16,8 +16,7 @@ The following code will automatically download the required version of libsbp an
 
 ```
 # From the repository folder
-source install/install_piksi.sh     # This script will:
-                                                # 1. Request to add you to dialout, if you are not within this group
+source install/install_piksi_multi.sh
 ```
 
 ## Usage
