@@ -165,7 +165,8 @@ class PiksiMulti:
         # Callbacks implemented "manually".
         self.handler.add_callback(self.pos_llh_callback, msg_type=SBP_MSG_POS_LLH)
         self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
-        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
+        # TODO (marco-tranzatto) switch to non deprecated message when sbp provides it.
+        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE_DEP_B)
         self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE)
 
         # Callbacks generated "automatically".
@@ -553,7 +554,8 @@ class PiksiMulti:
         self.publish_receiver_state_msg()
 
     def tracking_state_callback(self, msg_raw, **metadata):
-        msg = MsgTrackingState(msg_raw)
+        # TODO (marco-tranzatto) switch to non deprecated message when sbp provides it.
+        msg = MsgTrackingStateDepB(msg_raw)
 
         tracking_state_msg = TrackingState()
         tracking_state_msg.header.stamp = rospy.Time.now()
@@ -563,6 +565,7 @@ class PiksiMulti:
         tracking_state_msg.cn0 = []
 
         for single_tracking_state in msg.states:
+
             # Take only running tracking.
             track_running = single_tracking_state.state & 0x01
             if track_running:
