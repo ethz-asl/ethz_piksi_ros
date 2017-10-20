@@ -126,6 +126,10 @@ class PiksiMulti:
             self.init_geodetic_reference(latitude0, longitude0, altitude0)
             rospy.loginfo("Origin ENU frame set by rosparam.")
 
+        # Watchdog timer info
+        self.watchdog_time = rospy.get_rostime()
+        self.messages_started = False
+
         # Advertise topics.
         self.publishers = self.advertise_topics()
 
@@ -148,10 +152,6 @@ class PiksiMulti:
                                                  '/reset_piksi',
                                                   std_srvs.srv.SetBool,
                                                   self.reset_piksi_service_callback)
-
-        # Watchdog timer info
-        self.watchdog_time = rospy.get_rostime()
-        self.messages_started = False
 
         # Only have start-up reset in base station mode
         if self.base_station_mode:
