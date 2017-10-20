@@ -39,6 +39,7 @@ add_message_files(
   UtcTimeMulti.msg
   VelEcef.msg
   VelNed.msg
+  AgeOfCorrections.msg
 )
 
 ## Generate added messages and services with any dependencies listed here
