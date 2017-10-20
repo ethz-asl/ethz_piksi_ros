@@ -15,11 +15,9 @@ ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
 The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-2.2.1-py2.7.egg/sbp/`.
 
 ```
-#from the repository folder
-chmod +x install/install_piksi.sh  #make sure the script is excutable
-./install/install_piksi_multi.sh         # WARNING, this script will:
-                                         # 1. Create udev rule for Piksi
-                                         # 2. Add you to dialout, if you are not within this group
+# From the repository folder
+source install/install_piksi.sh     # This script will:
+                                                # 1. Request to add you to dialout, if you are not within this group
 ```
 
 ## Usage
