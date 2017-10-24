@@ -41,7 +41,7 @@ import threading
 import sys
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.2.14' # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.2.14'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -61,12 +61,14 @@ class PiksiMulti:
             installed_sbp_version = sbp.version.get_git_version()
         else:
             installed_sbp_version = self.get_installed_sbp_version()
+
         rospy.loginfo("libsbp version currently used: " + installed_sbp_version)
 
         # Check for correct SBP library version dependent on Piksi device.
         if PiksiMulti.LIB_SBP_VERSION_MULTI != installed_sbp_version:
-            rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!" % (
-                sbp.version.get_git_version(), PiksiMulti.LIB_SBP_VERSION_MULTI))
+            rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!\n"
+                          "Please run the install script: 'install/install_piksi_multi.sh'" % (
+                          installed_sbp_version, PiksiMulti.LIB_SBP_VERSION_MULTI))
 
         # Open a connection to Piksi.
         serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
@@ -77,7 +79,7 @@ class PiksiMulti:
         except SystemExit:
             rospy.logerr("Piksi not found on serial port '%s'", serial_port)
             raise
-       
+
         # Create a handler to connect Piksi driver to callbacks.
         self.framer = Framer(self.driver.read, self.driver.write, verbose=True)
         self.handler = Handler(self.framer)
@@ -437,8 +439,8 @@ class PiksiMulti:
     def watchdog_callback(self, event):
         if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 10.0):
             rospy.logwarn("Heartbeat failed, watchdog triggered.")
-            
-            if self.base_station_mode:        
+
+            if self.base_station_mode:
                 rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
 
     def pos_llh_callback(self, msg_raw, **metadata):
@@ -450,10 +452,10 @@ class PiksiMulti:
         # SPP GPS messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
             self.publish_spp(msg.lat, msg.lon, msg.height)
-            
+
         # TODO: Differential GNSS (DGNSS)
         # elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS
-        
+
         # RTK GPS messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK and self.debug_mode:
             self.publish_rtk_float(msg.lat, msg.lon, msg.height)
@@ -461,7 +463,7 @@ class PiksiMulti:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
-    
+
             self.publish_rtk_fix(msg.lat, msg.lon, msg.height)
         # Update debug msg and publish.
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
@@ -631,7 +633,7 @@ class PiksiMulti:
         uart_state_msg.uart_b_io_error_count = msg.uart_b.io_error_count
         uart_state_msg.uart_b_tx_buffer_level = msg.uart_b.tx_buffer_level
         uart_state_msg.uart_b_rx_buffer_level = msg.uart_b.rx_buffer_level
-        
+
         uart_state_msg.uart_ftdi_tx_throughput = msg.uart_ftdi.tx_throughput
         uart_state_msg.uart_ftdi_rx_throughput = msg.uart_ftdi.rx_throughput
         uart_state_msg.uart_ftdi_crc_error_count = msg.uart_ftdi.crc_error_count
@@ -643,7 +645,7 @@ class PiksiMulti:
         uart_state_msg.latency_lmin = msg.latency.lmin
         uart_state_msg.latency_lmax = msg.latency.lmax
         uart_state_msg.latency_current = msg.latency.current
-        
+
         uart_state_msg.obs_period_avg = msg.obs_period.avg
         uart_state_msg.obs_period_pmin = msg.obs_period.pmin
         uart_state_msg.obs_period_pmax = msg.obs_period.pmax
@@ -802,9 +804,10 @@ class PiksiMulti:
         # Search for version number, output assumed in the form "Version: X.X.X"
         version_output = re.search("Version: \d+.\d+.\d+", out)
 
-        if version_output == None:
+        if version_output is None:
             # No version found
-            rospy.logwarn("No SBP version found. Please install it by using script in 'install' folder.")
+            rospy.logfatal("No SBP library found. Please install it by using script in 'install' folder.")
+            rospy.signal_shutdown("No SBP library found. Please install it by using script in 'install' folder.")
             return -1
         else:
             # extract version number
