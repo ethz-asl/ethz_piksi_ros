@@ -39,6 +39,7 @@ import subprocess
 import re
 import threading
 import sys
+import collections
 
 class PiksiMulti:
     LIB_SBP_VERSION_MULTI = '2.2.14'  # SBP version used for Piksi Multi.
@@ -87,6 +88,10 @@ class PiksiMulti:
         self.debug_mode = rospy.get_param('~debug_mode', False)
         if self.debug_mode:
             rospy.loginfo("Piksi driver started in debug mode, every available topic will be published.")
+            # Debugging parameters.
+            debug_delayed_corrections_stack_size = rospy.get_param('~debug_delayed_corrections_stack_size', 10)
+            self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
+            rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
         else:
             rospy.loginfo("Piksi driver started in normal mode.")
 
@@ -424,7 +429,17 @@ class PiksiMulti:
     def multicast_callback(self, msg, **metadata):
         # rospy.logwarn("MULTICAST Callback")
         if self.framer:
-            self.framer(msg, **metadata)
+
+            if self.debug_mode:
+                # Test network delay by storing a fixed number of correction messages and retrieving the oldest one.
+                # TODO (marco-tranzatto) check if we need to store even **metadata or not
+                # self.received_corrections_fifo_stack.append([msg, **metadata])
+                # oldest_correction = self.received_corrections_fifo_stack.popleft()
+                self.received_corrections_fifo_stack.append(msg)
+                oldest_correction = self.received_corrections_fifo_stack.popleft()
+                self.framer(oldest_correction, **metadata)
+            else:
+                self.framer(msg, **metadata)
 
             # Publish debug message about wifi corrections, if enabled.
             self.num_wifi_corrections.header.seq += 1
