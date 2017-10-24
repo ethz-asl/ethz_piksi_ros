@@ -232,21 +232,21 @@ class PiksiMulti:
 
     def init_receiver_state_msg(self):
         receiver_state_msg = ReceiverState()
-        receiver_state_msg.num_sat = 0  # Unkown.
-        receiver_state_msg.rtk_mode_fix = False  # Unkown.
-        receiver_state_msg.sat = []  # Unkown.
-        receiver_state_msg.cn0 = []  # Unkown.
-        receiver_state_msg.tracking_running = []  # Unkown.
-        receiver_state_msg.system_error = 255  # Unkown.
-        receiver_state_msg.io_error = 255  # Unkown.
-        receiver_state_msg.swift_nap_error = 255  # Unkown.
-        receiver_state_msg.external_antenna_present = 255  # Unkown.
+        receiver_state_msg.num_sat = 0  # Unknown.
+        receiver_state_msg.rtk_mode_fix = False  # Unknown.
+        receiver_state_msg.sat = []  # Unknown.
+        receiver_state_msg.cn0 = []  # Unknown.
+        receiver_state_msg.tracking_running = []  # Unknown.
+        receiver_state_msg.system_error = 255  # Unknown.
+        receiver_state_msg.io_error = 255  # Unknown.
+        receiver_state_msg.swift_nap_error = 255  # Unknown.
+        receiver_state_msg.external_antenna_present = 255  # Unknown.
 
         return receiver_state_msg
 
     def advertise_topics(self):
         """
-        Adverties topics.
+        Advertise topics.
         :return: python dictionary, with topic names used as keys and publishers as values.
         """
         publishers = {}
@@ -451,8 +451,8 @@ class PiksiMulti:
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
             self.publish_spp(msg.lat, msg.lon, msg.height)
             
-        #TODO: Differential GNSS (DGNSS)
-        #elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS
+        # TODO: Differential GNSS (DGNSS)
+        # elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS
         
         # RTK GPS messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK and self.debug_mode:
@@ -776,7 +776,7 @@ class PiksiMulti:
         if request.data:
             # Send reset message.
             reset_sbp = SBP(SBP_MSG_RESET)
-            reset_sbp.payload=''
+            reset_sbp.payload = ''
             reset_msg = reset_sbp.pack()
             self.driver.write(reset_msg)
 
