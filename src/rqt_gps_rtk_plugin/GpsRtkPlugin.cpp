@@ -67,6 +67,9 @@ void GpsRtkPlugin::readParameters() {
 
   getNodeHandle().param<std::string>("piksiTimeTopic", piksiTimeTopic_, "piksi/utc_time");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiTimeTopic: " << piksiTimeTopic_);
+
+  getNodeHandle().param<std::string>("piksiAgeOfCorrectionsTopic", piksiAgeOfCorrectionsTopic_, "piksi/age_of_corrections");
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiAgeOfCorrectionsTopic: " << piksiAgeOfCorrectionsTopic_);
 }
 
 void GpsRtkPlugin::initLabels() {
@@ -80,6 +83,7 @@ void GpsRtkPlugin::initLabels() {
   ui_.label_numWifiCorrections->setText("N/A");
   ui_.label_pingBaseStation->setText("N/A");
   ui_.label_rateWifiCorrections->setText("N/A");
+  ui_.label_ageOfCorrections->setText("N/A");
 }
 
 void GpsRtkPlugin::initSubscribers() {
@@ -88,6 +92,7 @@ void GpsRtkPlugin::initSubscribers() {
   piksiWifiCorrectionsSub_ = getNodeHandle().subscribe(piksiWifiCorrectionsTopic_, 10, &GpsRtkPlugin::piksiWifiCorrectionsCb, this);
   piksiNavsatfixRtkFixSub_ = getNodeHandle().subscribe(piksiNavsatfixRtkFixTopic_, 10, &GpsRtkPlugin::piksiNavsatfixRtkFixCb, this);
   piksiHeartbeatSub_ = getNodeHandle().subscribe(piksiTimeTopic_, 10, &GpsRtkPlugin::piksiTimeCb, this);
+  piksiAgeOfCorrectionsSub_ = getNodeHandle().subscribe(piksiAgeOfCorrectionsTopic_, 10, &GpsRtkPlugin::piksiAgeOfCorrectionsCb, this);
 }
 
 void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState& msg) {
@@ -167,6 +172,13 @@ void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg) {
   time.sprintf("%02d:%02d:%02d", msg.hours, msg.minutes, msg.seconds);
   //time = std::to_string(msg.hours) + ":" + std::to_string(msg.minutes) + ":" + std::to_string(msg.seconds);
   QMetaObject::invokeMethod(ui_.label_nodeStatus, "setText", Q_ARG(QString, time));
+}
+
+void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrections &msg) {
+  unsigned int age_of_corrections = msg.age;
+  QString text;
+  text.sprintf("%d", age_of_corrections);
+  QMetaObject::invokeMethod(ui_.label_ageOfCorrections, "setText", Q_ARG(QString, text));
 }
 /*bool hasConfiguration() const
 {

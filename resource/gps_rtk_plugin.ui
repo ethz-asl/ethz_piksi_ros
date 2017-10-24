@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>365</width>
-    <height>338</height>
+    <height>371</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -61,7 +61,7 @@
      <x>10</x>
      <y>20</y>
      <width>351</width>
-     <height>311</height>
+     <height>341</height>
     </rect>
    </property>
    <property name="title">
@@ -453,6 +453,45 @@
     </property>
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="Line" name="line_9">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>290</y>
+      <width>201</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ageOfCorrections_description">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>300</y>
+      <width>161</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Age of corrections [ds]:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_ageOfCorrections">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>300</y>
+      <width>51</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>N/A</string>
     </property>
    </widget>
   </widget>
