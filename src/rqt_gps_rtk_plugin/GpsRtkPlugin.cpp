@@ -95,7 +95,7 @@ void GpsRtkPlugin::initSubscribers() {
   piksiAgeOfCorrectionsSub_ = getNodeHandle().subscribe(piksiAgeOfCorrectionsTopic_, 10, &GpsRtkPlugin::piksiAgeOfCorrectionsCb, this);
 }
 
-void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState& msg) {
+void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2_15& msg) {
   // Type of fix
   QMetaObject::invokeMethod(ui_.label_fixType, "setText", Q_ARG(QString, msg.rtk_mode_fix ? "Fix" : "Float"));
   QMetaObject::invokeMethod(ui_.label_fixType, "setStyleSheet", Q_ARG(QString, msg.rtk_mode_fix ?
