@@ -1,6 +1,8 @@
 piksi_multi_rtk_gps
 ======
 ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
+
+The piksi_multi_rtk_gps package has been tested under [ROS] Indigo and Ubuntu 14.04, and [ROS] Kinetic and Ubuntu 16.04. The latest version relies on Piksi Multi Firmware **1.2** release.
   
 ## Installation and Configuration
 
@@ -10,7 +12,8 @@ ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
   * pandoc     `sudo apt-get install pandoc`
   
 ### Installation
-**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi). If you are using [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf) please check its driver version: [piksi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_rtk_gps).**
+**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi).
+If you are using [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf) please check its driver version: [piksi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_rtk_gps)** (it is not supported anymore).
 
 The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-2.2.1-py2.7.egg/sbp/`.
 
