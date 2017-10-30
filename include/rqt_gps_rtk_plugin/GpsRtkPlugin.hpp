@@ -34,6 +34,7 @@ private:
   void readParameters();
   void initLabels();
   void initSubscribers();
+  void vectorToString(const std::vector<uint8_t> &vec, QString *pString);
 
   //subscribers
   ros::Subscriber piksiReceiverStateSub_;
