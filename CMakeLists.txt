@@ -34,7 +34,9 @@ add_message_files(
   PosLlh.msg
   PosLlhMulti.msg
   ReceiverState.msg
+  ReceiverState_V2_2_15.msg
   TrackingState.msg
+  TrackingState_V2_2_15.msg
   UartState.msg
   UtcTimeMulti.msg
   VelEcef.msg
