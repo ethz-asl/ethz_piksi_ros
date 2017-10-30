@@ -172,8 +172,7 @@ class PiksiMulti:
         # Callbacks implemented "manually".
         self.handler.add_callback(self.pos_llh_callback, msg_type=SBP_MSG_POS_LLH)
         self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
-        # TODO (marco-tranzatto) switch to non deprecated message when sbp provides it.
-        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE_DEP_B)
+        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
         self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE)
 
         # Callbacks generated "automatically".
@@ -238,16 +237,21 @@ class PiksiMulti:
         return num_wifi_corrections
 
     def init_receiver_state_msg(self):
-        receiver_state_msg = ReceiverState()
+        receiver_state_msg = ReceiverState_V2_2_15()
         receiver_state_msg.num_sat = 0  # Unknown.
         receiver_state_msg.rtk_mode_fix = False  # Unknown.
         receiver_state_msg.sat = []  # Unknown.
         receiver_state_msg.cn0 = []  # Unknown.
-        receiver_state_msg.tracking_running = []  # Unknown.
         receiver_state_msg.system_error = 255  # Unknown.
         receiver_state_msg.io_error = 255  # Unknown.
         receiver_state_msg.swift_nap_error = 255  # Unknown.
         receiver_state_msg.external_antenna_present = 255  # Unknown.
+        receiver_state_msg.num_gps_sat = 0  # Unknown.
+        receiver_state_msg.cn0_gps = []  # Unknown.
+        receiver_state_msg.num_sbas_sat = 0  # Unknown.
+        receiver_state_msg.cn0_sbas = []  # Unknown.
+        receiver_state_msg.num_glonass_sat = 0  # Unknown.
+        receiver_state_msg.cn0_glonass = []  # Unknown.
 
         return receiver_state_msg
 
@@ -265,9 +269,9 @@ class PiksiMulti:
         publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
                                                   Heartbeat, queue_size=10)
         publishers['tracking_state'] = rospy.Publisher(rospy.get_name() + '/tracking_state',
-                                                       TrackingState, queue_size=10)
+                                                       TrackingState_V2_2_15, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
-                                                       ReceiverState, queue_size=10)
+                                                       ReceiverState_V2_2_15, queue_size=10)
         publishers['uart_state_multi'] = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
                                                          UartState, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
@@ -575,42 +579,82 @@ class PiksiMulti:
         self.publish_receiver_state_msg()
 
     def tracking_state_callback(self, msg_raw, **metadata):
-        # TODO (marco-tranzatto) switch to non deprecated message when sbp provides it.
-        msg = MsgTrackingStateDepB(msg_raw)
+        msg = MsgTrackingState(msg_raw)
 
-        tracking_state_msg = TrackingState()
+        # print "\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+        #
+        # for single_tracking_state in msg.states:
+        #     print single_tracking_state
+        #     print "--------------------\n"
+
+        tracking_state_msg = TrackingState_V2_2_15()
         tracking_state_msg.header.stamp = rospy.Time.now()
-        tracking_state_msg.state = []
         tracking_state_msg.sat = []
         tracking_state_msg.code = []
+        tracking_state_msg.fcn = []
         tracking_state_msg.cn0 = []
+
+        # Temporary variables for receiver state message.
+        num_gps_sat = 0
+        cn0_gps = []
+        num_sbas_sat = 0
+        cn0_sbas = []
+        num_glonass_sat = 0
+        cn0_glonass = []
 
         for single_tracking_state in msg.states:
 
-            # Take only running tracking.
-            track_running = single_tracking_state.state & 0x01
-            if track_running:
-                tracking_state_msg.state.append(single_tracking_state.state)
+            # Use satellites with valid cn0.
+            if single_tracking_state.cn0 > 0.0:
+
                 tracking_state_msg.sat.append(single_tracking_state.sid.sat)
                 tracking_state_msg.code.append(single_tracking_state.sid.code)
+                tracking_state_msg.fcn.append(single_tracking_state.fcn)
                 tracking_state_msg.cn0.append(single_tracking_state.cn0)
 
+                # Receiver state fields.
+                code = single_tracking_state.sid.code
+                if code == ReceiverState_V2_2_15.CODE_GPS_L1CA or \
+                                code == ReceiverState_V2_2_15.CODE_GPS_L2CM or \
+                                code == ReceiverState_V2_2_15.CODE_GPS_L1P or \
+                                code == ReceiverState_V2_2_15.CODE_GPS_L2P:
+                    num_gps_sat += 1
+                    cn0_gps.append(single_tracking_state.cn0)
+
+                if code == ReceiverState_V2_2_15.CODE_SBAS_L1CA:
+                    num_sbas_sat += 1
+                    cn0_sbas.append(single_tracking_state.cn0)
+
+                if code == ReceiverState_V2_2_15.CODE_GLO_L1CA or \
+                                code == ReceiverState_V2_2_15.CODE_GLO_L1CA:
+                    num_glonass_sat += 1
+                    cn0_glonass.append(single_tracking_state.cn0)
+
         # Publish if there's at least one element in each array.
-        if len(tracking_state_msg.state) \
-                and len(tracking_state_msg.sat) \
+        if len(tracking_state_msg.sat) \
                 and len(tracking_state_msg.code) \
+                and len(tracking_state_msg.fcn) \
                 and len(tracking_state_msg.cn0):
 
             self.publishers['tracking_state'].publish(tracking_state_msg)
 
             # Update debug msg and publish.
-            self.receiver_state_msg.num_sat = 0  # Count number of satellites used to track.
-            for tracking_running in tracking_state_msg.state:
-                self.receiver_state_msg.num_sat += tracking_running
+            self.receiver_state_msg.num_sat = 0
+            for satellite_cno in tracking_state_msg.cn0:
+                # Use number of satellites with valid cn0.
+                if satellite_cno > 0.0:
+                    self.receiver_state_msg.num_sat += 1
 
             self.receiver_state_msg.sat = tracking_state_msg.sat
             self.receiver_state_msg.cn0 = tracking_state_msg.cn0
-            self.receiver_state_msg.tracking_running = tracking_state_msg.state
+
+            self.receiver_state_msg.num_gps_sat = num_gps_sat
+            self.receiver_state_msg.cn0_gps = cn0_gps
+            self.receiver_state_msg.num_sbas_sat = num_sbas_sat
+            self.receiver_state_msg.cn0_sbas = cn0_sbas
+            self.receiver_state_msg.num_glonass_sat = num_glonass_sat
+            self.receiver_state_msg.cn0_glonass = cn0_glonass
+
             self.publish_receiver_state_msg()
 
 #     def utc_time_callback(self, msg_raw, **metadata):
