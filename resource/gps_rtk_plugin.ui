@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>391</width>
-    <height>429</height>
+    <width>395</width>
+    <height>438</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>365</width>
-    <height>338</height>
+    <width>395</width>
+    <height>438</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -498,7 +498,7 @@
         <x>10</x>
         <y>60</y>
         <width>101</width>
-        <height>22</height>
+        <height>51</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -508,7 +508,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>GPS strength:</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;GPS strength:&lt;/p&gt;&lt;p&gt;[dB Hz / 4]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_gpsStrength">
@@ -593,8 +593,8 @@
        <rect>
         <x>10</x>
         <y>150</y>
-        <width>101</width>
-        <height>22</height>
+        <width>111</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -604,7 +604,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>SBAS strength:</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;SBAS strength:&lt;/p&gt;&lt;p&gt;[dB Hz / 4]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_sbasStrength">
@@ -650,8 +650,8 @@
        <rect>
         <x>10</x>
         <y>240</y>
-        <width>111</width>
-        <height>22</height>
+        <width>201</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -661,7 +661,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>GLONASS strength:</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;GLONASS strength:&lt;/p&gt;&lt;p&gt;[dB Hz / 4]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
      <widget class="Line" name="line_14">
@@ -682,7 +682,7 @@
        <rect>
         <x>10</x>
         <y>210</y>
-        <width>121</width>
+        <width>161</width>
         <height>26</height>
        </rect>
       </property>
@@ -787,7 +787,7 @@
        <rect>
         <x>10</x>
         <y>120</y>
-        <width>101</width>
+        <width>121</width>
         <height>22</height>
        </rect>
       </property>
