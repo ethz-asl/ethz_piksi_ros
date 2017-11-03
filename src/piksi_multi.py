@@ -266,6 +266,8 @@ class PiksiMulti:
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
                                             NavSatFix, queue_size=10)
+        publishers['best_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_best_fix',
+                                                 NavSatFix, queue_size=10)
         publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
                                                   Heartbeat, queue_size=10)
         publishers['tracking_state'] = rospy.Publisher(rospy.get_name() + '/tracking_state',
@@ -308,6 +310,8 @@ class PiksiMulti:
                                                          BaselineHeading, queue_size=10)
         publishers['age_of_corrections'] = rospy.Publisher(rospy.get_name() + '/age_of_corrections',
                                                            AgeOfCorrections, queue_size=10)
+        publishers['enu_pose_best_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_best_fix',
+                                                          PoseWithCovarianceStamped, queue_size=10)
         # Topics published only if in "debug mode".
         if self.debug_mode:
             publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
@@ -492,22 +496,25 @@ class PiksiMulti:
         self.publish_gps_point(latitude, longitude, height, self.var_spp, NavSatStatus.STATUS_FIX,
                                self.publishers['spp'],
                                self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
-                               self.publishers['enu_transform_spp'])
+                               self.publishers['enu_transform_spp'], self.publishers['best_fix'],
+                               self.publishers['enu_pose_best_fix'])
 
     def publish_rtk_float(self, latitude, longitude, height):
         self.publish_gps_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
                                self.publishers['rtk_float'],
                                self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
-                               self.publishers['enu_transform_float'])
+                               self.publishers['enu_transform_float'], self.publishers['best_fix'],
+                               self.publishers['enu_pose_best_fix'])
 
     def publish_rtk_fix(self, latitude, longitude, height):
         self.publish_gps_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
                                self.publishers['rtk_fix'],
                                self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
-                               self.publishers['enu_transform_fix'])
+                               self.publishers['enu_transform_fix'], self.publishers['best_fix'],
+                               self.publishers['enu_pose_best_fix'])
 
     def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point,
-                          pub_transform):
+                          pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
         # Navsatfix message.
         navsatfix_msg = NavSatFix()
         navsatfix_msg.header.stamp = rospy.Time.now()
@@ -548,6 +555,8 @@ class PiksiMulti:
         pub_pose.publish(pose_msg)
         pub_point.publish(point_msg)
         pub_transform.publish(transform_msg)
+        pub_navsatfix_best_pose.publish(navsatfix_msg)
+        pub_pose_best_fix.publish(pose_msg)
 
     def heartbeat_callback(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
