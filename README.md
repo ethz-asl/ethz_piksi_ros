@@ -34,7 +34,12 @@ roslaunch piksi_multi_rtk_gps piksi_multi_base_station.launch
 ```
 roslaunch piksi_multi_rtk_gps piksi_multi_mav.launch
 ```
-Check the status of your receiver:
+Check the status of your receiver (RQT GUI):
+```
+roslaunch rqt_gps_rtk_plugin gui.launch
+```
+
+Check the status of your receiver (Python GUI):
 ```
 roslaunch mav_rtk_gui rtk_multi_info_example.launch
 ```
@@ -51,3 +56,10 @@ Set configurations in `cfg/piksi_multi_driver_settings.yaml`
  - `broadcast_addr: <put here Bcast address obtained from command ifconfig>`
  - `broadcast_port: 26078`
  - `base_station_ip_for_latency_estimation: <IP address of base station or router, to estimate latency over wifi>`
+
+## Rosservice
+The following services are available:
+ - `piksi/settings_write`: writes a specific setting to Piksi Multi;
+ - `piksi/settings_read_req`: requests a parameter to Piksi Multi;
+ - `piksi/settings_read_resp`: reads the latest response of a "settings_read_req" request;
+ - `piksi/settings_save`: saves the current settings of Piksi Multi to its flash memory.
