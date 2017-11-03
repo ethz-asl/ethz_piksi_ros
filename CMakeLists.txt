@@ -44,6 +44,14 @@ add_message_files(
   AgeOfCorrections.msg
 )
 
+## Generate services in the 'srv' folder
+add_service_files(
+  FILES
+  SettingsWrite.srv
+  SettingsReadReq.srv
+  SettingsReadResp.srv
+)
+
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES

@@ -1,0 +1,5 @@
+# Read return of a read-request service call.
+
+---
+bool success
+string message # if success, contains "section_setting.setting: value"
