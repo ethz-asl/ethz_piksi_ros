@@ -14,6 +14,7 @@ import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from piksi_rtk_msgs.msg import *
+from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped, \
     Transform
 # Import Piksi SBP library
@@ -27,6 +28,7 @@ from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could b
 from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH, \
     SBP_MSG_BASE_POS_ECEF
 from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
+from sbp.settings import *
 from zope.interface.exceptions import Invalid
 # Piksi Multi features an IMU
 from sbp.imu import *
@@ -160,6 +162,27 @@ class PiksiMulti:
                                                   std_srvs.srv.SetBool,
                                                   self.reset_piksi_service_callback)
 
+        # Handle firmware settings services
+        self.last_section_setting_read = []
+        self.last_setting_read = []
+        self.last_value_read = []
+        self.settings_write_service = rospy.Service(rospy.get_name() +
+                                                    '/settings_write',
+                                                    SettingsWrite,
+                                                    self.settings_write_server)
+        self.settings_read_req_service = rospy.Service(rospy.get_name() +
+                                                       '/settings_read_req',
+                                                       SettingsReadReq,
+                                                       self.settings_read_req_server)
+        self.settings_read_resp_service = rospy.Service(rospy.get_name() +
+                                                        '/settings_read_resp',
+                                                        SettingsReadResp,
+                                                        self.settings_read_resp_server)
+        self.settings_save_service = rospy.Service(rospy.get_name() +
+                                                   '/settings_save',
+                                                   std_srvs.srv.SetBool,
+                                                   self.settings_save_callback)
+
         # Only have start-up reset in base station mode
         if self.base_station_mode:
             # Things have 30 seconds to start or we will kill node
@@ -174,6 +197,8 @@ class PiksiMulti:
         self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
         self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
         self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE)
+        self.handler.add_callback(self.settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
+        self.handler.add_callback(self.settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -864,6 +889,71 @@ class PiksiMulti:
 
         return response
 
+    def settings_write_server(self, request):
+        response = SettingsWriteResponse()
+
+        self.settings_write(request.section_setting, request.setting, request.value)
+        response.success = True
+        response.message = "Settings written. Please use service 'settings_read_req' if you want to double check."
+
+        return response
+
+    def settings_read_req_server(self, request):
+        response = SettingsReadReqResponse()
+
+        # Make sure we do not have any old setting in memory.
+        self.clear_last_setting_read()
+        self.settings_read_req(request.section_setting, request.setting)
+        response.success = True
+        response.message = "Read-request sent. Please use 'settings_read_resp' to get the response."
+
+        return response
+
+    def settings_read_resp_server(self, request):
+        response = SettingsReadRespResponse()
+
+        if self.last_section_setting_read and self.last_setting_read and self.last_value_read:
+            response.success = True
+            response.message = "%s.%s: %s" % (
+                self.last_section_setting_read, self.last_setting_read, self.last_value_read)
+        else:
+            response.success = False
+            response.message = "Please trigger a new 'settings_read_req' via service call."
+
+        self.clear_last_setting_read()
+
+        return response
+
+    def settings_save_callback(self, request):
+        response = std_srvs.srv.SetBoolResponse()
+
+        if request.data:
+            self.settings_save()
+            response.success = True
+            response.message = "Piksi settings have been saved to flash."
+        else:
+            response.success = False
+            response.message = "Please pass 'true' to this service call to explicitly save to flash the local settings."
+
+        return response
+
+        # if request.data:
+        #     # TODO survey position
+        #     self.settings_write('surveyed_position', 'surveyed_lat', 55)
+        #     rospy.sleep(1.5)
+        #     #self.settings_read_req('ext_events_2', 'sensitivity')
+        #     #self.settings_read_by_index_req(94)
+        #     self.settings_save()
+        #     #self.settings_read_req('surveyed_position', 'surveyed_lat')
+        #
+        #     response.success = True
+        #     response.message = "Auto-surveyed position saved to flask memory of Piksi"
+        # else:
+        #     response.success = False
+        #     response.message = "Please confirm you want to auto survey the position by passing 'True' as param."
+        #
+        # return response
+
     def get_installed_sbp_version(self):
         command = ["pip", "show", "sbp"]
         pip_show_output = subprocess.Popen(command, stdout=subprocess.PIPE)
@@ -882,6 +972,64 @@ class PiksiMulti:
             version_output_string = version_output.group()
             version_number = re.search("\d+.\d+.\d+", version_output_string)
             return version_number.group()
+
+    def settings_write(self, section_setting, setting, value):
+        """
+        Write the defined configuration to Piksi.
+        """
+        setting_string = '%s\0%s\0%s\0' % (section_setting, setting, value)
+        write_msg = MsgSettingsWrite(setting=setting_string)
+        self.framer(write_msg)
+
+    def settings_save(self):
+        """
+        Save settings message persists the device's current settings
+        configuration to its on-board flash memory file system.
+        """
+        save_msg = MsgSettingsSave()
+        self.framer(save_msg)
+
+    def settings_read_req(self, section_setting, setting):
+        """
+        Request a configuration value to Piksi.
+        """
+        setting_string = '%s\0%s\0' % (section_setting, setting)
+        read_req_msg = MsgSettingsReadReq(setting=setting_string)
+        self.framer(read_req_msg)
+
+    def settings_read_resp(self, msg_raw, **metadata):
+        """
+        Response to a settings_read_req.
+        """
+        msg = MsgSettingsReadResp(msg_raw)
+        setting_string = msg.setting.split('\0')
+        self.last_section_setting_read = setting_string[0]
+        self.last_setting_read = setting_string[1]
+        self.last_value_read = setting_string[2]
+
+    def settings_read_by_index_req(self, index):
+        """
+        Request a configuration value to Piksi by parameter index number.
+        """
+        read_req_by_index_msg = MsgSettingsReadByIndexReq(index=index)
+        self.framer(read_req_by_index_msg)
+
+    def settings_read_by_index_resp(self, msg_raw, **metadata):
+        """
+        Response to a settings_read_by_index_req.
+        """
+        msg = MsgSettingsReadByIndexResp(msg_raw)
+        setting_string = msg.setting.split('\0')
+        self.last_section_setting_read = setting_string[0]
+        self.last_setting_read = setting_string[1]
+        self.last_value_read = setting_string[2]
+
+    def clear_last_setting_read(self):
+        self.last_section_setting_read = []
+        self.last_setting_read = []
+        self.last_value_read = []
+
+
 
 # Main function.
 if __name__ == '__main__':
