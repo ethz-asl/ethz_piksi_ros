@@ -33,7 +33,7 @@ from zope.interface.exceptions import Invalid
 # Piksi Multi features an IMU
 from sbp.imu import *
 # At the moment importing 'sbp.version' module causes ValueError: Cannot find the version number!
-#import sbp.version
+# import sbp.version
 # networking stuff
 import UdpHelpers
 import time
@@ -42,6 +42,7 @@ import re
 import threading
 import sys
 import collections
+
 
 class PiksiMulti:
     LIB_SBP_VERSION_MULTI = '2.2.15'  # SBP version used for Piksi Multi.
@@ -71,7 +72,7 @@ class PiksiMulti:
         if PiksiMulti.LIB_SBP_VERSION_MULTI != installed_sbp_version:
             rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!\n"
                           "Please run the install script: 'install/install_piksi_multi.sh'" % (
-                          installed_sbp_version, PiksiMulti.LIB_SBP_VERSION_MULTI))
+                              installed_sbp_version, PiksiMulti.LIB_SBP_VERSION_MULTI))
 
         # Open a connection to Piksi.
         serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
@@ -159,8 +160,8 @@ class PiksiMulti:
         # Reset service.
         self.reset_piksi_service = rospy.Service(rospy.get_name() +
                                                  '/reset_piksi',
-                                                  std_srvs.srv.SetBool,
-                                                  self.reset_piksi_service_callback)
+                                                 std_srvs.srv.SetBool,
+                                                 self.reset_piksi_service_callback)
 
         # Handle firmware settings services
         self.last_section_setting_read = []
@@ -247,7 +248,7 @@ class PiksiMulti:
 
             self.handler.add_callback(self.callback_sbp_obs, msg_type=SBP_MSG_OBS)
             # not sure if SBP_MSG_BASE_POS_LLH or SBP_MSG_BASE_POS_ECEF is better?
-            #self.handler.add_callback(self.callback_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
+            # self.handler.add_callback(self.callback_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
             self.handler.add_callback(self.callback_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
         else:
             rospy.loginfo("Starting in client station mode")
@@ -413,7 +414,7 @@ class PiksiMulti:
                 if attr == 'flags':
                     # Least significat three bits of flags indicate status.
                     if (msg.flags & 0x07) == 0:
-                        return # Invalid message, do not publish it.
+                        return  # Invalid message, do not publish it.
 
                 setattr(ros_message, attr, getattr(sbp_message, attr))
             pub.publish(ros_message)
@@ -590,7 +591,7 @@ class PiksiMulti:
         self.watchdog_time = rospy.get_rostime()
 
         # Start watchdog with 10 second timeout to ensure we keep getting gps
-        if(not self.messages_started):
+        if (not self.messages_started):
             self.messages_started = True
             rospy.Timer(rospy.Duration(10), self.watchdog_callback)
 
@@ -691,17 +692,17 @@ class PiksiMulti:
 
             self.publish_receiver_state_msg()
 
-#     def utc_time_callback(self, msg_raw, **metadata):
-#         msg = MsgUtcTime(msg_raw)
-#
-#         # check i message is valid
-#         if msg.flags & 0x01 == True: # msg valid TODO: use bitmask instead
-#             # TODO: calc delta_t to rospy.Time.now()
-#             # delta_t_vec.append(delta_t)
-#             # self.delta_t_MA = moving_average_filter(delta_t_vec, N)
-#             return
-#         else: # msg invalid
-#             return
+        #     def utc_time_callback(self, msg_raw, **metadata):
+        #         msg = MsgUtcTime(msg_raw)
+        #
+        #         # check i message is valid
+        #         if msg.flags & 0x01 == True: # msg valid TODO: use bitmask instead
+        #             # TODO: calc delta_t to rospy.Time.now()
+        #             # delta_t_vec.append(delta_t)
+        #             # self.delta_t_MA = moving_average_filter(delta_t_vec, N)
+        #             return
+        #         else: # msg invalid
+        #             return
 
     def publish_receiver_state_msg(self):
         self.receiver_state_msg.header.stamp = rospy.Time.now()
@@ -942,23 +943,6 @@ class PiksiMulti:
 
         return response
 
-        # if request.data:
-        #     # TODO survey position
-        #     self.settings_write('surveyed_position', 'surveyed_lat', 55)
-        #     rospy.sleep(1.5)
-        #     #self.settings_read_req('ext_events_2', 'sensitivity')
-        #     #self.settings_read_by_index_req(94)
-        #     self.settings_save()
-        #     #self.settings_read_req('surveyed_position', 'surveyed_lat')
-        #
-        #     response.success = True
-        #     response.message = "Auto-surveyed position saved to flask memory of Piksi"
-        # else:
-        #     response.success = False
-        #     response.message = "Please confirm you want to auto survey the position by passing 'True' as param."
-        #
-        # return response
-
     def get_installed_sbp_version(self):
         command = ["pip", "show", "sbp"]
         pip_show_output = subprocess.Popen(command, stdout=subprocess.PIPE)
@@ -1033,7 +1017,6 @@ class PiksiMulti:
         self.last_section_setting_read = []
         self.last_setting_read = []
         self.last_value_read = []
-
 
 
 # Main function.
