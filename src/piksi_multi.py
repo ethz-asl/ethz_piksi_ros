@@ -914,11 +914,16 @@ class PiksiMulti:
 
         if self.last_section_setting_read and self.last_setting_read and self.last_value_read:
             response.success = True
-            response.message = "%s.%s: %s" % (
-                self.last_section_setting_read, self.last_setting_read, self.last_value_read)
+            response.message = ""
+            response.section_setting = self.last_section_setting_read
+            response.setting = self.last_setting_read
+            response.value = self.last_value_read
         else:
             response.success = False
             response.message = "Please trigger a new 'settings_read_req' via service call."
+            response.section_setting = []
+            response.setting = []
+            response.value = []
 
         self.clear_last_setting_read()
 
