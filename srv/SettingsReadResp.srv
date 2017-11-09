@@ -2,4 +2,7 @@
 
 ---
 bool success
-string message # if success, contains "section_setting.setting: value"
+string message
+string section_setting
+string setting
+string value
