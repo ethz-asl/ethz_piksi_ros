@@ -28,6 +28,3 @@ uint8 CODE_GLO_L1CA     = 3
 uint8 CODE_GLO_L2CA     = 4
 uint8 CODE_GPS_L1P      = 5
 uint8 CODE_GPS_L2P      = 6
-
-
-
