@@ -26,8 +26,15 @@ source install/install_piksi_multi.sh
 Make sure you configured your Piksi(s) by following [these instructions](https://github.com/ethz-asl/mav_rtk_gps/wiki/Installing-and-Configuring-Piksi#settings-piksi-multi).
 
 **Base station**
+
+If you have already configured Piksi Multi to act as a bse station (and sampled its position), then simply launch the following file.
 ```
 roslaunch piksi_multi_rtk_gps piksi_multi_base_station.launch
+```
+If you have already configured Piksi Multi to act as a bse station (and did **NOT** sample its position), then launch the following file.
+Once the survey is over kill the launched node and then start the Piksi Multi driver for the base station, by using the above instructions.
+```
+roslaunch piksi_multi_rtk_gps geodetic_survey.launch
 ```
 
 **MAV**

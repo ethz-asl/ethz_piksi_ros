@@ -9,8 +9,6 @@
   </node>
 
   <!-- Geodetic Survey. -->
-  <node pkg="piksi_rtk_gps" type="geodetic_survey.py" name="geodetic_survey" output="screen">
-    <remap from="navsatfix" to="piksi_multi/navsatfix_spp"/>
-  </node>
+  <node pkg="piksi_multi_rtk_gps" type="geodetic_survey.py" name="geodetic_survey" output="screen"/>
 
 </launch>
