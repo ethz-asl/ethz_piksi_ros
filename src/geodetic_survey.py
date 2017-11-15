@@ -9,6 +9,8 @@ import rospy
 from piksi_rtk_msgs.srv import *
 import std_srvs.srv
 from sensor_msgs.msg import NavSatFix
+import os
+import time
 
 
 class GeodeticSurvey:
@@ -81,6 +83,7 @@ class GeodeticSurvey:
 
                 if read_lat0 and read_lon0 and read_alt0:
                     everything_ok = True
+                    self.log_surveyed_position(lat0, lon0, alt0)
                 else:
                     everything_ok = False
             else:
@@ -142,6 +145,18 @@ class GeodeticSurvey:
                 return True
 
         return False
+
+    def log_surveyed_position(self, lat0, lon0, alt0):
+        # current path of geodetic_survey.py file
+        script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+        now = time.strftime("%Y-%m-%d-%H-%M-%S")
+        desired_path = "%s/../log_surveys/%s.txt" % (script_path, now)
+        file_obj = open(desired_path, 'w')
+        file_obj.write("# File automatically generated on %s\n\n" % now)
+        file_obj.write("latitude0_deg: %.10f\n" % lat0)
+        file_obj.write("longitude0_deg: %.10f\n" % lon0)
+        file_obj.write("altitude0: %.10f\n" % alt0)
+        file_obj.close()
 
 
 # Main function.
