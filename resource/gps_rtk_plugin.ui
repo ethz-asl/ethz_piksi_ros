@@ -955,7 +955,7 @@
                 </size>
                </property>
                <property name="text">
-                <string>Age of corrections [ds]:</string>
+                <string>Age of corrections [s]:</string>
                </property>
               </widget>
              </item>

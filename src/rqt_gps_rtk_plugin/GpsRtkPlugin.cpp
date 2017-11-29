@@ -213,9 +213,9 @@ void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg) {
 }
 
 void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrections &msg) {
-  unsigned int age_of_corrections = msg.age;
+  unsigned double age_of_corrections = msg.age/10.0;
   QString text;
-  text.sprintf("%d", age_of_corrections);
+  text.sprintf("%.1f", age_of_corrections);
   QMetaObject::invokeMethod(ui_.label_ageOfCorrections, "setText", Q_ARG(QString, text));
 }
 /*bool hasConfiguration() const
