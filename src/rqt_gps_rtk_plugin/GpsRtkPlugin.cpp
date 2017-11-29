@@ -67,9 +67,14 @@ void GpsRtkPlugin::readParameters() {
 
   getNodeHandle().param<std::string>("piksiTimeTopic", piksiTimeTopic_, "piksi/utc_time");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiTimeTopic: " << piksiTimeTopic_);
+
+  getNodeHandle().param<std::string>("piksiAgeOfCorrectionsTopic", piksiAgeOfCorrectionsTopic_, "piksi/age_of_corrections");
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiAgeOfCorrectionsTopic: " << piksiAgeOfCorrectionsTopic_);
 }
 
 void GpsRtkPlugin::initLabels() {
+
+  // Tab "Status"
   ui_.label_nodeStatus->setText("N/A");
   ui_.label_baseline->setText("N/A");
   ui_.label_fixType->setText("N/A");
@@ -80,6 +85,16 @@ void GpsRtkPlugin::initLabels() {
   ui_.label_numWifiCorrections->setText("N/A");
   ui_.label_pingBaseStation->setText("N/A");
   ui_.label_rateWifiCorrections->setText("N/A");
+  ui_.label_ageOfCorrections->setText("N/A");
+
+  // Tab "Debug"
+  ui_.label_gpsSatellites->setText("N/A");
+  ui_.label_gpsStrength->setText("N/A");
+  ui_.label_sbasSatellites->setText("N/A");
+  ui_.label_sbasStrength->setText("N/A");
+  ui_.label_glonassSatellites->setText("N/A");
+  ui_.label_glonassStrength->setText("N/A");
+  ui_.label_ageOfCorrections->setText("N/A");
 }
 
 void GpsRtkPlugin::initSubscribers() {
@@ -88,9 +103,21 @@ void GpsRtkPlugin::initSubscribers() {
   piksiWifiCorrectionsSub_ = getNodeHandle().subscribe(piksiWifiCorrectionsTopic_, 10, &GpsRtkPlugin::piksiWifiCorrectionsCb, this);
   piksiNavsatfixRtkFixSub_ = getNodeHandle().subscribe(piksiNavsatfixRtkFixTopic_, 10, &GpsRtkPlugin::piksiNavsatfixRtkFixCb, this);
   piksiHeartbeatSub_ = getNodeHandle().subscribe(piksiTimeTopic_, 10, &GpsRtkPlugin::piksiTimeCb, this);
+  piksiAgeOfCorrectionsSub_ = getNodeHandle().subscribe(piksiAgeOfCorrectionsTopic_, 10, &GpsRtkPlugin::piksiAgeOfCorrectionsCb, this);
 }
 
-void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState& msg) {
+void GpsRtkPlugin::vectorToString(const std::vector<uint8_t> &vec, QString *pString) {
+  *pString = "[";
+  for (auto i = vec.begin(); i != vec.end(); ++i) {
+    if (i != vec.begin()) {
+      *pString += ", ";
+    }
+    *pString += QString::number(*i);
+  }
+  *pString += "]";
+}
+
+void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2_15& msg) {
   // Type of fix
   QMetaObject::invokeMethod(ui_.label_fixType, "setText", Q_ARG(QString, msg.rtk_mode_fix ? "Fix" : "Float"));
   QMetaObject::invokeMethod(ui_.label_fixType, "setStyleSheet", Q_ARG(QString, msg.rtk_mode_fix ?
@@ -98,6 +125,22 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState& msg
       : "QLabel {background-color: rgb(239, 41, 41); color: rgb(0, 0, 0);}"));
   // Number of satellites
   QMetaObject::invokeMethod(ui_.label_numSatellites, "setText", Q_ARG(QString, QString::number(msg.num_sat)));
+  // GPS number of satellites
+  QMetaObject::invokeMethod(ui_.label_gpsSatellites, "setText", Q_ARG(QString, QString::number(msg.num_gps_sat)));
+  // GPS signal strength
+  QString signal_strenght;
+  vectorToString(msg.cn0_gps, &signal_strenght);
+  QMetaObject::invokeMethod(ui_.label_gpsStrength, "setText", Q_ARG(QString, signal_strenght));
+  // SBAS number of satellites
+  QMetaObject::invokeMethod(ui_.label_sbasSatellites, "setText", Q_ARG(QString, QString::number(msg.num_sbas_sat)));
+  // SBAS signal strength
+  vectorToString(msg.cn0_sbas, &signal_strenght);
+  QMetaObject::invokeMethod(ui_.label_sbasStrength, "setText", Q_ARG(QString, signal_strenght));
+  // GLONASS number of satellites
+  QMetaObject::invokeMethod(ui_.label_glonassSatellites, "setText", Q_ARG(QString, QString::number(msg.num_glonass_sat)));
+  // GLONASS signal strength
+  vectorToString(msg.cn0_glonass, &signal_strenght);
+  QMetaObject::invokeMethod(ui_.label_glonassStrength, "setText", Q_ARG(QString, signal_strenght));
 }
 
 void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {
@@ -167,6 +210,13 @@ void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg) {
   time.sprintf("%02d:%02d:%02d", msg.hours, msg.minutes, msg.seconds);
   //time = std::to_string(msg.hours) + ":" + std::to_string(msg.minutes) + ":" + std::to_string(msg.seconds);
   QMetaObject::invokeMethod(ui_.label_nodeStatus, "setText", Q_ARG(QString, time));
+}
+
+void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrections &msg) {
+  unsigned int age_of_corrections = msg.age;
+  QString text;
+  text.sprintf("%d", age_of_corrections);
+  QMetaObject::invokeMethod(ui_.label_ageOfCorrections, "setText", Q_ARG(QString, text));
 }
 /*bool hasConfiguration() const
 {

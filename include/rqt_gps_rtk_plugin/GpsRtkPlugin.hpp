@@ -8,10 +8,11 @@
 #include <unistd.h>
 
 #include <ros/ros.h>
-#include <piksi_rtk_msgs/ReceiverState.h>
+#include <piksi_rtk_msgs/ReceiverState_V2_2_15.h>
 #include <piksi_rtk_msgs/BaselineNed.h>
 #include <piksi_rtk_msgs/InfoWifiCorrections.h>
 #include <piksi_rtk_msgs/UtcTimeMulti.h>
+#include <piksi_rtk_msgs/AgeOfCorrections.h>
 #include <sensor_msgs/NavSatFix.h>
 
 class GpsRtkPlugin : public rqt_gui_cpp::Plugin {
@@ -33,6 +34,7 @@ private:
   void readParameters();
   void initLabels();
   void initSubscribers();
+  void vectorToString(const std::vector<uint8_t> &vec, QString *pString);
 
   //subscribers
   ros::Subscriber piksiReceiverStateSub_;
@@ -40,18 +42,21 @@ private:
   ros::Subscriber piksiWifiCorrectionsSub_;
   ros::Subscriber piksiNavsatfixRtkFixSub_;
   ros::Subscriber piksiHeartbeatSub_;
+  ros::Subscriber piksiAgeOfCorrectionsSub_;
 
-  void piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState& msg);
+  void piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2_15& msg);
   void piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg);
   void piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections& msg);
   void piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg);
   void piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg);
+  void piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrections& msg);
 
   std::string piksiReceiverStateTopic_;
   std::string piksiBaselineNedTopic_;
   std::string piksiWifiCorrectionsTopic_;
   std::string piksiNavsatfixRtkFixTopic_;
   std::string piksiTimeTopic_;
+  std::string piksiAgeOfCorrectionsTopic_;
 
   double timeFirstSampleMovingWindow_;
   int wifiCorrectionsAvgHz_;
