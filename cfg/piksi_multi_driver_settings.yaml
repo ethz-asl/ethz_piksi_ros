@@ -5,9 +5,9 @@ base_station_mode: false
 debug_mode: false # if true, output every topic read by this driver
 # whenever possible, use network broadcast, not global ip broadcast
 # use ifconfig to show network broadcast (or calculate it yourself....).
-broadcast_addr: 192.168.0.255
+broadcast_addr: 10.10.10.255
 broadcast_port: 26078
-base_station_ip_for_latency_estimation: 192.168.0.1 # ip base station if you want to estimate latency.
+base_station_ip_for_latency_estimation: 10.10.10.1 # ip base station if you want to estimate latency.
 # Coordinate frame of the GPS receiver with respect to the base link.
 navsatfix_frame_id: 'base_link'
 
