@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(piksi_rtk_gps)
+project(piksi_v2_rtk_ros)
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED

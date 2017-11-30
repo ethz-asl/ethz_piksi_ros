@@ -2,7 +2,7 @@
 
 #
 #  Title:        piksi.py
-#  Description:  ROS Driver for the Piksi RTK GPS module
+#  Description:  ROS Driver for the Piksi V2 RTK GPS module
 #  Dependencies: libsbp (https://github.com/swift-nav/libsbp), tested with v1.2.1
 #  Based on original work of https://bitbucket.org/Daniel-Eckert/piksi_node
 #
