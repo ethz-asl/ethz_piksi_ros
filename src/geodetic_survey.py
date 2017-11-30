@@ -15,7 +15,7 @@ import time
 
 class GeodeticSurvey:
     kServiceTimeOutSeconds = 10.0
-    kWaitBetweenReadReqAndResSeconds = 0.5
+    kWaitBetweenReadReqAndResSeconds = 1.0
 
     def __init__(self):
         rospy.loginfo(rospy.get_name() + " start")
@@ -69,25 +69,35 @@ class GeodeticSurvey:
 
     def set_base_station_position(self, lat0, lon0, alt0):
         everything_ok = []
-        rospy.loginfo("Setting Piksi Multi surveyed position to: %.10f, %.10f, %.1f" % (lat0, lon0, alt0))
+        # Use only 2 digits for altitude as it is more than enough.
+        alt0 = float("%.2f" % alt0)
+        rospy.loginfo("Setting Piksi Multi surveyed position to: %.10f, %.10f, %.1f\n" % (lat0, lon0, alt0))
 
         # Write settings.
         write_lat0_ok = self.write_settings_to_piksi("surveyed_position", "surveyed_lat", "%.10f" % lat0)
         write_lon0_ok = self.write_settings_to_piksi("surveyed_position", "surveyed_lon", "%.10f" % lon0)
-        write_alt0_ok = self.write_settings_to_piksi("surveyed_position", "surveyed_alt", "%.10f" % alt0)
+        write_alt0_ok = self.write_settings_to_piksi("surveyed_position", "surveyed_alt", "%.2f" % alt0)
 
         if write_lat0_ok and write_lon0_ok and write_alt0_ok:
             # Save and check what was actually written to flash
             settings_saved = self.save_settings_to_piksi()
             if settings_saved:
-                read_lat0 = self.read_settings_from_piksi("surveyed_position", "surveyed_lat")
-                read_lon0 = self.read_settings_from_piksi("surveyed_position", "surveyed_lon")
-                read_alt0 = self.read_settings_from_piksi("surveyed_position", "surveyed_alt")
+                read_lat0, read_lat0_value = self.read_settings_from_piksi("surveyed_position", "surveyed_lat")
+                read_lon0, read_lon0_value = self.read_settings_from_piksi("surveyed_position", "surveyed_lon")
+                read_alt0, read_alt0_value = self.read_settings_from_piksi("surveyed_position", "surveyed_alt")
 
                 if read_lat0 and read_lon0 and read_alt0:
-                    everything_ok = True
-                    self.log_surveyed_position(lat0, lon0, alt0)
+                    # Check read values == computed values
+                    if self.is_close(float(read_lat0_value), lat0) and self.is_close(float(read_lon0_value),
+                                                                                     lon0) and self.is_close(
+                            float(read_alt0_value), alt0):
+                        everything_ok = True
+                        self.log_surveyed_position(lat0, lon0, alt0)
+                    else:
+                        rospy.logwarn("Read values do NOT correspond with written ones. Please use piksi conole.")
+                        everything_ok = False
                 else:
+                    rospy.logerr("Error while saving base station position to Piksi flash.")
                     everything_ok = False
             else:
                 rospy.logerr("Error while saving base station position to Piksi flash.")
@@ -128,11 +138,11 @@ class GeodeticSurvey:
             read_req_resp = read_req_settings_service(section_setting=section_setting, setting=setting)
         except rospy.ServiceException as exc:
             rospy.logerr("Service did not process request: " + str(exc))
-            return False
+            return False, -1
 
         if read_req_resp.success:
             # Read req sent, wait before we read the response.
-            rospy.sleep(GeodeticSurvey.kWaitBetweenReadReqAndResSeconds)
+            time.sleep(GeodeticSurvey.kWaitBetweenReadReqAndResSeconds)
             # Read response.
             rospy.wait_for_service(self.read_resp_settings_service_name, timeout=GeodeticSurvey.kServiceTimeOutSeconds)
             read_resp_settings_service = rospy.ServiceProxy(self.read_resp_settings_service_name, SettingsReadResp)
@@ -140,14 +150,14 @@ class GeodeticSurvey:
                 read_resp_resp = read_resp_settings_service()
             except rospy.ServiceException as exc:
                 rospy.logerr("Service did not process request: " + str(exc))
-                return False
+                return False, -1
 
             if read_resp_resp.success:
                 rospy.loginfo("Read [%s.%s: %s] from Piksi settings." % (
                     read_resp_resp.section_setting, read_resp_resp.setting, read_resp_resp.value))
-                return True
+                return True, read_resp_resp.value
 
-        return False
+        return False, -1
 
     def log_surveyed_position(self, lat0, lon0, alt0):
         # current path of geodetic_survey.py file
@@ -160,6 +170,10 @@ class GeodeticSurvey:
         file_obj.write("longitude0_deg: %.10f\n" % lon0)
         file_obj.write("altitude0: %.10f\n" % alt0)
         file_obj.close()
+
+    # https://www.python.org/dev/peps/pep-0485/#proposed-implementation
+    def is_close(self, a, b, rel_tol=1e-09, abs_tol=0.0):
+        return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
 # Main function.
