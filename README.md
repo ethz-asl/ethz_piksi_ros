@@ -7,6 +7,10 @@ This repository contains (python) ROS drivers, tools, launch files, and wikis ab
 
 **The main advantage of these ROS drivers is supporting a two link communication for GPS corrections: Xbee and Wifi (see [Correction Over WiFi](TODO) for more info).**
 
+
+Average time for Piksi Multi to get RTK FIX:
+![Piksi Multi Avg Fix Time](https://user-images.githubusercontent.com/15651057/33422109-c4559d8e-d5b4-11e7-91fc-ee0947c731d1.png)
+
 Overview
 ------
 - [piksi_multi_rtk_ros](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_rtk_ros): ROS driver for Piksi RTK receiver device, hardware version [Multi](https://www.swiftnav.com/piksi-multi).
