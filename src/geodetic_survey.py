@@ -96,6 +96,20 @@ class GeodeticSurvey:
                         float(read_alt0_value), alt0, rel_tol=self.kRelativeTolleranceGeodeticComparison):
                         everything_ok = True
                         self.log_surveyed_position(lat0, lon0, alt0)
+
+                        # Make sure Piksi is properly configured to act as base station.
+                        read_surveyed_broadcast, read_surveyed_broadcast_value = self.read_settings_from_piksi(
+                            "surveyed_position", "broadcast")
+
+                        read_surveyed_broadcast_value = True if (read_surveyed_broadcast_value == "True") else False
+                        print read_surveyed_broadcast_value
+                        if read_surveyed_broadcast_value:
+                            rospy.loginfo(
+                                "Your Piksi Multi is already configured to broadcast its surveyed position and act as base station.")
+                        else:
+                            rospy.logwarn(
+                                "Your Piksi Multi is NOT configured to broadcast its surveyed position and act as base station. "
+                                "Please use piksi console (by Siwftnav) to change settings. See Wiki page where you downloaded this ROS driver.")
                     else:
                         rospy.logwarn(
                             "Read values do NOT correspond to written ones. Please use piksi console (See swiftnav support).")
