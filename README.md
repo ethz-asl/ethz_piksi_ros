@@ -40,7 +40,7 @@ The source code is released under a [BSD 3-Clause license](https://github.com/et
 
 Credits
 -------
-Marco Tranzatto, Michael Pantic, Kai Holtmann - ETHZ ASL & RSL - 30 November 2017
+Marco Tranzatto, Kai Holtmann, Michael Pantic - ETHZ ASL & RSL - 30 November 2017
 
 Based on the initial work of Daniel Eckert.
 
