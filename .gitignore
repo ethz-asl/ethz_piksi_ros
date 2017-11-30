@@ -1,0 +1,19 @@
+*/.idea/*
+.idea/*
+utils/bags/*
+src/*.pyc
+*/cmake-build-debug
+geodetic_survey_bags/*.bag
+
+*.pyc
+init_rovio_npose0/launch/debug_tf_frames.launch
+
+#QT files
+*.files
+*.includes
+*.creator
+*.user
+*.config
+
+# Logs geodetic surveys
+piksi_multi_rtk_gps/log_surveys/2*.txt
