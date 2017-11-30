@@ -10,6 +10,10 @@ find_package(catkin REQUIRED
     geometry_msgs
 )
 
+# Deprecate this package
+set(CMAKE_WARN_DEPRECATED TRUE)
+message(DEPRECATION "${PROJECT_NAME} is deprecated: please switch to Piksi Multi.")
+
 ###################################
 ## catkin specific configuration ##
 ###################################
