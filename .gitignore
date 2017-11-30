@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 */.idea/*
 .idea/*
 utils/bags/*
@@ -17,3 +18,7 @@ init_rovio_npose0/launch/debug_tf_frames.launch
 
 # Logs geodetic surveys
 piksi_multi_rtk_gps/log_surveys/2*.txt
+
+# KML files.
+/kml/*
+
