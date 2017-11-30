@@ -24,15 +24,15 @@ Impatient Users
 ------
 ### Piksi Multi
 RTK fix obtained in average in 3 minutes.
- - [Install Piksi Multi ROS Driver](TODO).
- - [Configure Your Piksi Multi](TODO).
-  - [Example Launch Files](TODO).
+ - [Install Piksi Multi ROS Driver](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_rtk_ros#installation-and-configuration).
+ - [Configure Your Piksi Multi](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi).
+ - [Example Launch Files](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_rtk_ros/launch).
   
 ### Piksi V2 (Discontinued)
 RTK fix obtained in average in 10 minutes.
- - [Install Piksi V2 ROS Driver](TODO).
- - [Configure Your Piksi V2](TODO).
- - [Example Launch Files](TODO).
+ - [Install Piksi V2 ROS Driver](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_v2_rtk_ros#installation-and-configuration).
+ - [Configure Your Piksi V2](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi).
+ - [Example Launch Files](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_v2_rtk_ros/launch).
 
 License
 -------
