@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="piksi" output="screen" respawn="true">
+    <!-- Load default settings -->
+    <rosparam file="$(find piksi_multi_rtk_gps)/cfg/piksi_multi_driver_settings.yaml"/>
+
+    <!-- Overwrtie needed settings -->
+    <param name="base_station_mode" value="true"/>
+    <param name="broadcast_addr" value="10.10.10.255"/> <!--'ifconfig' to check Bcast -->
+  </node>
+
+</launch>
