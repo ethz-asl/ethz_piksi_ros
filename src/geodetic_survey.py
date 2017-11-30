@@ -16,6 +16,7 @@ import time
 class GeodeticSurvey:
     kServiceTimeOutSeconds = 10.0
     kWaitBetweenReadReqAndResSeconds = 1.0
+    kRelativeTolleranceGeodeticComparison = 1e-10
 
     def __init__(self):
         rospy.loginfo(rospy.get_name() + " start")
@@ -88,13 +89,16 @@ class GeodeticSurvey:
 
                 if read_lat0 and read_lon0 and read_alt0:
                     # Check read values == computed values
-                    if self.is_close(float(read_lat0_value), lat0) and self.is_close(float(read_lon0_value),
-                                                                                     lon0) and self.is_close(
-                            float(read_alt0_value), alt0):
+                    if self.is_close(float(read_lat0_value), lat0,
+                                     rel_tol=self.kRelativeTolleranceGeodeticComparison) and self.is_close(
+                        float(read_lon0_value),
+                        lon0, rel_tol=self.kRelativeTolleranceGeodeticComparison) and self.is_close(
+                        float(read_alt0_value), alt0, rel_tol=self.kRelativeTolleranceGeodeticComparison):
                         everything_ok = True
                         self.log_surveyed_position(lat0, lon0, alt0)
                     else:
-                        rospy.logwarn("Read values do NOT correspond with written ones. Please use piksi conole.")
+                        rospy.logwarn(
+                            "Read values do NOT correspond to written ones. Please use piksi console (See swiftnav support).")
                         everything_ok = False
                 else:
                     rospy.logerr("Error while saving base station position to Piksi flash.")
