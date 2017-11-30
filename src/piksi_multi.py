@@ -541,7 +541,7 @@ class PiksiMulti:
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
             self.receiver_state_msg.fix_mode = "Fixed_RTK"
         else:
-            self.receiver_state_msg.fix_mode = "Invalid"
+            self.receiver_state_msg.fix_mode = "Unknown"
 
         self.publish_receiver_state_msg()
 
