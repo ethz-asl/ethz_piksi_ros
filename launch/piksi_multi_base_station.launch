@@ -8,7 +8,7 @@
 
     <!-- Overwrtie needed settings -->
     <param name="base_station_mode" value="true"/>
-    <param name="broadcast_addr" value="10.10.10.255"/> <!--'ifconfig' to check Bcast -->
+    <param name="broadcast_addr" value="192.168.0.255"/> <!--'ifconfig' to check Bcast -->
   </node>
 
 </launch>
