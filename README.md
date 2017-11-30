@@ -2,7 +2,7 @@ piksi_multi_rtk_gps
 ======
 ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
 
-The piksi_multi_rtk_gps package has been tested under [ROS] Indigo and Ubuntu 14.04, and [ROS] Kinetic and Ubuntu 16.04. The latest version relies on Piksi Multi Firmware **1.2** release.
+The piksi_multi_rtk_gps package has been tested under [ROS] Indigo and Ubuntu 14.04, and [ROS] Kinetic and Ubuntu 16.04. The latest version relies on Piksi Multi Firmware **1.2.14** release.
   
 ## Installation and Configuration
 
