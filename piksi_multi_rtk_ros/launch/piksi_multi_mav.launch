@@ -2,11 +2,11 @@
 
 <launch>
 
-  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="piksi" output="screen">
+  <node pkg="piksi_multi_rtk_ros" type="piksi_multi.py" name="piksi" output="screen">
     <!-- Load default settings -->
-    <rosparam file="$(find piksi_multi_rtk_gps)/cfg/piksi_multi_driver_settings.yaml"/>
+    <rosparam file="$(find piksi_multi_rtk_ros)/cfg/piksi_multi_driver_settings.yaml"/>
 
-    <!-- Overwrtie needed settings -->
+    <!-- Overwrite needed settings -->
     <param name="base_station_mode" value="false"/>
     <param name="base_station_ip_for_latency_estimation" value="10.10.10.1"/>
   </node>
