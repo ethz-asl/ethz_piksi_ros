@@ -48,8 +48,11 @@ class GeodeticSurvey:
         self.altitude_accumulator += msg.altitude
         self.number_of_fixes += 1
 
-        rospy.loginfo("Received: [%.10f, %.10f, %.1f]; waiting for %d samples" % (
-            msg.latitude, msg.longitude, msg.altitude, self.number_of_desired_fixes - self.number_of_fixes))
+        rospy.loginfo(
+            "Received: [%.10f, %.10f, %.1f]; temporary average: [%.10f, %.10f, %.1f]; waiting for %d samples" % (
+                msg.latitude, msg.longitude, msg.altitude, self.latitude_accumulator / self.number_of_fixes,
+                self.longitude_accumulator / self.number_of_fixes, self.altitude_accumulator / self.number_of_fixes,
+                self.number_of_desired_fixes - self.number_of_fixes))
 
         if self.number_of_fixes >= self.number_of_desired_fixes and not self.surveyed_position_set:
             lat0 = self.latitude_accumulator / self.number_of_fixes
