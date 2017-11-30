@@ -19,6 +19,7 @@ uint8 num_sbas_sat              # Number of SBAS satellites.
 uint8[] cn0_sbas                # Carrier-to-Noise density of SBAS satellites. Zero implies invalid cn0 [dB Hz / 4].
 uint8 num_glonass_sat           # Number of GLONASS satellites.
 uint8[] cn0_glonass             # Carrier-to-Noise density of GLONASS satellites. Zero implies invalid cn0 [dB Hz / 4].
+string fix_mode                 # Invalid, Single Point Position (SPP), Differential GNSS (DGNSS), Float RTK, Fixed RTK.
 
 
 uint8 CODE_GPS_L1CA     = 0
