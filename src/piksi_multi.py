@@ -516,6 +516,20 @@ class PiksiMulti:
             self.publish_rtk_fix(msg.lat, msg.lon, msg.height)
         # Update debug msg and publish.
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
+
+        if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
+            self.receiver_state_msg.fix_mode = "Invalid"
+        elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
+            self.receiver_state_msg.fix_mode = "SPP"
+        elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
+            self.receiver_state_msg.fix_mode = "DGNSS"
+        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+            self.receiver_state_msg.fix_mode = "Float_RTK"
+        elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
+            self.receiver_state_msg.fix_mode = "Fixed_RTK"
+        else:
+            self.receiver_state_msg.fix_mode = "Invalid"
+
         self.publish_receiver_state_msg()
 
     def publish_spp(self, latitude, longitude, height):
@@ -692,17 +706,17 @@ class PiksiMulti:
 
             self.publish_receiver_state_msg()
 
-        #     def utc_time_callback(self, msg_raw, **metadata):
-        #         msg = MsgUtcTime(msg_raw)
-        #
-        #         # check i message is valid
-        #         if msg.flags & 0x01 == True: # msg valid TODO: use bitmask instead
-        #             # TODO: calc delta_t to rospy.Time.now()
-        #             # delta_t_vec.append(delta_t)
-        #             # self.delta_t_MA = moving_average_filter(delta_t_vec, N)
-        #             return
-        #         else: # msg invalid
-        #             return
+            #     def utc_time_callback(self, msg_raw, **metadata):
+            #         msg = MsgUtcTime(msg_raw)
+            #
+            #         # check i message is valid
+            #         if msg.flags & 0x01 == True: # msg valid TODO: use bitmask instead
+            #             # TODO: calc delta_t to rospy.Time.now()
+            #             # delta_t_vec.append(delta_t)
+            #             # self.delta_t_MA = moving_average_filter(delta_t_vec, N)
+            #             return
+            #         else: # msg invalid
+            #             return
 
     def publish_receiver_state_msg(self):
         self.receiver_state_msg.header.stamp = rospy.Time.now()
