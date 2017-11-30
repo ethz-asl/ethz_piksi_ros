@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- Node name -->
+  <arg name="node_name"                   value="piksi"/>
+
+  <!-- Arguments -->
+  <arg name="base_station_ip"             default="192.168.0.1"/>
+  <arg name="load_enu_origin_from_file"   default="false"/>
+  <arg name="enu_origin_file"             default="$(find piksi_multi_rtk_ros)/cfg/enu_origin_example.yaml"/>
+
+  <node pkg="piksi_multi_rtk_ros" type="piksi_multi.py" name="$(arg node_name)" output="screen" respawn="true">
+    <!-- Load default settings -->
+    <rosparam file="$(find piksi_multi_rtk_ros)/cfg/piksi_multi_driver_settings.yaml"/>
+
+    <!-- Load enu origin from file -->
+    <rosparam file="$(arg enu_origin_file)"   if="$(arg load_enu_origin_from_file)"/>
+
+    <!-- Overwrite settings -->
+    <param name="base_station_mode"                       value="false"/>
+    <param name="base_station_ip_for_latency_estimation"  value="$(arg base_station_ip)"/>
+  </node>
+
+</launch>

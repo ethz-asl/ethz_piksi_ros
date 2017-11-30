@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+    <name>PiksiRtkKml</name>
+
+    <Placemark>
+        <name>WP1</name>
+        <TimeStamp>
+            <when>2017-09-06T10:31:59Z</when>
+        </TimeStamp>
+        <Point>
+            <coordinates>-122.418750, 37.773112, -5.739319</coordinates>
+        </Point>
+        <description></description>
+    </Placemark>
+
+    <Placemark>
+        <name>WP2</name>
+        <TimeStamp>
+            <when>2017-09-06T10:32:00Z</when>
+        </TimeStamp>
+        <Point>
+            <coordinates>-122.418730, 37.773080, -5.751042</coordinates>
+        </Point>
+        <description></description>
+    </Placemark>
+
+    <Placemark>
+        <name>WP3</name>
+        <TimeStamp>
+            <when>2017-09-06T10:32:01Z</when>
+        </TimeStamp>
+        <Point>
+            <coordinates>-122.418707, 37.773045, -5.763667</coordinates>
+        </Point>
+        <description></description>
+    </Placemark>
+
+    <Placemark>
+        <name>WP4</name>
+        <TimeStamp>
+            <when>2017-09-06T10:32:02Z</when>
+        </TimeStamp>
+        <Point>
+            <coordinates>-122.418684, 37.773014, -5.774878</coordinates>
+        </Point>
+        <description></description>
+    </Placemark>
+
+    <Placemark>
+        <name>WP5</name>
+        <TimeStamp>
+            <when>2017-09-06T10:32:03Z</when>
+        </TimeStamp>
+        <Point>
+            <coordinates>-122.418657, 37.772980, -5.786895</coordinates>
+        </Point>
+        <description></description>
+    </Placemark>
+</Document>
+</kml>

@@ -1,0 +1,12 @@
+# General Settings.
+sampling_frequency: 1.0         # [Hz]
+
+# KML layout
+kml_file_prefix_name: "Piksi"   # It will be prefixed to KML file name.
+document_name: "PiksiRtkKml"    # Name of the Places shown in Google Earth.
+placemarker_prefix_name: "WP"   # It will be prefixed to each incremental waypoint number.
+
+# Use optional messages/fields
+use_altitude_from_enu: True     # Place 'Point' at the altitude specified in 'enu_point' topic.
+extrude_point: True             # Connect the point to the ground with a line, only if use_altitude_from_enu is True.
+use_heading: True               # If true, heading is added to 'Point' description.
