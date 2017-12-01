@@ -2,9 +2,9 @@ piksi_rtk_gps
 ======
 **WARNING: this ROS driver for Piksi V2.3 is NOT longer supported!**
 
-**If you have a Piksi Multi, please check the lates ROS driver: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps)**
+**If you have a Piksi Multi, please check the lates ROS driver: [piksi_multi_rtk_ros](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_rtk_ros)**
 
-ROS node to read SBP messages from an attached Piksi **V2.3** RTK device.
+ROS node to read SBP messages from an attached Piksi **V2** RTK device.
 
 Based on the work of Daniel Eckert: [Original repo](https://bitbucket.org/Daniel-Eckert/mav_localization).
 
@@ -16,7 +16,7 @@ Based on the work of Daniel Eckert: [Original repo](https://bitbucket.org/Daniel
   * pandoc     `sudo apt-get install pandoc`
 
 ### Installation
-**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi V2.3](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf). If you are using [Piksi Multi](https://www.swiftnav.com/piksi-multi) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps) please check its driver version: [piksi_multi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_multi_rtk_gps).**
+**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi V2.3](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf). If you are using [Piksi Multi](https://www.swiftnav.com/piksi-multi) please check its driver version: [piksi_multi_rtk_ros](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_rtk_ros).**
 
 The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-1.2.1-py2.7.egg/sbp/`.
 
