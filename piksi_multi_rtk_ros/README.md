@@ -4,7 +4,7 @@ ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
 
 The piksi_multi_rtk_ros package has been tested under:
   * [ROS] Indigo and Ubuntu 14.04, and [ROS] Kinetic and Ubuntu 16.04;
-  * The latest version relies on Piksi Multi Firmware **1.2.14** release.
+  * The latest version relies on Piksi Multi Firmware **1.2.14** release (see [Swift Nav firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware)).
   
 ## Installation and Configuration
 
