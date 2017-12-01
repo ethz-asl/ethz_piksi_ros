@@ -7,7 +7,7 @@ This repository contains (python) ROS drivers, tools, launch files, and wikis ab
 
 **The main advantage of these ROS drivers is supporting a two link communication for GPS corrections: Xbee and Wifi (see [Correction Over WiFi](TODO) for more info).**
 
-Example GPS RTK setup:
+Example GPS RTK setup: the Base Station knows its position (after geodetic survey) and can send RTK corrections over Xbee and Wifi to the Rover, which can then compute its accurate position.
 ![RTK setup](https://user-images.githubusercontent.com/15651057/33481271-0b1b97ca-d694-11e7-8650-d3c7d2e54f7d.jpg)
 
 Average time for Piksi Multi to get an RTK FIX:
