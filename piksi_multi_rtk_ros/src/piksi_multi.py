@@ -3,7 +3,7 @@
 #
 #  Title:        piksi_multi.py
 #  Description:  ROS Driver for Piksi Multi RTK GPS module
-#  Dependencies: libsbp (https://github.com/swift-nav/libsbp), tested with v1.2.14
+#  Dependencies: libsbp (https://github.com/swift-nav/libsbp), tested with version = see LIB_SBP_VERSION_MULTI
 #  Based on original work of https://bitbucket.org/Daniel-Eckert/piksi_node
 #
 
