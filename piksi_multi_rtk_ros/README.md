@@ -5,6 +5,8 @@ ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
 The piksi_multi_rtk_ros package has been tested under:
   * [ROS] Indigo and Ubuntu 14.04, and [ROS] Kinetic and Ubuntu 16.04;
   * The latest version relies on Piksi Multi Firmware **1.2.14** release (see [Swift Nav firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware)).
+
+**WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200'). This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi#settings).
   
 ## Installation and Configuration
 
@@ -25,7 +27,7 @@ source install/install_piksi_multi.sh
 ```
 
 ## Usage
-Make sure you configured your Piksi(s) by following [these instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi).
+**Make sure** you configured your Piksi(s) by following [these instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi).
 
 **Base station**
 
