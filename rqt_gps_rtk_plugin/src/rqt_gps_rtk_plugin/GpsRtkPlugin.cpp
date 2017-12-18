@@ -119,10 +119,27 @@ void GpsRtkPlugin::vectorToString(const std::vector<uint8_t> &vec, QString *pStr
 
 void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2_15& msg) {
   // Type of fix
-  QMetaObject::invokeMethod(ui_.label_fixType, "setText", Q_ARG(QString, msg.rtk_mode_fix ? "Fix" : "Float"));
-  QMetaObject::invokeMethod(ui_.label_fixType, "setStyleSheet", Q_ARG(QString, msg.rtk_mode_fix ?
-        "QLabel {background-color: lime; color: black;}"
-      : "QLabel {background-color: rgb(239, 41, 41); color: rgb(0, 0, 0);}"));
+  const QString fix_mode = QString::fromStdString(msg.fix_mode);
+  QString color_fix_mode("");
+
+  // Choose color for type of fix
+  if (msg.fix_mode == msg.STR_FIX_MODE_INVALID) {
+    color_fix_mode = "QLabel {background-color: rgb(239, 41, 41); color: rgb(92, 92, 92);}";
+  } else if (msg.fix_mode == msg.STR_FIX_MODE_SPP) {
+    color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(2, 2, 255);}";
+  } else if (msg.fix_mode == msg.STR_FIX_MODE_DGNSS) {
+    color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(5, 181, 255);}";
+  } else if (msg.fix_mode == msg.STR_FIX_MODE_FLOAT_RTK) {
+    color_fix_mode = "QLabel {background-color: rgb(255, 138, 138); color: rgb(191, 0, 191);}";
+  } else if (msg.fix_mode == msg.STR_FIX_MODE_FIXED_RTK) {
+    color_fix_mode = "QLabel {background-color: lime; color: rgb(255, 166, 2);}";
+  } else {
+    // Unknown
+    color_fix_mode = "QLabel {background-color: rgb(152, 152, 152); color: rgb(92, 92, 92);}";
+  }
+
+  QMetaObject::invokeMethod(ui_.label_fixType, "setText", Q_ARG(QString, fix_mode));
+  QMetaObject::invokeMethod(ui_.label_fixType, "setStyleSheet", Q_ARG(QString, color_fix_mode));
   // Number of satellites
   QMetaObject::invokeMethod(ui_.label_numSatellites, "setText", Q_ARG(QString, QString::number(msg.num_sat)));
   // GPS number of satellites
