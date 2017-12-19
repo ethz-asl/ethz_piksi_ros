@@ -102,7 +102,6 @@ class GeodeticSurvey:
                             "surveyed_position", "broadcast")
 
                         read_surveyed_broadcast_value = True if (read_surveyed_broadcast_value == "True") else False
-                        print read_surveyed_broadcast_value
                         if read_surveyed_broadcast_value:
                             rospy.loginfo(
                                 "Your Piksi Multi is already configured to broadcast its surveyed position and act as base station.")
