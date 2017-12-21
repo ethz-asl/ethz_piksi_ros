@@ -29,3 +29,10 @@ uint8 CODE_GLO_L1CA     = 3
 uint8 CODE_GLO_L2CA     = 4
 uint8 CODE_GPS_L1P      = 5
 uint8 CODE_GPS_L2P      = 6
+
+string STR_FIX_MODE_INVALID   = Invalid
+string STR_FIX_MODE_SPP       = SPP
+string STR_FIX_MODE_DGNSS     = DGNSS
+string STR_FIX_MODE_FLOAT_RTK = FLOAT_RTK
+string STR_FIX_MODE_FIXED_RTK = FIXED_RTK
+string STR_FIX_MODE_UNKNOWN   = Unknown

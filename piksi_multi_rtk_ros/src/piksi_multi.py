@@ -257,6 +257,7 @@ class PiksiMulti:
         receiver_state_msg.cn0_sbas = []  # Unknown.
         receiver_state_msg.num_glonass_sat = 0  # Unknown.
         receiver_state_msg.cn0_glonass = []  # Unknown.
+        receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_UNKNOWN
 
         return receiver_state_msg
 
@@ -531,17 +532,17 @@ class PiksiMulti:
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
 
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
-            self.receiver_state_msg.fix_mode = "Invalid"
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_INVALID
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
-            self.receiver_state_msg.fix_mode = "SPP"
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_SPP
         elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
-            self.receiver_state_msg.fix_mode = "DGNSS"
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_DGNSS
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
-            self.receiver_state_msg.fix_mode = "Float_RTK"
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_FLOAT_RTK
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
-            self.receiver_state_msg.fix_mode = "Fixed_RTK"
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_FIXED_RTK
         else:
-            self.receiver_state_msg.fix_mode = "Unknown"
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_UNKNOWN
 
         self.publish_receiver_state_msg()
 
