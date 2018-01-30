@@ -50,6 +50,35 @@ Check the status of your receiver (RQT GUI):
 roslaunch rqt_gps_rtk_plugin gui.launch
 ```
 
+## Advertised Topics
+The most interesting advertised topics are:
+
+ - `/piksi/navsatfix_rtk_fix` ([sensor_msgs/NavSatFix](http://docs.ros.org/api/sensor_msgs/html/msg/NavSatFix.html))
+   in case of RTK fix position from Piksi then this message contains WGS 84 coordinates;
+ - `/piksi/navsatfix_spp` ([sensor_msgs/NavSatFix](http://docs.ros.org/api/sensor_msgs/html/msg/NavSatFix.html))
+   in case of SPP fix position from Piksi then this message contains WGS 84 coordinates;
+ - `/piksi/navsatfix_best_fix` ([sensor_msgs/NavSatFix](http://docs.ros.org/api/sensor_msgs/html/msg/NavSatFix.html))
+   this message contains WGS 84 coordinates with best available fix at the moment (either RTK or SPP);
+ - `/piksi/debug/receiver_state` ([piksi_rtk_msgs/ReceiverState_V2_2_15](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_rtk_msgs/msg/ReceiverState_V2_2_15.msg))
+   this message contains miscellaneous information about the state of Piksi Multi receiver;
+ - `/piksi/enu_pose_fix` ([geometry_msgs/PointStamped](http://docs.ros.org/api/geometry_msgs/html/msg/PointStamped.html))
+   this message contains ENU (East-North-Up) coordinate of the receiver in case of RTK fix. Orientation is set to identity quaternion (w=1);
+ - `/piksi/enu_pose_spp` ([geometry_msgs/PointStamped](http://docs.ros.org/api/geometry_msgs/html/msg/PointStamped.html))
+   this message contains ENU (East-North-Up) coordinate of the receiver in case of SPP fix. Orientation is set to identity quaternion (w=1);
+ - `/piksi/enu_pose_best_fix` ([geometry_msgs/PointStamped](http://docs.ros.org/api/geometry_msgs/html/msg/PointStamped.html))
+   this message contains ENU (East-North-Up) coordinate of the receiver with best available fix at the moment (either RTK or SPP). Orientation is set to identity quaternion (w=1);
+   
+For a complete list of advertised topics please check function [`advertise_topics`](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/src/piksi_multi.py#L264).
+
+## Origin ENU Frame
+The origin of the ENU (East-North-Up) frame is set either using rosparameters or using the first RTK fix message obtained.
+In the former case the following private parameters must be set:
+
+ - `latitude0_deg`: latitude where the origin of ENU frame is located, in degrees;
+ - `longitude0_deg`: longitude where the origin of ENU frame is located, in degrees;
+ - `altitude0`: altitude where the origin of ENU frame is located, in meters;
+ 
+see also configuration file [enu_origin_example.yaml](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/cfg/enu_origin_example.yaml).
 
 ## Corrections Over Wifi
 It is possible to send/receive corrections over Wifi between multiple Piksi modules.
