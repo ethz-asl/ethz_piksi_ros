@@ -4,7 +4,7 @@ ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
 
 The piksi_multi_rtk_ros package has been tested under:
   * [ROS] Indigo and Ubuntu 14.04, and [ROS] Kinetic and Ubuntu 16.04;
-  * The latest version relies on Piksi Multi Firmware **1.2.14** release (see [Swift Nav firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware)).
+  * Check on which firmware version of Piksi Multi this driver relies on: [Firmware and SBP Lib Version](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_rtk_ros#firmware-and-sbp-lib-version).
 
 **WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200'). This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi#settings).
   
@@ -19,7 +19,7 @@ The piksi_multi_rtk_ros package has been tested under:
 **WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi).
 If you are using [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf) please check its driver version: [piksi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_rtk_gps)** (it is not supported anymore).
 
-The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-2.2.15-py2.7.egg/sbp/`.
+The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-2.3.1-py2.7.egg/sbp/`.
 
 ```
 # From the repository folder
@@ -29,7 +29,7 @@ source install/install_piksi_multi.sh
 ### Firmware and SBP Lib Version
 Please check [here](https://support.swiftnav.com/customer/en/portal/articles/2492810-swift-binary-protocol) which Piksi Multi fimrware version based on the current SBP Lib version.
 
-Currently the `install_piksi_multi.sh` will install SBP Lib 2.2.15 (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)). This means you are supposed to install Firmware 1.2.14 from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
+Currently the `install_piksi_multi.sh` will install SBP Lib 2.3.1 (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)). This means you are supposed to install Firmware 1.3.1 from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
 
 ## Usage
 **Make sure** you configured your Piksi(s) by following [these instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi).

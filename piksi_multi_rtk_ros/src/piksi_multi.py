@@ -45,7 +45,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.2.15'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.3.1'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -76,7 +76,7 @@ class PiksiMulti:
 
         # Open a connection to Piksi.
         serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
-        baud_rate = rospy.get_param('~baud_rate', 115200)
+        baud_rate = rospy.get_param('~baud_rate', 230400)
 
         try:
             self.driver = PySerialDriver(serial_port, baud=baud_rate)
