@@ -85,7 +85,7 @@ class PiksiMulti:
             raise
 
         # Create a handler to connect Piksi driver to callbacks.
-        self.framer = Framer(self.driver.read, self.driver.write, verbose=True)
+        self.framer = Framer(self.driver.read, self.driver.write, verbose=False)
         self.handler = Handler(self.framer)
 
         self.debug_mode = rospy.get_param('~debug_mode', False)
