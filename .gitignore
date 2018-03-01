@@ -6,7 +6,6 @@ src/*.pyc
 geodetic_survey_bags/*.bag
 
 *.pyc
-init_rovio_npose0/launch/debug_tf_frames.launch
 
 #QT files
 *.files
@@ -16,7 +15,7 @@ init_rovio_npose0/launch/debug_tf_frames.launch
 *.config
 
 # Logs geodetic surveys
-piksi_multi_rtk_gps/log_surveys/2*.txt
+/piksi_multi_rtk_ros/log_surveys/
 
 # KML files.
 /kml/*
