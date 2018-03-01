@@ -85,7 +85,7 @@ class PiksiMulti:
             raise
 
         # Create a handler to connect Piksi driver to callbacks.
-        self.framer = Framer(self.driver.read, self.driver.write, verbose=True)
+        self.framer = Framer(self.driver.read, self.driver.write, verbose=False)
         self.handler = Handler(self.framer)
 
         self.debug_mode = rospy.get_param('~debug_mode', False)
@@ -211,7 +211,7 @@ class PiksiMulti:
         self.init_callback('log', Log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
         self.init_callback('baseline_heading', BaselineHeading,
-                           SBP_MSG_BASELINE_HEADING, BaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
+                           SBP_MSG_BASELINE_HEADING, MsgBaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
 
