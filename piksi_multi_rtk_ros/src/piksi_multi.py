@@ -683,7 +683,9 @@ class PiksiMulti:
                                 code == ReceiverState_V2_2_15.CODE_GPS_L1P or \
                                 code == ReceiverState_V2_2_15.CODE_GPS_L2P:
                     num_gps_sat += 1
-                    cn0_gps.append(single_tracking_state.cn0)
+                    # To get cn0 values compatible with legacy measurement units (dB Hz)
+                    # divide cn0 by 4
+                    cn0_gps.append(single_tracking_state.cn0 / 4.0)
 
                 if code == ReceiverState_V2_2_15.CODE_SBAS_L1CA:
                     num_sbas_sat += 1
