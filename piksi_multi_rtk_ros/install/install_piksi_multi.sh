@@ -22,7 +22,7 @@ git checkout $REPO_TAG
 # Remove other Python libsbp, if any
 if ls $SBP_PYTHON_DIRECTORY 1> /dev/null 2>&1; then
 	echo " "
-    echo "Another version of libssbo is already installed in the system."
+    echo "Another version of libsbp is already installed in the system."
     echo "Do you wish to remove it and install version $REPO_TAG ? [y or Y to accept]"
 	read remove_other_libspb
 

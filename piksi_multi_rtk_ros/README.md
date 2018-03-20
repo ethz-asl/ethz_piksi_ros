@@ -9,13 +9,6 @@ The piksi_multi_rtk_ros package has been tested under:
 **WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200'). This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi#settings).
   
 ## Installation and Configuration
-
-### Dependencies
-  * python-pip `sudo apt-get install python-pip`
-  * python-tox `sudo apt-get install python-tox`
-  * pandoc     `sudo apt-get install pandoc`
-  
-### Installation
 **WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi).
 If you are using [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf) please check its driver version: [piksi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_rtk_gps)** (it is not supported anymore).
 
