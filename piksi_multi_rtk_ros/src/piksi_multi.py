@@ -204,7 +204,7 @@ class PiksiMulti:
         self.init_callback('vel_ned', VelNed,
                            SBP_MSG_VEL_NED, MsgVelNED,
                            'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback('imu_raw', ImuRawMulti,
+        self.init_callback('imu_raw_multi', ImuRawMulti,
                            SBP_MSG_IMU_RAW, MsgImuRaw,
                            'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
         self.init_callback('imu_aux', ImuAuxMulti,
@@ -428,7 +428,7 @@ class PiksiMulti:
             for attr in attrs:
                 if attr == 'flags':
                     # Least significat three bits of flags indicate status.
-                    if (msg.flags & 0x07) == 0:
+                    if (sbp_msg.flags & 0x07) == 0:
                         return  # Invalid message, do not publish it.
 
                 setattr(ros_message, attr, getattr(sbp_message, attr))
