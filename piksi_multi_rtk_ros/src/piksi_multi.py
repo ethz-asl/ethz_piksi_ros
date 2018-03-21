@@ -428,7 +428,7 @@ class PiksiMulti:
             for attr in attrs:
                 if attr == 'flags':
                     # Least significat three bits of flags indicate status.
-                    if (sbp_msg.flags & 0x07) == 0:
+                    if (sbp_message.flags & 0x07) == 0:
                         return  # Invalid message, do not publish it.
 
                 setattr(ros_message, attr, getattr(sbp_message, attr))
