@@ -29,6 +29,7 @@ add_message_files(
   ImuAuxMulti.msg
   ImuRawMulti.msg
   InfoWifiCorrections.msg
+  Observation.msg
   Log.msg
   PosEcef.msg
   PosLlh.msg

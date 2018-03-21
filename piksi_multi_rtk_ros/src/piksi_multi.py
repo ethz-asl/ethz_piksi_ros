@@ -25,8 +25,7 @@ from sbp.logging import *
 from sbp.system import *
 from sbp.tracking import *  # WARNING: tracking is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could be removed in future releases of libsbp.
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH, \
-    SBP_MSG_BASE_POS_ECEF
+from sbp.observation import *
 from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
 from sbp.settings import *
 from zope.interface.exceptions import Invalid
@@ -180,6 +179,8 @@ class PiksiMulti:
         self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE)
         self.handler.add_callback(self.settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
         self.handler.add_callback(self.settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
+        self.handler.add_callback(self.callback_sbp_obs, msg_type=SBP_MSG_OBS)
+        self.handler.add_callback(self.callback_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -225,11 +226,6 @@ class PiksiMulti:
         if self.base_station_mode:
             rospy.loginfo("Starting in base station mode")
             self.multicaster = UdpHelpers.SbpUdpMulticaster(self.udp_broadcast_addr, self.udp_port)
-
-            self.handler.add_callback(self.callback_sbp_obs, msg_type=SBP_MSG_OBS)
-            # not sure if SBP_MSG_BASE_POS_LLH or SBP_MSG_BASE_POS_ECEF is better?
-            # self.handler.add_callback(self.callback_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
-            self.handler.add_callback(self.callback_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
         else:
             rospy.loginfo("Starting in client station mode")
             self.multicast_recv = UdpHelpers.SbpUdpMulticastReceiver(self.udp_port, self.multicast_callback)
@@ -337,6 +333,8 @@ class PiksiMulti:
                                                        DopsMulti, queue_size=10)
             publishers['pos_ecef_multi'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
                                                            PosEcef, queue_size=10)
+            publishers['observation'] = rospy.Publisher(rospy.get_name() + '/observation',
+                                                        Observation, queue_size=10)
 
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
@@ -455,17 +453,22 @@ class PiksiMulti:
             callback_function = self.make_callback(callback_data_type, ros_message, pub, attrs)
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
 
-    def callback_sbp_obs(self, msg, **metadata):
+    def callback_sbp_obs(self, msg_raw, **metadata):
         # rospy.logwarn("CALLBACK SBP OBS")
-        self.multicaster.sendSbpPacket(msg)
+        if self.debug_mode:
+            msg = MsgObs(msg_raw)
 
-    def callback_sbp_obs_dep_a(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS DEP A")
-        self.multicaster.sendSbpPacket(msg)
+            obs_msg = Observation()
+            obs_msg.tow = msg.header.t.tow
+            obs_msg.ns_residual = msg.header.t.ns_residual
+            obs_msg.wn = msg.header.t.wn
+            obs_msg.n_obs = msg.header.n_obs
 
-    def callback_sbp_obs_dep_b(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS DEP B")
-        self.multicaster.sendSbpPacket(msg)
+            # TODO finish me!
+
+            self.publishers['observation'].publish(obs_msg)
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
 
     def callback_sbp_base_pos_llh(self, msg, **metadata):
         # rospy.logwarn("CALLBACK SBP OBS BASE LLH")

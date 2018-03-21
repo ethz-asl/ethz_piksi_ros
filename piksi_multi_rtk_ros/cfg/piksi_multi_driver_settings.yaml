@@ -2,7 +2,7 @@
 serial_port: '/dev/ttyUSB0'
 baud_rate: 230400
 base_station_mode: false
-debug_mode: false # if true, output every topic read by this driver
+debug_mode: true # if true, output every topic read by this driver   # TODO SET ME TO FALSE!
 driver_verbose: true
 # whenever possible, use network broadcast, not global ip broadcast
 # use ifconfig to show network broadcast (or calculate it yourself....).
