@@ -454,17 +454,39 @@ class PiksiMulti:
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
 
     def callback_sbp_obs(self, msg_raw, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS")
         if self.debug_mode:
             msg = MsgObs(msg_raw)
 
             obs_msg = Observation()
+            obs_msg.header.stamp = rospy.Time.now()
+
             obs_msg.tow = msg.header.t.tow
             obs_msg.ns_residual = msg.header.t.ns_residual
             obs_msg.wn = msg.header.t.wn
             obs_msg.n_obs = msg.header.n_obs
 
-            # TODO finish me!
+            obs_msg.P = []
+            obs_msg.L_i = []
+            obs_msg.L_f = []
+            obs_msg.D_i = []
+            obs_msg.D_f = []
+            obs_msg.cn0 = []
+            obs_msg.lock = []
+            obs_msg.flags = []
+            obs_msg.sid_sat = []
+            obs_msg.sid_code = []
+
+            for observation in msg.obs:
+                obs_msg.P.append(observation.P)
+                obs_msg.L_i.append(observation.L.i)
+                obs_msg.L_f.append(observation.L.f)
+                obs_msg.D_i.append(observation.D.i)
+                obs_msg.D_f.append(observation.D.f)
+                obs_msg.cn0.append(observation.cn0)
+                obs_msg.lock.append(observation.lock)
+                obs_msg.flags.append(observation.flags)
+                obs_msg.sid_sat.append(observation.sid.sat)
+                obs_msg.sid_code.append(observation.sid.code)
 
             self.publishers['observation'].publish(obs_msg)
         if self.base_station_mode:
