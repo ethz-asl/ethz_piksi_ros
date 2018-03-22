@@ -227,12 +227,12 @@ class PiksiMulti:
         #                   SBP_MSG_POS_LLH, MsgPosLLH,
         #                   'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
 
-        # Relay OBS messages via UDP if in base station mode.
+        # Relay "corrections" messages via UDP if in base station mode.
         if self.base_station_mode:
-            rospy.loginfo("Starting in base station mode")
+            rospy.loginfo("Starting device in Base Station Mode")
             self.multicaster = UdpHelpers.SbpUdpMulticaster(self.udp_broadcast_addr, self.udp_port)
         else:
-            rospy.loginfo("Starting in client station mode")
+            rospy.loginfo("Starting device in Rover Mode")
             self.multicast_recv = UdpHelpers.SbpUdpMulticastReceiver(self.udp_port, self.multicast_callback)
 
     def init_num_corrections_msg(self):
