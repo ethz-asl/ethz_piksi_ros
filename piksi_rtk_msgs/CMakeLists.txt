@@ -22,6 +22,7 @@ add_message_files(
     BaselineEcef.msg
     BaselineHeading.msg
     BaselineNed.msg
+    BasePosEcef.msg
     BasePosLlh.msg
     Dops.msg
     DopsMulti.msg

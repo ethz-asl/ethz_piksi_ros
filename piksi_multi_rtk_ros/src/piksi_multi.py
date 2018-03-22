@@ -342,7 +342,8 @@ class PiksiMulti:
                                                         Observation, queue_size=10)
             publishers['base_pos_llh'] = rospy.Publisher(rospy.get_name() + '/base_pos_llh',
                                                          BasePosLlh, queue_size=10)
-
+            publishers['base_pos_ecef'] = rospy.Publisher(rospy.get_name() + '/base_pos_ecef',
+                                                          BasePosEcef, queue_size=10)
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
                                                              InfoWifiCorrections, queue_size=10)
@@ -507,15 +508,27 @@ class PiksiMulti:
             pose_llh_msg = BasePosLlh()
             pose_llh_msg.header.stamp = rospy.Time.now()
 
-            pose_llh_msg.lat = pose_llh_msg.lat
-            pose_llh_msg.lon = pose_llh_msg.lon
-            pose_llh_msg.height = pose_llh_msg.height
+            pose_llh_msg.lat = msg.lat
+            pose_llh_msg.lon = msg.lon
+            pose_llh_msg.height = msg.height
 
             self.publishers['base_pos_llh'].publish(pose_llh_msg)
 
-    def callback_sbp_base_pos_ecef(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS BASE LLH")
-        self.multicaster.sendSbpPacket(msg)
+    def callback_sbp_base_pos_ecef(self, msg_raw, **metadata):
+        if self.debug_mode:
+            msg = MsgBasePosECEF(msg_raw)
+
+            pose_ecef_msg = BasePosEcef()
+            pose_ecef_msg.header.stamp = rospy.Time.now()
+
+            pose_ecef_msg.x = msg.x
+            pose_ecef_msg.y = msg.y
+            pose_ecef_msg.z = msg.z
+
+            self.publishers['base_pos_ecef'].publish(pose_ecef_msg)
+
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
 
     def multicast_callback(self, msg, **metadata):
         # rospy.logwarn("MULTICAST Callback")
