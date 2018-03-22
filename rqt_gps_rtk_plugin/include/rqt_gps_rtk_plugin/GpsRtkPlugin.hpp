@@ -5,6 +5,7 @@
 #include <ui_gps_rtk_plugin.h>
 #include <QWidget>
 
+#include <algorithm>
 #include <unistd.h>
 
 #include <ros/ros.h>
@@ -14,6 +15,8 @@
 #include <piksi_rtk_msgs/UtcTimeMulti.h>
 #include <piksi_rtk_msgs/AgeOfCorrections.h>
 #include <sensor_msgs/NavSatFix.h>
+
+constexpr double kSignalStrengthScalingFactor = 4.0;
 
 class GpsRtkPlugin : public rqt_gui_cpp::Plugin {
   Q_OBJECT
@@ -34,7 +37,28 @@ private:
   void readParameters();
   void initLabels();
   void initSubscribers();
-  void vectorToString(const std::vector<uint8_t> &vec, QString *pString);
+
+  template <typename T>
+  void vectorToString(const std::vector<T> &vec, QString *pString) {
+    *pString = "[";
+    for (auto i = vec.begin(); i != vec.end(); ++i) {
+      if (i != vec.begin()) {
+        *pString += ", ";
+      }
+      *pString += QString::number(*i);
+    }
+    *pString += "]";
+  }
+
+  template <typename T>
+  std::vector<T> scaleSignalStrength(const std::vector<T> &vec_signal_strength) {
+    auto scaled_signal_strength = vec_signal_strength;
+    for_each(scaled_signal_strength.begin(),
+             scaled_signal_strength.end(),
+             [](T &signal_strength) { signal_strength /= kSignalStrengthScalingFactor; });
+
+    return scaled_signal_strength;
+  }
 
   //subscribers
   ros::Subscriber piksiReceiverStateSub_;
