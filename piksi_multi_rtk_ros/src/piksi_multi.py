@@ -26,6 +26,7 @@ from sbp.system import *
 from sbp.tracking import *  # WARNING: tracking is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.observation import *
+from sbp.orientation import * # WARNING: orientation messages are still draft messages.
 from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
 from sbp.settings import *
 from zope.interface.exceptions import Invalid
@@ -217,12 +218,16 @@ class PiksiMulti:
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
 
+        # Only if debug mode
+        if self.debug_mode:
+            self.handler.add_callback(self.callback_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
+
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # self.init_callback('pos_llh', PosLlh,
         #                   SBP_MSG_POS_LLH, MsgPosLLH,
         #                   'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
 
-        # Subscribe to OBS messages and relay them via UDP if in base station mode.
+        # Relay OBS messages via UDP if in base station mode.
         if self.base_station_mode:
             rospy.loginfo("Starting in base station mode")
             self.multicaster = UdpHelpers.SbpUdpMulticaster(self.udp_broadcast_addr, self.udp_port)
@@ -335,6 +340,8 @@ class PiksiMulti:
                                                            PosEcef, queue_size=10)
             publishers['observation'] = rospy.Publisher(rospy.get_name() + '/observation',
                                                         Observation, queue_size=10)
+            publishers['base_pos_llh'] = rospy.Publisher(rospy.get_name() + '/base_pos_llh',
+                                                         BasePosLlh, queue_size=10)
 
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
@@ -489,12 +496,22 @@ class PiksiMulti:
                 obs_msg.sid_code.append(observation.sid.code)
 
             self.publishers['observation'].publish(obs_msg)
+
         if self.base_station_mode:
             self.multicaster.sendSbpPacket(msg_raw)
 
-    def callback_sbp_base_pos_llh(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS BASE LLH")
-        self.multicaster.sendSbpPacket(msg)
+    def callback_sbp_base_pos_llh(self, msg_raw, **metadata):
+        if self.debug_mode:
+            msg = MsgBasePosLLH(msg_raw)
+
+            pose_llh_msg = BasePosLlh()
+            pose_llh_msg.header.stamp = rospy.Time.now()
+
+            pose_llh_msg.lat = pose_llh_msg.lat
+            pose_llh_msg.lon = pose_llh_msg.lon
+            pose_llh_msg.height = pose_llh_msg.height
+
+            self.publishers['base_pos_llh'].publish(pose_llh_msg)
 
     def callback_sbp_base_pos_ecef(self, msg, **metadata):
         # rospy.logwarn("CALLBACK SBP OBS BASE LLH")
