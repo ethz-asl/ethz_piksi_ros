@@ -94,8 +94,8 @@ class PiksiMulti:
             rospy.loginfo("Piksi driver started in debug mode, every available topic will be published.")
             # Debugging parameters.
             debug_delayed_corrections_stack_size = rospy.get_param('~debug_delayed_corrections_stack_size', 10)
-            self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
-            rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
+            #self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
+            #rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
         else:
             rospy.loginfo("Piksi driver started in normal mode.")
 
@@ -105,7 +105,7 @@ class PiksiMulti:
         self.udp_port = rospy.get_param('~broadcast_port', 26078)
         self.base_station_ip_for_latency_estimation = rospy.get_param(
             '~base_station_ip_for_latency_estimation',
-            '10.10.10.1')
+            '192.168.0.1')
         self.multicaster = []
         self.multicast_recv = []
 
