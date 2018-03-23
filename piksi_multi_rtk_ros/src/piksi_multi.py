@@ -534,16 +534,18 @@ class PiksiMulti:
         # rospy.logwarn("MULTICAST Callback")
         if self.framer:
 
-            if self.debug_mode:
-                # Test network delay by storing a fixed number of correction messages and retrieving the oldest one.
-                # TODO (marco-tranzatto) check if we need to store even **metadata or not
-                # self.received_corrections_fifo_stack.append([msg, **metadata])
-                # oldest_correction = self.received_corrections_fifo_stack.popleft()
-                self.received_corrections_fifo_stack.append(msg)
-                oldest_correction = self.received_corrections_fifo_stack.popleft()
-                self.framer(oldest_correction, **metadata)
-            else:
-                self.framer(msg, **metadata)
+            # TODO (marco-tranzatto) probably next commented part should be completely deleted.
+            # if self.debug_mode:
+            #     # Test network delay by storing a fixed number of correction messages and retrieving the oldest one.
+            #     # TODO (marco-tranzatto) check if we need to store even **metadata or not
+            #     # self.received_corrections_fifo_stack.append([msg, **metadata])
+            #     # oldest_correction = self.received_corrections_fifo_stack.popleft()
+            #     self.received_corrections_fifo_stack.append(msg)
+            #     oldest_correction = self.received_corrections_fifo_stack.popleft()
+            #     self.framer(oldest_correction, **metadata)
+            # else:
+            #     self.framer(msg, **metadata)
+            self.framer(msg, **metadata)
 
             # Publish debug message about wifi corrections, if enabled.
             self.num_wifi_corrections.header.seq += 1
