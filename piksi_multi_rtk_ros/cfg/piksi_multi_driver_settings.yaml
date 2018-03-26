@@ -8,11 +8,11 @@ interface: 'serial'
 base_station_mode: false
 
 # debug_mode: if true, output every topic read by this driver
-# whenever possible, use network broadcast, not global ip broadcast
-# use ifconfig to show network broadcast (or calculate it yourself....).
 debug_mode: false
 
 # broadcast_addr: ip address to use for broadcasting corrections
+# whenever possible, use network broadcast, not global ip broadcast
+# use ifconfig to show network broadcast (or calculate it yourself....).
 broadcast_addr: 192.168.0.255
 
 # broadcast_port: port to use for broadcasting corrections
@@ -41,9 +41,9 @@ var_rtk_fix: [0.0049, 0.0049, 0.01]
 serial_port: '/dev/ttyUSB0'
 
 # baud_rate: defines the rate for the serial connection. This driver uses
-# 234000 as the default. Swift Navigation receivers ship with a
+# 230400 as the default. Swift Navigation receivers ship with a
 # default baud rate of 115200.
-baud_rate: 234000
+baud_rate: 230400
 
 # TCP Settings
 

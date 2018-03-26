@@ -89,7 +89,7 @@ class PiksiMulti:
                 raise
         else:
             serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
-            baud_rate = rospy.get_param('~baud_rate', 23400)
+            baud_rate = rospy.get_param('~baud_rate', 230400)
             try:
                 self.driver = PySerialDriver(serial_port, baud=baud_rate)
             except SystemExit:
