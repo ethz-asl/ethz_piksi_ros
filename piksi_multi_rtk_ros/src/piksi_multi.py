@@ -19,6 +19,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped, PoseWithC
     Transform
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
+from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.client import Handler, Framer
 from sbp.navigation import *
 from sbp.logging import *
@@ -74,15 +75,25 @@ class PiksiMulti:
                           "Please run the install script: 'install/install_piksi_multi.sh'" % (
                               installed_sbp_version, PiksiMulti.LIB_SBP_VERSION_MULTI))
 
-        # Open a connection to Piksi.
-        serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
-        baud_rate = rospy.get_param('~baud_rate', 230400)
+        # Open a connection to SwiftNav receiver.
+        interface = rospy.get_param('~interface', 'serial')
 
-        try:
-            self.driver = PySerialDriver(serial_port, baud=baud_rate)
-        except SystemExit:
-            rospy.logerr("Piksi not found on serial port '%s'", serial_port)
-            raise
+        if interface == 'tcp':
+            tcp_addr = rospy.get_param('~tcp_addr', '192.168.0.222')
+            tcp_port = rospy.get_param('~tcp_port', 55555)
+            try:
+                self.driver = TCPDriver(tcp_addr, tcp_port)
+            except SystemExit:
+                rospy.logerr("Unable to open TCP connection %s:%s", (tcp_addr, tcp_port))
+                raise
+        else:
+            serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
+            baud_rate = rospy.get_param('~baud_rate', 230400)
+            try:
+                self.driver = PySerialDriver(serial_port, baud=baud_rate)
+            except SystemExit:
+                rospy.logerr("Swift receiver not found on serial port '%s'", serial_port)
+                raise
 
         # Create a handler to connect Piksi driver to callbacks.
         self.driver_verbose = rospy.get_param('~driver_verbose', True)
@@ -91,13 +102,13 @@ class PiksiMulti:
 
         self.debug_mode = rospy.get_param('~debug_mode', False)
         if self.debug_mode:
-            rospy.loginfo("Piksi driver started in debug mode, every available topic will be published.")
+            rospy.loginfo("Swift driver started in debug mode, every available topic will be published.")
             # Debugging parameters.
             debug_delayed_corrections_stack_size = rospy.get_param('~debug_delayed_corrections_stack_size', 10)
             #self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
             #rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
         else:
-            rospy.loginfo("Piksi driver started in normal mode.")
+            rospy.loginfo("Swift driver started in normal mode.")
 
         # Corrections over WiFi settings.
         self.base_station_mode = rospy.get_param('~base_station_mode', False)
@@ -962,17 +973,17 @@ class PiksiMulti:
             reset_msg = reset_sbp.pack()
             self.driver.write(reset_msg)
 
-            rospy.logwarn("Piksi hard reset via rosservice call.")
+            rospy.logwarn("Swift receiver hard reset via rosservice call.")
 
             # Init messages with "memory".
             self.receiver_state_msg = self.init_receiver_state_msg()
             self.num_wifi_corrections = self.init_num_corrections_msg()
 
             response.success = True
-            response.message = "Piksi reset command sent."
+            response.message = "Swift receiver reset command sent."
         else:
             response.success = False
-            response.message = "Piksi reset command not sent."
+            response.message = "Swift receiver reset command not sent."
 
         return response
 
@@ -1022,7 +1033,7 @@ class PiksiMulti:
         if request.data:
             self.settings_save()
             response.success = True
-            response.message = "Piksi settings have been saved to flash."
+            response.message = "Swift receiver settings have been saved to flash."
         else:
             response.success = False
             response.message = "Please pass 'true' to this service call to explicitly save to flash the local settings."
@@ -1050,7 +1061,7 @@ class PiksiMulti:
 
     def settings_write(self, section_setting, setting, value):
         """
-        Write the defined configuration to Piksi.
+        Write the defined configuration to Swift receiver.
         """
         setting_string = '%s\0%s\0%s\0' % (section_setting, setting, value)
         write_msg = MsgSettingsWrite(setting=setting_string)
@@ -1066,7 +1077,7 @@ class PiksiMulti:
 
     def settings_read_req(self, section_setting, setting):
         """
-        Request a configuration value to Piksi.
+        Request a configuration value to Swift receiver.
         """
         setting_string = '%s\0%s\0' % (section_setting, setting)
         read_req_msg = MsgSettingsReadReq(setting=setting_string)
@@ -1084,7 +1095,7 @@ class PiksiMulti:
 
     def settings_read_by_index_req(self, index):
         """
-        Request a configuration value to Piksi by parameter index number.
+        Request a configuration value to Swift receiver by parameter index number.
         """
         read_req_by_index_msg = MsgSettingsReadByIndexReq(index=index)
         self.framer(read_req_by_index_msg)
