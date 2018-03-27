@@ -5,10 +5,14 @@
 # if this value is not valid, the driver will default to serial communication
 interface: 'serial'
 
+# set this to true if the Swift device is acting as RTK Base Station.
 base_station_mode: false
 
-# debug_mode: if true, output every topic read by this driver
+# if true, output every topic read by this driver
 debug_mode: false
+
+# if true the driver is verbose.
+driver_verbose: true
 
 # broadcast_addr: ip address to use for broadcasting corrections
 # whenever possible, use network broadcast, not global ip broadcast

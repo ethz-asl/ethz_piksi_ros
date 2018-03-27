@@ -9,13 +9,6 @@ The piksi_multi_rtk_ros package has been tested under:
 **WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200'). This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi#settings).
   
 ## Installation and Configuration
-
-### Dependencies
-  * python-pip `sudo apt-get install python-pip`
-  * python-tox `sudo apt-get install python-tox`
-  * pandoc     `sudo apt-get install pandoc`
-  
-### Installation
 **WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi).
 If you are using [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf) please check its driver version: [piksi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_rtk_gps)** (it is not supported anymore).
 
@@ -25,6 +18,11 @@ The following code will automatically download the required version of libsbp an
 # From the repository folder
 source install/install_piksi_multi.sh
 ```
+
+### Firmware and SBP Lib Version
+Please check [here](https://support.swiftnav.com/customer/en/portal/articles/2492810-swift-binary-protocol) which Piksi Multi fimrware version based on the current SBP Lib version.
+
+Currently the `install_piksi_multi.sh` will install SBP Lib 2.2.15 (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)). This means you are supposed to install Firmware 1.2.14 from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
 
 ## Usage
 **Make sure** you configured your Piksi(s) by following [these instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi).

@@ -97,7 +97,8 @@ class PiksiMulti:
                 raise
 
         # Create a handler to connect Piksi driver to callbacks.
-        self.framer = Framer(self.driver.read, self.driver.write, verbose=True)
+        self.driver_verbose = rospy.get_param('~driver_verbose', True)
+        self.framer = Framer(self.driver.read, self.driver.write, verbose=self.driver_verbose)
         self.handler = Handler(self.framer)
 
         self.debug_mode = rospy.get_param('~debug_mode', False)
@@ -215,7 +216,7 @@ class PiksiMulti:
         self.init_callback('vel_ned', VelNed,
                            SBP_MSG_VEL_NED, MsgVelNED,
                            'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback('imu_raw', ImuRawMulti,
+        self.init_callback('imu_raw_multi', ImuRawMulti,
                            SBP_MSG_IMU_RAW, MsgImuRaw,
                            'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
         self.init_callback('imu_aux', ImuAuxMulti,
@@ -223,7 +224,7 @@ class PiksiMulti:
         self.init_callback('log', Log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
         self.init_callback('baseline_heading', BaselineHeading,
-                           SBP_MSG_BASELINE_HEADING, BaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
+                           SBP_MSG_BASELINE_HEADING, MsgBaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
 
