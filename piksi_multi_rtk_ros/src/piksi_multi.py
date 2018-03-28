@@ -771,7 +771,7 @@ class PiksiMulti:
             self.publishers['tracking_state'].publish(tracking_state_msg)
 
             # Update debug msg and publish.
-            self.receiver_state_msg.num_sat = num_gps_sat + num_sbas_sat + num_sbas_sat
+            self.receiver_state_msg.num_sat = num_gps_sat + num_sbas_sat + num_glonass_sat
             self.receiver_state_msg.sat = tracking_state_msg.sat
             self.receiver_state_msg.cn0 = tracking_state_msg.cn0
             self.receiver_state_msg.num_gps_sat = num_gps_sat
