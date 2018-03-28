@@ -9,7 +9,7 @@ interface: 'serial'
 base_station_mode: false
 
 # if true, output every topic read by this driver
-debug_mode: true # TODO (marco-tranzatto) switch me back to false!
+debug_mode: false
 
 # if true the driver is verbose.
 driver_verbose: true
