@@ -36,6 +36,7 @@ class GeodeticSurvey:
                                                               'piksi/settings_read_req')
         self.read_resp_settings_service_name = rospy.get_param('~read_resp_settings_service_name',
                                                                'piksi/settings_read_resp')
+        self.height_base_station_from_ground = rospy.get_param('~height_base_station_from_ground', 0.0)
 
         # Subscribe.
         rospy.Subscriber(self.spp_topics_name, NavSatFix,
@@ -63,6 +64,9 @@ class GeodeticSurvey:
             if self.set_base_station_position(lat0, lon0, alt0):
                 self.surveyed_position_set = True
                 rospy.loginfo("Base station position set correctly.")
+                rospy.loginfo(
+                    "Creating ENU frame on surveyed position and substructing specified height of base station.")
+                self.log_enu_origin_position(lat0, lon0, alt0)
                 rospy.signal_shutdown("Base station position set correctly.")
             else:
                 rospy.logerr("Base station position not set correctly.")
@@ -179,13 +183,27 @@ class GeodeticSurvey:
     def log_surveyed_position(self, lat0, lon0, alt0):
         # current path of geodetic_survey.py file
         script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-        now = time.strftime("%Y-%m-%d-%H-%M-%S")
-        desired_path = "%s/../log_surveys/%s.txt" % (script_path, now)
+        now = time.strftime("%Y_%m_%d_%H_%M_%S")
+        desired_path = "%s/../log_surveys/base_station_survey_%s.txt" % (script_path, now)
         file_obj = open(desired_path, 'w')
         file_obj.write("# File automatically generated on %s\n\n" % now)
         file_obj.write("latitude0_deg: %.10f\n" % lat0)
         file_obj.write("longitude0_deg: %.10f\n" % lon0)
-        file_obj.write("altitude0: %.10f\n" % alt0)
+        file_obj.write("altitude0: %.2f\n" % alt0)
+        file_obj.close()
+
+    def log_enu_origin_position(self, lat0, lon0, alt0):
+        # current path of geodetic_survey.py file
+        script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+        now = time.strftime("%Y_%m_%d_%H_%M_%S")
+        desired_path = "%s/../log_surveys/enu_origin_%s.txt" % (script_path, now)
+        file_obj = open(desired_path, 'w')
+        file_obj.write("# File automatically generated on %s\n" % now)
+        file_obj.write(
+            "# ENU altitude0 = surveyed_altitude0 - %.3f (=height_base_station_from_ground)\n\n" % self.height_base_station_from_ground)
+        file_obj.write("latitude0_deg: %.10f\n" % lat0)
+        file_obj.write("longitude0_deg: %.10f\n" % lon0)
+        file_obj.write("altitude0: %.2f\n" % (alt0 - self.height_base_station_from_ground))
         file_obj.close()
 
     # https://www.python.org/dev/peps/pep-0485/#proposed-implementation
