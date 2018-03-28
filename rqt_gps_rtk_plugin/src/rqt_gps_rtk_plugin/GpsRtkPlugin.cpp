@@ -106,17 +106,6 @@ void GpsRtkPlugin::initSubscribers() {
   piksiAgeOfCorrectionsSub_ = getNodeHandle().subscribe(piksiAgeOfCorrectionsTopic_, 10, &GpsRtkPlugin::piksiAgeOfCorrectionsCb, this);
 }
 
-void GpsRtkPlugin::vectorToString(const std::vector<uint8_t> &vec, QString *pString) {
-  *pString = "[";
-  for (auto i = vec.begin(); i != vec.end(); ++i) {
-    if (i != vec.begin()) {
-      *pString += ", ";
-    }
-    *pString += QString::number(*i);
-  }
-  *pString += "]";
-}
-
 void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2_15& msg) {
   // Type of fix
   const QString fix_mode = QString::fromStdString(msg.fix_mode);
@@ -145,19 +134,19 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2
   // GPS number of satellites
   QMetaObject::invokeMethod(ui_.label_gpsSatellites, "setText", Q_ARG(QString, QString::number(msg.num_gps_sat)));
   // GPS signal strength
-  QString signal_strenght;
-  vectorToString(msg.cn0_gps, &signal_strenght);
-  QMetaObject::invokeMethod(ui_.label_gpsStrength, "setText", Q_ARG(QString, signal_strenght));
+  QString signal_strength;
+  vectorToString(scaleSignalStrength(msg.cn0_gps), &signal_strength);
+  QMetaObject::invokeMethod(ui_.label_gpsStrength, "setText", Q_ARG(QString, signal_strength));
   // SBAS number of satellites
   QMetaObject::invokeMethod(ui_.label_sbasSatellites, "setText", Q_ARG(QString, QString::number(msg.num_sbas_sat)));
   // SBAS signal strength
-  vectorToString(msg.cn0_sbas, &signal_strenght);
-  QMetaObject::invokeMethod(ui_.label_sbasStrength, "setText", Q_ARG(QString, signal_strenght));
+  vectorToString(scaleSignalStrength(msg.cn0_sbas), &signal_strength);
+  QMetaObject::invokeMethod(ui_.label_sbasStrength, "setText", Q_ARG(QString, signal_strength));
   // GLONASS number of satellites
   QMetaObject::invokeMethod(ui_.label_glonassSatellites, "setText", Q_ARG(QString, QString::number(msg.num_glonass_sat)));
   // GLONASS signal strength
-  vectorToString(msg.cn0_glonass, &signal_strenght);
-  QMetaObject::invokeMethod(ui_.label_glonassStrength, "setText", Q_ARG(QString, signal_strenght));
+  vectorToString(scaleSignalStrength(msg.cn0_glonass), &signal_strength);
+  QMetaObject::invokeMethod(ui_.label_glonassStrength, "setText", Q_ARG(QString, signal_strength));
 }
 
 void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {

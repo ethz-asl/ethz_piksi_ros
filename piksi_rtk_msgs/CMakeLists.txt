@@ -18,46 +18,49 @@ find_package(catkin REQUIRED
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  BaselineEcef.msg
-  BaselineHeading.msg
-  BaselineNed.msg
-  Dops.msg
-  DopsMulti.msg
-  GpsTime.msg
-  GpsTimeMulti.msg
-  Heartbeat.msg
-  ImuAuxMulti.msg
-  ImuRawMulti.msg
-  InfoWifiCorrections.msg
-  Log.msg
-  PosEcef.msg
-  PosLlh.msg
-  PosLlhMulti.msg
-  ReceiverState.msg
-  ReceiverState_V2_2_15.msg
-  TrackingState.msg
-  TrackingState_V2_2_15.msg
-  UartState.msg
-  UtcTimeMulti.msg
-  VelEcef.msg
-  VelNed.msg
-  AgeOfCorrections.msg
+    AgeOfCorrections.msg
+    BaselineEcef.msg
+    BaselineHeading.msg
+    BaselineNed.msg
+    BasePosEcef.msg
+    BasePosLlh.msg
+    Dops.msg
+    DopsMulti.msg
+    GpsTime.msg
+    GpsTimeMulti.msg
+    Heartbeat.msg
+    ImuAuxMulti.msg
+    ImuRawMulti.msg
+    InfoWifiCorrections.msg
+    Log.msg
+    Observation.msg
+    PosEcef.msg
+    PosLlh.msg
+    PosLlhMulti.msg
+    ReceiverState.msg
+    ReceiverState_V2_2_15.msg
+    TrackingState.msg
+    TrackingState_V2_2_15.msg
+    UartState.msg
+    UtcTimeMulti.msg
+    VelEcef.msg
+    VelNed.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  SettingsWrite.srv
-  SettingsReadReq.srv
-  SettingsReadResp.srv
+    SettingsWrite.srv
+    SettingsReadReq.srv
+    SettingsReadResp.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  std_msgs
-  geometry_msgs
-  sensor_msgs
+    std_msgs
+    geometry_msgs
+    sensor_msgs
 )
 
 ###################################

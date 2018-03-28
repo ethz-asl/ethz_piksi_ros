@@ -26,8 +26,8 @@ from sbp.logging import *
 from sbp.system import *
 from sbp.tracking import *  # WARNING: tracking is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could be removed in future releases of libsbp.
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH, \
-    SBP_MSG_BASE_POS_ECEF
+from sbp.observation import *
+from sbp.orientation import * # WARNING: orientation messages are still draft messages.
 from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
 from sbp.settings import *
 from zope.interface.exceptions import Invalid
@@ -46,7 +46,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.2.15'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.3.10'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -75,7 +75,7 @@ class PiksiMulti:
                           "Please run the install script: 'install/install_piksi_multi.sh'" % (
                               installed_sbp_version, PiksiMulti.LIB_SBP_VERSION_MULTI))
 
-        # Open a connection to Piksi.
+        # Open a connection to SwiftNav receiver.
         interface = rospy.get_param('~interface', 'serial')
 
         if interface == 'tcp':
@@ -105,8 +105,8 @@ class PiksiMulti:
             rospy.loginfo("Swift driver started in debug mode, every available topic will be published.")
             # Debugging parameters.
             debug_delayed_corrections_stack_size = rospy.get_param('~debug_delayed_corrections_stack_size', 10)
-            self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
-            rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
+            #self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
+            #rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
         else:
             rospy.loginfo("Swift driver started in normal mode.")
 
@@ -116,7 +116,7 @@ class PiksiMulti:
         self.udp_port = rospy.get_param('~broadcast_port', 26078)
         self.base_station_ip_for_latency_estimation = rospy.get_param(
             '~base_station_ip_for_latency_estimation',
-            '10.10.10.1')
+            '192.168.0.1')
         self.multicaster = []
         self.multicast_recv = []
 
@@ -191,6 +191,8 @@ class PiksiMulti:
         self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE)
         self.handler.add_callback(self.settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
         self.handler.add_callback(self.settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
+        self.handler.add_callback(self.callback_sbp_obs, msg_type=SBP_MSG_OBS)
+        self.handler.add_callback(self.callback_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -227,22 +229,21 @@ class PiksiMulti:
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
 
+        # Only if debug mode
+        if self.debug_mode:
+            self.handler.add_callback(self.callback_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
+
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # self.init_callback('pos_llh', PosLlh,
         #                   SBP_MSG_POS_LLH, MsgPosLLH,
         #                   'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
 
-        # Subscribe to OBS messages and relay them via UDP if in base station mode.
+        # Relay "corrections" messages via UDP if in base station mode.
         if self.base_station_mode:
-            rospy.loginfo("Starting in base station mode")
+            rospy.loginfo("Starting device in Base Station Mode")
             self.multicaster = UdpHelpers.SbpUdpMulticaster(self.udp_broadcast_addr, self.udp_port)
-
-            self.handler.add_callback(self.callback_sbp_obs, msg_type=SBP_MSG_OBS)
-            # not sure if SBP_MSG_BASE_POS_LLH or SBP_MSG_BASE_POS_ECEF is better?
-            # self.handler.add_callback(self.callback_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
-            self.handler.add_callback(self.callback_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
         else:
-            rospy.loginfo("Starting in client station mode")
+            rospy.loginfo("Starting device in Rover Mode")
             self.multicast_recv = UdpHelpers.SbpUdpMulticastReceiver(self.udp_port, self.multicast_callback)
 
     def init_num_corrections_msg(self):
@@ -348,7 +349,12 @@ class PiksiMulti:
                                                        DopsMulti, queue_size=10)
             publishers['pos_ecef_multi'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
                                                            PosEcef, queue_size=10)
-
+            publishers['observation'] = rospy.Publisher(rospy.get_name() + '/observation',
+                                                        Observation, queue_size=10)
+            publishers['base_pos_llh'] = rospy.Publisher(rospy.get_name() + '/base_pos_llh',
+                                                         BasePosLlh, queue_size=10)
+            publishers['base_pos_ecef'] = rospy.Publisher(rospy.get_name() + '/base_pos_ecef',
+                                                          BasePosEcef, queue_size=10)
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
                                                              InfoWifiCorrections, queue_size=10)
@@ -466,40 +472,91 @@ class PiksiMulti:
             callback_function = self.make_callback(callback_data_type, ros_message, pub, attrs)
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
 
-    def callback_sbp_obs(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS")
-        self.multicaster.sendSbpPacket(msg)
+    def callback_sbp_obs(self, msg_raw, **metadata):
+        if self.debug_mode:
+            msg = MsgObs(msg_raw)
 
-    def callback_sbp_obs_dep_a(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS DEP A")
-        self.multicaster.sendSbpPacket(msg)
+            obs_msg = Observation()
+            obs_msg.header.stamp = rospy.Time.now()
 
-    def callback_sbp_obs_dep_b(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS DEP B")
-        self.multicaster.sendSbpPacket(msg)
+            obs_msg.tow = msg.header.t.tow
+            obs_msg.ns_residual = msg.header.t.ns_residual
+            obs_msg.wn = msg.header.t.wn
+            obs_msg.n_obs = msg.header.n_obs
 
-    def callback_sbp_base_pos_llh(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS BASE LLH")
-        self.multicaster.sendSbpPacket(msg)
+            obs_msg.P = []
+            obs_msg.L_i = []
+            obs_msg.L_f = []
+            obs_msg.D_i = []
+            obs_msg.D_f = []
+            obs_msg.cn0 = []
+            obs_msg.lock = []
+            obs_msg.flags = []
+            obs_msg.sid_sat = []
+            obs_msg.sid_code = []
 
-    def callback_sbp_base_pos_ecef(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS BASE LLH")
-        self.multicaster.sendSbpPacket(msg)
+            for observation in msg.obs:
+                obs_msg.P.append(observation.P)
+                obs_msg.L_i.append(observation.L.i)
+                obs_msg.L_f.append(observation.L.f)
+                obs_msg.D_i.append(observation.D.i)
+                obs_msg.D_f.append(observation.D.f)
+                obs_msg.cn0.append(observation.cn0)
+                obs_msg.lock.append(observation.lock)
+                obs_msg.flags.append(observation.flags)
+                obs_msg.sid_sat.append(observation.sid.sat)
+                obs_msg.sid_code.append(observation.sid.code)
+
+            self.publishers['observation'].publish(obs_msg)
+
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
+
+    def callback_sbp_base_pos_llh(self, msg_raw, **metadata):
+        if self.debug_mode:
+            msg = MsgBasePosLLH(msg_raw)
+
+            pose_llh_msg = BasePosLlh()
+            pose_llh_msg.header.stamp = rospy.Time.now()
+
+            pose_llh_msg.lat = msg.lat
+            pose_llh_msg.lon = msg.lon
+            pose_llh_msg.height = msg.height
+
+            self.publishers['base_pos_llh'].publish(pose_llh_msg)
+
+    def callback_sbp_base_pos_ecef(self, msg_raw, **metadata):
+        if self.debug_mode:
+            msg = MsgBasePosECEF(msg_raw)
+
+            pose_ecef_msg = BasePosEcef()
+            pose_ecef_msg.header.stamp = rospy.Time.now()
+
+            pose_ecef_msg.x = msg.x
+            pose_ecef_msg.y = msg.y
+            pose_ecef_msg.z = msg.z
+
+            self.publishers['base_pos_ecef'].publish(pose_ecef_msg)
+
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
 
     def multicast_callback(self, msg, **metadata):
         # rospy.logwarn("MULTICAST Callback")
         if self.framer:
 
-            if self.debug_mode:
-                # Test network delay by storing a fixed number of correction messages and retrieving the oldest one.
-                # TODO (marco-tranzatto) check if we need to store even **metadata or not
-                # self.received_corrections_fifo_stack.append([msg, **metadata])
-                # oldest_correction = self.received_corrections_fifo_stack.popleft()
-                self.received_corrections_fifo_stack.append(msg)
-                oldest_correction = self.received_corrections_fifo_stack.popleft()
-                self.framer(oldest_correction, **metadata)
-            else:
-                self.framer(msg, **metadata)
+            # TODO (marco-tranzatto) probably next commented part should be completely deleted.
+            # if self.debug_mode:
+            #     # Test network delay by storing a fixed number of correction messages and retrieving the oldest one.
+            #     # TODO (marco-tranzatto) check if we need to store even **metadata or not
+            #     # self.received_corrections_fifo_stack.append([msg, **metadata])
+            #     # oldest_correction = self.received_corrections_fifo_stack.popleft()
+            #     self.received_corrections_fifo_stack.append(msg)
+            #     oldest_correction = self.received_corrections_fifo_stack.popleft()
+            #     self.framer(oldest_correction, **metadata)
+            # else:
+            #     self.framer(msg, **metadata)
+            self.framer(msg, **metadata)
 
             # Publish debug message about wifi corrections, if enabled.
             self.num_wifi_corrections.header.seq += 1
@@ -714,15 +771,9 @@ class PiksiMulti:
             self.publishers['tracking_state'].publish(tracking_state_msg)
 
             # Update debug msg and publish.
-            self.receiver_state_msg.num_sat = 0
-            for satellite_cno in tracking_state_msg.cn0:
-                # Use number of satellites with valid cn0.
-                if satellite_cno > 0.0:
-                    self.receiver_state_msg.num_sat += 1
-
+            self.receiver_state_msg.num_sat = num_gps_sat + num_sbas_sat + num_glonass_sat
             self.receiver_state_msg.sat = tracking_state_msg.sat
             self.receiver_state_msg.cn0 = tracking_state_msg.cn0
-
             self.receiver_state_msg.num_gps_sat = num_gps_sat
             self.receiver_state_msg.cn0_gps = cn0_gps
             self.receiver_state_msg.num_sbas_sat = num_sbas_sat
