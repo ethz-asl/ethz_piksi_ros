@@ -1,0 +1,6 @@
+#! /usr/bin/env python
+
+from  piksi_multi_rtk_ros import PiksiMulti
+
+if __name__ == '__main__':
+    piksi_multi = PiksiMulti()
