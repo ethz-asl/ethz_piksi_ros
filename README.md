@@ -40,6 +40,14 @@ License
 -------
 The source code is released under a [BSD 3-Clause license](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/LICENSE).
 
+Build Status
+-------
+|     | master |
+| --- | ---    |
+| ethz_piksi_ros | [![Build Status](https://ci.leggedrobotics.com/buildStatus/icon?job=github_leggedrobotics/ethz_piksi_ros/master)](https://ci.leggedrobotics.com/job/github_leggedrobotics/job/ethz_piksi_ros/job/master/) |
+
+TODO add one semaphore for each package.
+
 Credits
 -------
 Marco Tranzatto, Kai Holtmann, Michael Pantic - ETHZ ASL & RSL - 30 November 2017
