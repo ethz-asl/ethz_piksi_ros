@@ -2,10 +2,11 @@
 
 <launch>
 
-  <!-- KML -->
-  <node pkg="piksi_rtk_kml" type="piksi_rtk_kml" name="piksi_rtk_kml" output="screen">
+  <node pkg="piksi_rtk_kml" type="piksi_rtk_kml.py" name="piksi_rtk_kml" output="screen">
     <!-- Load default settings -->
     <rosparam file="$(find piksi_rtk_kml)/cfg/piksi_rtk_kml_settings.yaml"/>
   </node>
+
+  <node pkg="piksi_multi_rtk_gps" type="piksi_multi.py" name="piksi" output="screen"/>
 
 </launch>
