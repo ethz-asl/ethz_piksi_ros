@@ -6,21 +6,19 @@
 #
 
 import rospy
-import roslib.packages
 from piksi_rtk_msgs.srv import *
 import std_srvs.srv
 from sensor_msgs.msg import NavSatFix
+import os
 import time
 
 
 class GeodeticSurvey:
-    kRosPackageName = "piksi_multi_rtk_ros"
     kServiceTimeOutSeconds = 10.0
     kWaitBetweenReadReqAndResSeconds = 1.0
     kRelativeTolleranceGeodeticComparison = 1e-10
 
     def __init__(self):
-        rospy.init_node('geodetic_survey')
         rospy.loginfo(rospy.get_name() + " start")
 
         self.latitude_accumulator = 0.0
@@ -183,21 +181,22 @@ class GeodeticSurvey:
         return False, -1
 
     def log_surveyed_position(self, lat0, lon0, alt0):
+        # current path of geodetic_survey.py file
+        script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
         now = time.strftime("%Y_%m_%d_%H_%M_%S")
-        package_path = roslib.packages.get_pkg_dir(self.kRosPackageName)
-        desired_path = "%s/log_surveys/base_station_survey_%s.txt" % (package_path, now)
+        desired_path = "%s/../log_surveys/base_station_survey_%s.txt" % (script_path, now)
         file_obj = open(desired_path, 'w')
         file_obj.write("# File automatically generated on %s\n\n" % now)
         file_obj.write("latitude0_deg: %.10f\n" % lat0)
         file_obj.write("longitude0_deg: %.10f\n" % lon0)
         file_obj.write("altitude0: %.2f\n" % alt0)
         file_obj.close()
-        rospy.loginfo("Surveyed position saved in " + desired_path)
 
     def log_enu_origin_position(self, lat0, lon0, alt0):
+        # current path of geodetic_survey.py file
+        script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
         now = time.strftime("%Y_%m_%d_%H_%M_%S")
-        package_path = roslib.packages.get_pkg_dir(self.kRosPackageName)
-        desired_path = "%s/log_surveys/enu_origin_%s.txt" % (package_path, now)
+        desired_path = "%s/../log_surveys/enu_origin_%s.txt" % (script_path, now)
         file_obj = open(desired_path, 'w')
         file_obj.write("# File automatically generated on %s\n" % now)
         file_obj.write(
@@ -206,8 +205,18 @@ class GeodeticSurvey:
         file_obj.write("longitude0_deg: %.10f\n" % lon0)
         file_obj.write("altitude0: %.2f\n" % (alt0 - self.height_base_station_from_ground))
         file_obj.close()
-        rospy.loginfo("ENU origin saved in " + desired_path)
 
     # https://www.python.org/dev/peps/pep-0485/#proposed-implementation
     def is_close(self, a, b, rel_tol=1e-09, abs_tol=0.0):
         return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
+
+# Main function.
+if __name__ == '__main__':
+    rospy.init_node('geodetic_survey')
+
+    # Go to class functions that do all the heavy lifting. Do error checking.
+    try:
+        geodetic_survey = GeodeticSurvey()
+    except rospy.ROSInterruptException:
+        pass
