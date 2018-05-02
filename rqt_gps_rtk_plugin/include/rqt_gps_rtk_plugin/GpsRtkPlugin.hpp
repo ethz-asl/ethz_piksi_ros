@@ -16,8 +16,6 @@
 #include <piksi_rtk_msgs/AgeOfCorrections.h>
 #include <sensor_msgs/NavSatFix.h>
 
-#include <message_logger/message_logger.hpp>
-
 constexpr double kSignalStrengthScalingFactor = 4.0;
 
 class GpsRtkPlugin : public rqt_gui_cpp::Plugin

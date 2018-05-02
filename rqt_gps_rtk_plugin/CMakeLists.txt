@@ -4,15 +4,11 @@ project(rqt_gps_rtk_plugin)
 # Set compiler flags
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
-#Message logger (MELO)
-add_definitions(-DMELO_FUNCTION_PRINTS)
-
 find_package(catkin REQUIRED COMPONENTS
    rqt_gui
    rqt_gui_cpp
    piksi_rtk_msgs
    sensor_msgs
-   message_logger
 )
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
@@ -64,7 +60,6 @@ catkin_package(
     rqt_gui_cpp
     piksi_rtk_msgs
     sensor_msgs
-    message_logger
     DEPENDS
 )
 
