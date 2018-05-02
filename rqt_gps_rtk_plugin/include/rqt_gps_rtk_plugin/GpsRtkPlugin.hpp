@@ -16,11 +16,14 @@
 #include <piksi_rtk_msgs/AgeOfCorrections.h>
 #include <sensor_msgs/NavSatFix.h>
 
+#include <message_logger/message_logger.hpp>
+
 constexpr double kSignalStrengthScalingFactor = 4.0;
 
-class GpsRtkPlugin : public rqt_gui_cpp::Plugin {
+class GpsRtkPlugin : public rqt_gui_cpp::Plugin
+{
   Q_OBJECT
-public:
+ public:
   GpsRtkPlugin();
   virtual void initPlugin(qt_gui_cpp::PluginContext& context);
   virtual void shutdownPlugin();
@@ -30,7 +33,7 @@ public:
   // Comment in to signal that the plugin has a way to configure it
   //bool hasConfiguration() const;
   //void triggerConfiguration();
-private:
+ private:
   Ui::GpsRtkPlugin ui_;
   QWidget* widget_;
 
@@ -38,7 +41,7 @@ private:
   void initLabels();
   void initSubscribers();
 
-  template <typename T>
+  template<typename T>
   void vectorToString(const std::vector<T> &vec, QString *pString) {
     *pString = "[";
     for (auto i = vec.begin(); i != vec.end(); ++i) {
@@ -50,12 +53,10 @@ private:
     *pString += "]";
   }
 
-  template <typename T>
+  template<typename T>
   std::vector<T> scaleSignalStrength(const std::vector<T> &vec_signal_strength) {
     auto scaled_signal_strength = vec_signal_strength;
-    for_each(scaled_signal_strength.begin(),
-             scaled_signal_strength.end(),
-             [](T &signal_strength) { signal_strength /= kSignalStrengthScalingFactor; });
+    for_each(scaled_signal_strength.begin(), scaled_signal_strength.end(), [](T &signal_strength) {signal_strength /= kSignalStrengthScalingFactor;});
 
     return scaled_signal_strength;
   }
@@ -86,12 +87,6 @@ private:
   int wifiCorrectionsAvgHz_;
   int numCorrectionsFirstSampleMovingWindow_;
   std::vector<double> altitudes_;
-
-protected slots:
-  //line edits
-
-signals:
-  void stateChanged();
 };
 
 #endif // GPSRTKPLUGIN_H
