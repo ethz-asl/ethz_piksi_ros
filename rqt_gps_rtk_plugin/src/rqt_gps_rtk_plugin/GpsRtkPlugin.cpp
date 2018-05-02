@@ -7,17 +7,18 @@
 #include <math.h>
 
 GpsRtkPlugin::GpsRtkPlugin()
-  : rqt_gui_cpp::Plugin(),
-    widget_(0)
-{
+    : rqt_gui_cpp::Plugin(),
+      widget_(0),
+      timeFirstSampleMovingWindow_(0),
+      wifiCorrectionsAvgHz_(0),
+      numCorrectionsFirstSampleMovingWindow_(0) {
   // Constructor is called first before initPlugin function, needless to say.
 
   // give QObjects reasonable names
   setObjectName("GpsRtkPlugin");
 }
 
-void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
-{
+void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   // access standalone command line arguments
   QStringList argv = context.argv();
   // create QWidget
@@ -40,16 +41,13 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   ROS_INFO("[GpsRtkPlugin] Initialized.");
 }
 
-void GpsRtkPlugin::shutdownPlugin()
-{
+void GpsRtkPlugin::shutdownPlugin() {
 }
 
-void GpsRtkPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
-{
+void GpsRtkPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const {
 }
 
-void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
-{
+void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings) {
 }
 
 void GpsRtkPlugin::readParameters() {
@@ -169,11 +167,11 @@ void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {
   QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator, "setStyleSheet", Q_ARG(QString, QString::fromStdString(strStyle)));
 
   // Baseline NED status
-  double n = msg.n/1e3;
-  double e = msg.e/1e3;
-  double d = msg.d/1e3;
-  QString baseline;// = "[" + QString::fromStdString(std::to_string(roundf(n*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(e*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(d*100)/100)) + "]";
-  baseline.sprintf("[%.2f, %.2f, %.2f]", roundf(n*100)/100, roundf(e*100)/100, roundf(d*100)/100);
+  double n = msg.n / 1e3;
+  double e = msg.e / 1e3;
+  double d = msg.d / 1e3;
+  QString baseline;  // = "[" + QString::fromStdString(std::to_string(roundf(n*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(e*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(d*100)/100)) + "]";
+  baseline.sprintf("[%.2f, %.2f, %.2f]", roundf(n * 100) / 100, roundf(e * 100) / 100, roundf(d * 100) / 100);
   QMetaObject::invokeMethod(ui_.label_baseline, "setText", Q_ARG(QString, baseline));
 }
 
@@ -201,7 +199,7 @@ void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrecti
 void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg) {
   altitudes_.push_back(msg.altitude);
   double altitudeAvg = 0;
-  for (std::vector<double>::iterator it=altitudes_.begin(); it!=altitudes_.end(); it++) {
+  for (std::vector<double>::iterator it = altitudes_.begin(); it != altitudes_.end(); it++) {
     altitudeAvg += *it;
   }
   altitudeAvg /= altitudes_.size();
@@ -219,19 +217,19 @@ void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg) {
 }
 
 void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrections &msg) {
-  double age_of_corrections = msg.age/10.0;
+  double age_of_corrections = msg.age / 10.0;
   QString text;
   text.sprintf("%.1f", age_of_corrections);
   QMetaObject::invokeMethod(ui_.label_ageOfCorrections, "setText", Q_ARG(QString, text));
 }
 /*bool hasConfiguration() const
-{
-  return true;
-}
+ {
+ return true;
+ }
 
-void triggerConfiguration()
-{
-  // Usually used to open a dialog to offer the user a set of configuration
-}*/
+ void triggerConfiguration()
+ {
+ // Usually used to open a dialog to offer the user a set of configuration
+ }*/
 
 PLUGINLIB_DECLARE_CLASS(rqt_gps_rtk_plugin, GpsRtkPlugin, GpsRtkPlugin, rqt_gui_cpp::Plugin)
