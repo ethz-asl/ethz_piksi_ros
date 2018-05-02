@@ -5,16 +5,10 @@ project(piksi_multi_rtk_ros)
 find_package(catkin REQUIRED
   COMPONENTS
     rospy
-    roslib
     piksi_rtk_msgs
     sensor_msgs
     geometry_msgs
 )
-
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-catkin_python_setup()
 
 ###################################
 ## catkin specific configuration ##
@@ -33,14 +27,4 @@ catkin_package(
     sensor_msgs
     geometry_msgs
 #  DEPENDS
-)
-
-#############
-## Install ##
-#############
-catkin_install_python(PROGRAMS bin/piksi_multi bin/geodetic_survey
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-install(DIRECTORY cfg launch log_surveys rosbag_record_scripts
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

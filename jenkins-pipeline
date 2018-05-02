@@ -1,2 +1,0 @@
-library 'continuous_integration_pipeline'
-ciPipeline("--ignore ethz_piksi_ros piksi_v2_rtk_ros rqt_gps_rtk_plugin utils")
