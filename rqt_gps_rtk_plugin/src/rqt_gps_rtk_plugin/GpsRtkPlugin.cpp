@@ -183,7 +183,6 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2
   }
   double stamp = signalStrengthStamp - initialSignalStrengthStamp_;
   if ( (lastSignalStrengthStamp_ == 0.0) or (stamp >= (lastSignalStrengthStamp_ + 1.0 / signalStrengthUpdateRate_)) ) {
-    mtx_.lock();
     // number of available signals
     int numSignals = msg.cn0_gps.size();
     // amount of graphs (in the plot)
@@ -250,7 +249,6 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2
     emit(replotRequested());
     // update stamp
     lastSignalStrengthStamp_ = stamp;
-    mtx_.unlock();
   }
 
 }
