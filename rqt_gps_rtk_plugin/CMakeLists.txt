@@ -26,6 +26,7 @@ catkin_python_setup()
 set(rqt_gps_rtk_plugin_SRCS
   src/rqt_gps_rtk_plugin/GpsRtkPlugin.cpp
   src/rqt_gps_rtk_plugin/qcustomplot.cpp
+  src/rqt_gps_rtk_plugin/CurveData.cpp
 )
 ###########
 
@@ -37,6 +38,7 @@ set(rqt_gps_rtk_plugin_SRCS
 set(rqt_gps_rtk_plugin_HDRS
   include/rqt_gps_rtk_plugin/GpsRtkPlugin.hpp
   include/rqt_gps_rtk_plugin/qcustomplot.h
+  include/rqt_gps_rtk_plugin/CurveData.hpp
 )
 ###########
 
