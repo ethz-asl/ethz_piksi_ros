@@ -6,3 +6,4 @@ piksiWifiCorrectionsTopic: "piksi/debug/wifi_corrections" #[-] piksi wifi correc
 piksiNavsatfixRtkFixTopic: "piksi/navsatfix_rtk_fix" #[-] piksi navsatfix rtk fix topic
 piksiTimeTopic: "piksi/utc_time" #[-] piksi (utc) time topic
 piksiAgeOfCorrectionsTopic: "piksi/age_of_corrections" #[-] piksi age of corrections topic
+signalStrengthUpdateRate: "10" #[Hz] update rate of the signal strength plot

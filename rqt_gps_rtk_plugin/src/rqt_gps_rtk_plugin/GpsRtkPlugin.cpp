@@ -3,6 +3,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <QStringList>
 #include <QGridLayout>
+#include <QVector>
 
 #include <math.h>
 
@@ -11,11 +12,27 @@ GpsRtkPlugin::GpsRtkPlugin()
       widget_(0),
       timeFirstSampleMovingWindow_(0),
       wifiCorrectionsAvgHz_(0),
-      numCorrectionsFirstSampleMovingWindow_(0) {
-  // Constructor is called first before initPlugin function, needless to say.
+      numCorrectionsFirstSampleMovingWindow_(0),
+      signalStrengthUpdateRate_(0.0),
+      lastSignalStrengthStamp_(0.0),
+      initialSignalStrengthStamp_(0.0),
+      xRange_(30) {
 
   // give QObjects reasonable names
   setObjectName("GpsRtkPlugin");
+
+  // set pens;
+  pens_.push_back(QPen(Qt::blue));
+  pens_.push_back(QPen(Qt::green));
+  pens_.push_back(QPen(Qt::red));
+  pens_.push_back(QPen(Qt::cyan));
+  pens_.push_back(QPen(Qt::gray));
+  pens_.push_back(QPen(Qt::darkBlue));
+  pens_.push_back(QPen(Qt::darkGreen));
+  pens_.push_back(QPen(Qt::darkRed));
+  pens_.push_back(QPen(Qt::darkCyan));
+  pens_.push_back(QPen(Qt::darkYellow));
+  pens_.push_back(QPen(Qt::darkGray));
 }
 
 void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
@@ -25,6 +42,9 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   widget_ = new QWidget();
   // extend the widget with all attributes and children from UI file
   ui_.setupUi(widget_);
+  if (context.serialNumber() > 1) {
+    widget_->setWindowTitle(widget_->windowTitle() + " (" + QString::number(context.serialNumber()) + ")");
+  }
   // add widget to the user interface
   context.addWidget(widget_);
 
@@ -32,13 +52,14 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   initLabels();
   initSubscribers();
 
+  // setup custom plot
+  setupPlot();
+
   //Init variables
   timeFirstSampleMovingWindow_ = ros::Time::now().sec;
   wifiCorrectionsAvgHz_ = 5;
   numCorrectionsFirstSampleMovingWindow_ = 0;
   altitudes_.erase(altitudes_.begin(), altitudes_.end());
-
-  MELO_INFO("Initialized.");
 }
 
 void GpsRtkPlugin::shutdownPlugin() {
@@ -51,23 +72,31 @@ void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, 
 }
 
 void GpsRtkPlugin::readParameters() {
-getNodeHandle().param < std::string > ("piksiReceiverStateTopic", piksiReceiverStateTopic_, "piksi/debug/receiver_state");
-  MELO_INFO_STREAM("piksiReceiverStateTopic: " << piksiReceiverStateTopic_);
+  getNodeHandle().param<std::string>("piksiReceiverStateTopic", piksiReceiverStateTopic_, "piksi/debug/receiver_state");
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiReceiverStateTopic: " << piksiReceiverStateTopic_);
 
-  getNodeHandle().param < std::string > ("piksiBaselineNedTopic", piksiBaselineNedTopic_, "piksi/baseline_ned");
-  MELO_INFO_STREAM("piksiBaselineNedTopic: " << piksiBaselineNedTopic_);
+  getNodeHandle().param<std::string>("piksiBaselineNedTopic", piksiBaselineNedTopic_, "piksi/baseline_ned");
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiBaselineNedTopic: " << piksiBaselineNedTopic_);
 
-  getNodeHandle().param < std::string > ("piksiWifiCorrectionsTopic", piksiWifiCorrectionsTopic_, "piksi/debug/wifi_corrections");
-  MELO_INFO_STREAM("piksiWifiCorrectionsTopic: " << piksiWifiCorrectionsTopic_);
+  getNodeHandle().param<std::string>("piksiWifiCorrectionsTopic", piksiWifiCorrectionsTopic_, "piksi/debug/wifi_corrections");
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiWifiCorrectionsTopic: " << piksiWifiCorrectionsTopic_);
 
-  getNodeHandle().param < std::string > ("piksiNavsatfixRtkFixTopic", piksiNavsatfixRtkFixTopic_, "piksi/navsatfix_rtk_fix");
-  MELO_INFO_STREAM("piksiNavsatfixRtkFixTopic: " << piksiNavsatfixRtkFixTopic_);
+  getNodeHandle().param<std::string>("piksiNavsatfixRtkFixTopic", piksiNavsatfixRtkFixTopic_, "piksi/navsatfix_rtk_fix");
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiNavsatfixRtkFixTopic: " << piksiNavsatfixRtkFixTopic_);
 
-  getNodeHandle().param < std::string > ("piksiTimeTopic", piksiTimeTopic_, "piksi/utc_time");
-  MELO_INFO_STREAM("piksiTimeTopic: " << piksiTimeTopic_);
+  getNodeHandle().param<std::string>("piksiTimeTopic", piksiTimeTopic_, "piksi/utc_time");
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiTimeTopic: " << piksiTimeTopic_);
 
-  getNodeHandle().param < std::string > ("piksiAgeOfCorrectionsTopic", piksiAgeOfCorrectionsTopic_, "piksi/age_of_corrections");
-MELO_INFO_STREAM("piksiAgeOfCorrectionsTopic: " << piksiAgeOfCorrectionsTopic_);
+  getNodeHandle().param<std::string>("piksiAgeOfCorrectionsTopic", piksiAgeOfCorrectionsTopic_, "piksi/age_of_corrections");
+  ROS_INFO_STREAM("[GpsRtkPlugin] piksiAgeOfCorrectionsTopic: " << piksiAgeOfCorrectionsTopic_);
+
+  getNodeHandle().param<double>("signalStrengthUpdateRate", signalStrengthUpdateRate_, 1.0);
+  // ensure frequency is != 0
+  if (signalStrengthUpdateRate_ == 0.0) {
+    signalStrengthUpdateRate_ = 1.0;
+    ROS_WARN_STREAM("[GpsRtkPlugin] Parameter signalStrengthUpdateRate [Hz] must not equal 0, set to 1 Hz.");
+  }
+  ROS_INFO_STREAM("[GpsRtkPlugin] signalStrengthUpdateRate: " << signalStrengthUpdateRate_);
 }
 
 void GpsRtkPlugin::initLabels() {
@@ -145,6 +174,85 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2
   // GLONASS signal strength
   vectorToString(scaleSignalStrength(msg.cn0_glonass), &signal_strength);
   QMetaObject::invokeMethod(ui_.label_glonassStrength, "setText", Q_ARG(QString, signal_strength));
+
+  /* update signal strength */
+  // throttled update of custom plot at
+  double signalStrengthStamp = msg.header.stamp.toSec();
+  if (initialSignalStrengthStamp_ == 0.0) {
+    initialSignalStrengthStamp_ = signalStrengthStamp;
+  }
+  double stamp = signalStrengthStamp - initialSignalStrengthStamp_;
+  if ( (lastSignalStrengthStamp_ == 0.0) or (stamp >= (lastSignalStrengthStamp_ + 1.0 / signalStrengthUpdateRate_)) ) {
+    mtx_.lock();
+    // number of available signals
+    int numSignals = msg.cn0_gps.size();
+    // amount of graphs (in the plot)
+    int numGraphs = ui_.customPlot->graphCount();
+    // amount of curves
+    int numCurves = curves_.size();
+
+    // check if enough graphs/curves are available
+    if (numCurves != numGraphs) {
+      // something is very strange!
+      ROS_ERROR("[GpsRtkPlugin] Bad handling of curves/graphs!");
+      return;
+    }
+
+    // append graphs/curves if more signals exist
+    if (numGraphs < numSignals) {
+      for (int i = numGraphs; i < numSignals; ++i) {
+        // add new curve
+        rqt_gps_rtk_plugin::CurveData curve;
+        curve.setMaxSignalValues(xRange_);
+        curves_.push_back(curve);
+        // add new graph to plot
+        postToThread([this]{ ui_.customPlot->addGraph(); }, this);
+        // set line style
+        postToThread([this, i]{ ui_.customPlot->graph(i)->setLineStyle(QCPGraph::LineStyle::lsLine); }, this);
+        // set color
+        QPen pen = (i > pens_.size()) ? (pens_.at(i-pens_.size())) : (pens_.at(i));
+        postToThread([this, i, pen]{ ui_.customPlot->graph(i)->setPen(pen); }, this);
+      }
+
+      // remove graphs/curves if too many exist
+    } else if (numGraphs > numSignals) {
+      for (int i = numGraphs; i > numSignals; --i) {
+        // remove curve
+        curves_.pop_back();
+        // remove graph from plot
+        postToThread([this, i]{ ui_.customPlot->removeGraph(i); }, this);
+      }
+    }
+
+    // update signal values
+    QVector<double> x, y;
+    for (int i = 0; i < numGraphs; ++i) {
+      // append data to curve
+      std::pair<double, double> signalPair(msg.cn0_gps.at(i) / kSignalStrengthScalingFactor, stamp);
+      curves_.at(i).appendSignalValue(signalPair);
+      // add data to plot
+      QVector<std::pair<double, double>> signalVec = curves_.at(i).getSignalValues();
+      x.clear();
+      y.clear();
+      for (int l = 0; l < signalVec.size(); ++l) {
+        x.push_back(signalVec.at(l).second);
+        y.push_back(signalVec.at(l).first);
+      }
+      postToThread([this, i, x, y]{ ui_.customPlot->graph(i)->setData(x, y); }, this);
+    }
+
+    // update plot
+    int minX, maxX;
+    maxX = int(stamp);
+    minX = (maxX - xRange_ < 0) ? (0) : (maxX - xRange_);
+    postToThread([this, minX, maxX]{ ui_.customPlot->xAxis->setRange(minX, maxX); }, this);
+
+    emit(replotRequested());
+    // update stamp
+    lastSignalStrengthStamp_ = stamp;
+    mtx_.unlock();
+  }
+
 }
 
 void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {
@@ -193,7 +301,6 @@ void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrecti
 
   // Ping base station
   QMetaObject::invokeMethod(ui_.label_pingBaseStation, "setText", Q_ARG(QString, QString::number(std::round(msg.latency), 'g', 2)));
-
 }
 
 void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg) {
@@ -222,6 +329,18 @@ void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrection
   text.sprintf("%.1f", age_of_corrections);
   QMetaObject::invokeMethod(ui_.label_ageOfCorrections, "setText", Q_ARG(QString, text));
 }
+
+void GpsRtkPlugin::setupPlot() {
+  connect(this, SIGNAL(replotRequested()), ui_.customPlot, SLOT(replot()));
+  ui_.customPlot->clearGraphs();
+  // set axis labels
+  ui_.customPlot->xAxis->setLabel("seconds");
+  ui_.customPlot->yAxis->setLabel("dB-Hz");
+  // set axes ranges
+  ui_.customPlot->xAxis->setRange(0, 1);
+  ui_.customPlot->yAxis->setRange(15, 80);
+}
+
 /*bool hasConfiguration() const
  {
  return true;
