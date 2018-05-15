@@ -31,6 +31,8 @@ from sbp.orientation import * # WARNING: orientation messages are still draft me
 from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
 from sbp.settings import *
 from zope.interface.exceptions import Invalid
+# Piksi Multi features as a Magnetometer
+from sbp.mag import *
 # Piksi Multi features an IMU
 from sbp.imu import *
 # At the moment importing 'sbp.version' module causes ValueError: Cannot find the version number!
@@ -217,6 +219,11 @@ class PiksiMulti:
         self.init_callback('vel_ned', VelNed,
                            SBP_MSG_VEL_NED, MsgVelNED,
                            'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
+        ### add magnetometer
+        self.init_callback('mag_raw_multi', MagRawMulti,
+                           SBP_MSG_MAG_RAW, MsgMagRaw,
+                           'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
+        ###
         self.init_callback('imu_raw_multi', ImuRawMulti,
                            SBP_MSG_IMU_RAW, MsgImuRaw,
                            'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
@@ -321,6 +328,10 @@ class PiksiMulti:
                                                            BaselineNed, queue_size=10)
         publishers['utc_time_multi'] = rospy.Publisher(rospy.get_name() + '/utc_time',
                                                        UtcTimeMulti, queue_size=10)
+        ### add Magnetometer
+        publishers['mag_raw_multi'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
+                                                      MagRawMulti, queue_size=10)
+        ###
         publishers['imu_raw_multi'] = rospy.Publisher(rospy.get_name() + '/imu_raw',
                                                       ImuRawMulti, queue_size=10)
         publishers['imu_aux_multi'] = rospy.Publisher(rospy.get_name() + '/debug/imu_aux',
