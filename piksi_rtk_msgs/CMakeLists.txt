@@ -29,6 +29,7 @@ add_message_files(
     GpsTime.msg
     GpsTimeMulti.msg
     Heartbeat.msg
+    MagRawMulti.msg
     ImuAuxMulti.msg
     ImuRawMulti.msg
     InfoWifiCorrections.msg

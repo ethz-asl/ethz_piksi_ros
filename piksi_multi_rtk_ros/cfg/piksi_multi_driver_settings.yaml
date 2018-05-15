@@ -47,7 +47,7 @@ serial_port: '/dev/ttyUSB0'
 # baud_rate: defines the rate for the serial connection. This driver uses
 # 230400 as the default. Swift Navigation receivers ship with a
 # default baud rate of 115200.
-baud_rate: 230400
+baud_rate: 115200
 
 # TCP Settings
 
