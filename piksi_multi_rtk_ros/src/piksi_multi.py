@@ -33,6 +33,8 @@ from sbp.settings import *
 from zope.interface.exceptions import Invalid
 # Piksi Multi features an IMU
 from sbp.imu import *
+# Piksi Multi features a Magnetometer Bosh bmm150 : https://www.bosch-sensortec.com/bst/products/all_products/bmm150
+from sbp.mag import SBP_MSG_MAG_RAW, MsgMagRaw
 # At the moment importing 'sbp.version' module causes ValueError: Cannot find the version number!
 # import sbp.version
 # networking stuff
@@ -222,6 +224,8 @@ class PiksiMulti:
                            'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
         self.init_callback('imu_aux', ImuAuxMulti,
                            SBP_MSG_IMU_AUX, MsgImuAux, 'imu_type', 'temp', 'imu_conf')
+        self.init_callback('mag_raw', MagRaw,
+                           SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')        
         self.init_callback('log', Log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
         self.init_callback('baseline_heading', BaselineHeading,
@@ -325,6 +329,8 @@ class PiksiMulti:
                                                       ImuRawMulti, queue_size=10)
         publishers['imu_aux_multi'] = rospy.Publisher(rospy.get_name() + '/debug/imu_aux',
                                                       ImuAuxMulti, queue_size=10)
+        publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
+                                                      MagRaw, queue_size=10)        
         publishers['baseline_heading'] = rospy.Publisher(rospy.get_name() + '/baseline_heading',
                                                          BaselineHeading, queue_size=10)
         publishers['age_of_corrections'] = rospy.Publisher(rospy.get_name() + '/age_of_corrections',
