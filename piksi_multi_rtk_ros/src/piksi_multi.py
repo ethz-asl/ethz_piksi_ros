@@ -27,7 +27,7 @@ from sbp.system import *
 from sbp.tracking import *  # WARNING: tracking is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.observation import *
-from sbp.orientation import * # WARNING: orientation messages are still draft messages.
+from sbp.orientation import *  # WARNING: orientation messages are still draft messages.
 from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
 from sbp.settings import *
 from zope.interface.exceptions import Invalid
@@ -107,8 +107,8 @@ class PiksiMulti:
             rospy.loginfo("Swift driver started in debug mode, every available topic will be published.")
             # Debugging parameters.
             debug_delayed_corrections_stack_size = rospy.get_param('~debug_delayed_corrections_stack_size', 10)
-            #self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
-            #rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
+            # self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
+            # rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
         else:
             rospy.loginfo("Swift driver started in normal mode.")
 
@@ -225,7 +225,7 @@ class PiksiMulti:
         self.init_callback('imu_aux', ImuAuxMulti,
                            SBP_MSG_IMU_AUX, MsgImuAux, 'imu_type', 'temp', 'imu_conf')
         self.init_callback('mag_raw', MagRaw,
-                           SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')        
+                           SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
         self.init_callback('log', Log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
         self.init_callback('baseline_heading', BaselineHeading,
@@ -330,7 +330,7 @@ class PiksiMulti:
         publishers['imu_aux_multi'] = rospy.Publisher(rospy.get_name() + '/debug/imu_aux',
                                                       ImuAuxMulti, queue_size=10)
         publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
-                                                      MagRaw, queue_size=10)        
+                                                MagRaw, queue_size=10)
         publishers['baseline_heading'] = rospy.Publisher(rospy.get_name() + '/baseline_heading',
                                                          BaselineHeading, queue_size=10)
         publishers['age_of_corrections'] = rospy.Publisher(rospy.get_name() + '/age_of_corrections',
@@ -773,7 +773,6 @@ class PiksiMulti:
                 and len(tracking_state_msg.code) \
                 and len(tracking_state_msg.fcn) \
                 and len(tracking_state_msg.cn0):
-
             self.publishers['tracking_state'].publish(tracking_state_msg)
 
             # Update debug msg and publish.
