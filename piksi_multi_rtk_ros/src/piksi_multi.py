@@ -48,7 +48,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.3.10'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.3.15'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
