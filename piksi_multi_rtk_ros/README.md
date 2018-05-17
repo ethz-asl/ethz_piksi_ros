@@ -69,6 +69,10 @@ The most interesting advertised topics are:
    
 For a complete list of advertised topics please check function [`advertise_topics`](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/src/piksi_multi.py#L264).
 
+### Raw IMU and Magnetometer Measurements
+Raw IMU and magnetometer measurements are not published by default. If you want to publish them in ROS you need to: (a) Open Swifnav console, connect to Piksi, navigate to "Settings", and then in the "imu" section enable "imu raw output" and "mag raw output" (save these new settings, so you need to do this operation only once); (b) set to true the flag [publish_raw_imu_and_mag](./cfg/piksi_multi_driver_settings.yaml#L19).
+Raw measurements are published in `/piksi/imu_raw` and `/piksi/mag_raw`.
+
 ## Origin ENU Frame
 The origin of the ENU (East-North-Up) frame is set either using rosparameters or using the first RTK fix message obtained.
 In the former case the following private parameters must be set:

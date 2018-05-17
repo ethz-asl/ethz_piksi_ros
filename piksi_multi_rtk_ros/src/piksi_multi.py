@@ -154,6 +154,9 @@ class PiksiMulti:
         self.watchdog_time = rospy.get_rostime()
         self.messages_started = False
 
+        # Other parameters.
+        self.publish_raw_imu_and_mag = rospy.get_param('~publish_raw_imu_and_mag', False)
+
         # Advertise topics and services.
         self.publishers = self.advertise_topics()
         self.service_servers = self.advertise_services()
@@ -219,19 +222,20 @@ class PiksiMulti:
         self.init_callback('vel_ned', VelNed,
                            SBP_MSG_VEL_NED, MsgVelNED,
                            'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback('imu_raw_multi', ImuRawMulti,
-                           SBP_MSG_IMU_RAW, MsgImuRaw,
-                           'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
-        self.init_callback('imu_aux', ImuAuxMulti,
-                           SBP_MSG_IMU_AUX, MsgImuAux, 'imu_type', 'temp', 'imu_conf')
-        self.init_callback('mag_raw', MagRaw,
-                           SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
         self.init_callback('log', Log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
         self.init_callback('baseline_heading', BaselineHeading,
                            SBP_MSG_BASELINE_HEADING, MsgBaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
+
+        # Raw IMU and Magnetometer measurements.
+        if self.publish_raw_imu_and_mag:
+            self.init_callback('imu_raw', ImuRawMulti,
+                               SBP_MSG_IMU_RAW, MsgImuRaw,
+                               'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
+            self.init_callback('mag_raw', MagRaw,
+                               SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
 
         # Only if debug mode
         if self.debug_mode:
@@ -325,18 +329,20 @@ class PiksiMulti:
                                                            BaselineNed, queue_size=10)
         publishers['utc_time_multi'] = rospy.Publisher(rospy.get_name() + '/utc_time',
                                                        UtcTimeMulti, queue_size=10)
-        publishers['imu_raw_multi'] = rospy.Publisher(rospy.get_name() + '/imu_raw',
-                                                      ImuRawMulti, queue_size=10)
-        publishers['imu_aux_multi'] = rospy.Publisher(rospy.get_name() + '/debug/imu_aux',
-                                                      ImuAuxMulti, queue_size=10)
-        publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
-                                                MagRaw, queue_size=10)
         publishers['baseline_heading'] = rospy.Publisher(rospy.get_name() + '/baseline_heading',
                                                          BaselineHeading, queue_size=10)
         publishers['age_of_corrections'] = rospy.Publisher(rospy.get_name() + '/age_of_corrections',
                                                            AgeOfCorrections, queue_size=10)
         publishers['enu_pose_best_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_best_fix',
                                                           PoseWithCovarianceStamped, queue_size=10)
+
+        # Raw IMU and Magnetometer measurements.
+        if self.publish_raw_imu_and_mag:
+            publishers['imu_raw'] = rospy.Publisher(rospy.get_name() + '/imu_raw',
+                                                    ImuRawMulti, queue_size=10)
+            publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
+                                                    MagRaw, queue_size=10)
+
         # Topics published only if in "debug mode".
         if self.debug_mode:
             publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
