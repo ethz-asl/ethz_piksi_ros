@@ -603,6 +603,8 @@ class PiksiMulti:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
 
             self.publish_rtk_fix(msg.lat, msg.lon, msg.height)
+        # TODO (marco-tranzatto) what to do if flag is FIX_MODE_DEAD_RECKONING or FIX_MODE_SBAS?
+
         # Update debug msg and publish.
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
 
@@ -616,6 +618,14 @@ class PiksiMulti:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_FLOAT_RTK
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_FIXED_RTK
+        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+            rospy.logwarn(
+                "[pos_llh_callback]: case FIX_MODE_DEAD_RECKONING was not implemented yet." +
+                "Ask to the mantainers to take care of this.")
+        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
+            rospy.logwarn(
+                "[pos_llh_callback]: case FIX_MODE_SBAS was not implemented yet." +
+                "Ask to the mantainers to take care of this.")
         else:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_UNKNOWN
 
