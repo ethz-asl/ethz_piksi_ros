@@ -596,7 +596,6 @@ class PiksiMulti:
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
-            rospy.logwarn("[cb_sbp_pos_llh]: invalid message received from Swiftnav device.")
             return
         # SPP GPS messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
