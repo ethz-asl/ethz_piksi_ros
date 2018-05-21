@@ -186,20 +186,21 @@ class PiksiMulti:
         # Only have start-up reset in base station mode
         if self.base_station_mode:
             # Things have 30 seconds to start or we will kill node
-            rospy.Timer(rospy.Duration(30), self.watchdog_callback, True)
+            rospy.Timer(rospy.Duration(30), self.cb_watchdog, True)
 
         # Spin.
         rospy.spin()
 
     def create_topic_callbacks(self):
-        # Callbacks implemented "manually".
-        self.handler.add_callback(self.pos_llh_callback, msg_type=SBP_MSG_POS_LLH)
-        self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
-        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
-        self.handler.add_callback(self.settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
-        self.handler.add_callback(self.settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
-        self.handler.add_callback(self.callback_sbp_obs, msg_type=SBP_MSG_OBS)
-        self.handler.add_callback(self.callback_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
+        # Callbacks from SBP messages (cb_sbp_*) implemented "manually".
+        self.handler.add_callback(self.cb_sbp_glonass_biases, msg_type=SBP_MSG_GLO_BIASES)
+        self.handler.add_callback(self.cb_sbp_heartbeat, msg_type=SBP_MSG_HEARTBEAT)
+        self.handler.add_callback(self.cb_sbp_pos_llh, msg_type=SBP_MSG_POS_LLH)
+        self.handler.add_callback(self.cb_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
+        self.handler.add_callback(self.cb_sbp_obs, msg_type=SBP_MSG_OBS)
+        self.handler.add_callback(self.cb_sbp_settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
+        self.handler.add_callback(self.cb_sbp_settings_save, msg_type=SBP_MSG_SETTINGS_READ_RESP)
+        self.handler.add_callback(self.cb_sbp_tracking_state, msg_type=SBP_MSG_TRACKING_STATE)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -241,7 +242,7 @@ class PiksiMulti:
 
         # Only if debug mode
         if self.debug_mode:
-            self.handler.add_callback(self.callback_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
+            self.handler.add_callback(self.cb_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
 
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # self.init_callback('pos_llh', PosLlh,
@@ -490,7 +491,7 @@ class PiksiMulti:
             callback_function = self.make_callback(callback_data_type, ros_message, pub, attrs)
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
 
-    def callback_sbp_obs(self, msg_raw, **metadata):
+    def cb_sbp_obs(self, msg_raw, **metadata):
         if self.debug_mode:
             msg = MsgObs(msg_raw)
 
@@ -530,7 +531,7 @@ class PiksiMulti:
         if self.base_station_mode:
             self.multicaster.sendSbpPacket(msg_raw)
 
-    def callback_sbp_base_pos_llh(self, msg_raw, **metadata):
+    def cb_sbp_base_pos_llh(self, msg_raw, **metadata):
         if self.debug_mode:
             msg = MsgBasePosLLH(msg_raw)
 
@@ -543,7 +544,7 @@ class PiksiMulti:
 
             self.publishers['base_pos_llh'].publish(pose_llh_msg)
 
-    def callback_sbp_base_pos_ecef(self, msg_raw, **metadata):
+    def cb_sbp_base_pos_ecef(self, msg_raw, **metadata):
         if self.debug_mode:
             msg = MsgBasePosECEF(msg_raw)
 
@@ -560,7 +561,6 @@ class PiksiMulti:
             self.multicaster.sendSbpPacket(msg_raw)
 
     def multicast_callback(self, msg, **metadata):
-        # rospy.logwarn("MULTICAST Callback")
         if self.framer:
 
             # TODO (marco-tranzatto) probably next commented part should be completely deleted.
@@ -586,19 +586,23 @@ class PiksiMulti:
         else:
             rospy.logwarn("Received external SBP msg, but Piksi not connected.")
 
-    def watchdog_callback(self, event):
+    def cb_sbp_glonass_biases(self, msg_raw, **metadata):
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
+
+    def cb_watchdog(self, event):
         if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 10.0):
             rospy.logwarn("Heartbeat failed, watchdog triggered.")
 
             if self.base_station_mode:
                 rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
 
-    def pos_llh_callback(self, msg_raw, **metadata):
+    def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
-            rospy.logwarn("[pos_llh_callback]: invalid message received from Swiftnav device.")
+            rospy.logwarn("[cb_sbp_pos_llh]: invalid message received from Swiftnav device.")
             return
         # SPP GPS messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
@@ -606,7 +610,7 @@ class PiksiMulti:
         # Differential GNSS (DGNSS)
         elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
             rospy.logwarn(
-                "[pos_llh_callback]: case FIX_MODE_DGNSS was not implemented yet." +
+                "[cb_sbp_pos_llh]: case FIX_MODE_DGNSS was not implemented yet." +
                 "Ask to the maintainers to take care of this.")
             # TODO what to do here?
             return
@@ -622,7 +626,7 @@ class PiksiMulti:
         # Dead reckoning
         elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             rospy.logwarn(
-                "[pos_llh_callback]: case FIX_MODE_DEAD_RECKONING was not implemented yet." +
+                "[cb_sbp_pos_llh]: case FIX_MODE_DEAD_RECKONING was not implemented yet." +
                 "Ask to the maintainers to take care of this.")
             return
         # SBAS Position
@@ -630,7 +634,7 @@ class PiksiMulti:
             self.publish_sbas(msg.lat, msg.lon, msg.height)
         else:
             rospy.logerr(
-                "[pos_llh_callback]: Unknown case, you found a bug!" +
+                "[cb_sbp_pos_llh]: Unknown case, you found a bug!" +
                 "Ask to the maintainers of this package to take care of this.")
             return
 
@@ -729,16 +733,16 @@ class PiksiMulti:
         pub_navsatfix_best_pose.publish(navsatfix_msg)
         pub_pose_best_fix.publish(pose_msg)
 
-    def heartbeat_callback(self, msg_raw, **metadata):
+    def cb_sbp_heartbeat(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
 
         # Let watchdag know messages are still arriving
         self.watchdog_time = rospy.get_rostime()
 
         # Start watchdog with 10 second timeout to ensure we keep getting gps
-        if (not self.messages_started):
+        if not self.messages_started:
             self.messages_started = True
-            rospy.Timer(rospy.Duration(10), self.watchdog_callback)
+            rospy.Timer(rospy.Duration(10), self.cb_watchdog)
 
         heartbeat_msg = Heartbeat()
         heartbeat_msg.header.stamp = rospy.Time.now()
@@ -758,7 +762,10 @@ class PiksiMulti:
         self.receiver_state_msg.external_antenna_present = heartbeat_msg.external_antenna_present
         self.publish_receiver_state_msg()
 
-    def tracking_state_callback(self, msg_raw, **metadata):
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
+
+    def cb_sbp_tracking_state(self, msg_raw, **metadata):
         msg = MsgTrackingState(msg_raw)
 
         # print "\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
@@ -1021,7 +1028,7 @@ class PiksiMulti:
         response = std_srvs.srv.SetBoolResponse()
 
         if request.data:
-            self.settings_save()
+            self.cb_sbp_settings_save()
             response.success = True
             response.message = "Swift receiver settings have been saved to flash."
         else:
@@ -1057,7 +1064,7 @@ class PiksiMulti:
         write_msg = MsgSettingsWrite(setting=setting_string)
         self.framer(write_msg)
 
-    def settings_save(self):
+    def cb_sbp_settings_save(self):
         """
         Save settings message persists the device's current settings
         configuration to its on-board flash memory file system.
@@ -1073,7 +1080,7 @@ class PiksiMulti:
         read_req_msg = MsgSettingsReadReq(setting=setting_string)
         self.framer(read_req_msg)
 
-    def settings_read_resp(self, msg_raw, **metadata):
+    def cb_settings_read_resp(self, msg_raw, **metadata):
         """
         Response to a settings_read_req.
         """
@@ -1090,7 +1097,7 @@ class PiksiMulti:
         read_req_by_index_msg = MsgSettingsReadByIndexReq(index=index)
         self.framer(read_req_by_index_msg)
 
-    def settings_read_by_index_resp(self, msg_raw, **metadata):
+    def cb_sbp_settings_read_by_index_resp(self, msg_raw, **metadata):
         """
         Response to a settings_read_by_index_req.
         """
