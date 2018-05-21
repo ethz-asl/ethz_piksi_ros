@@ -104,7 +104,7 @@ void GpsRtkPlugin::initSubscribers() {
   piksiAgeOfCorrectionsSub_ = getNodeHandle().subscribe(piksiAgeOfCorrectionsTopic_, 10, &GpsRtkPlugin::piksiAgeOfCorrectionsCb, this);
 }
 
-void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2_15& msg) {
+void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3_15& msg) {
   // Type of fix
   const QString fix_mode = QString::fromStdString(msg.fix_mode);
   QString color_fix_mode("");
@@ -120,7 +120,10 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_2
     color_fix_mode = "QLabel {background-color: rgb(255, 138, 138); color: rgb(191, 0, 191);}";
   } else if (msg.fix_mode == msg.STR_FIX_MODE_FIXED_RTK) {
     color_fix_mode = "QLabel {background-color: lime; color: rgb(255, 166, 2);}";
-  } else {
+  } else if (msg.fix_mode == msg.STR_FIX_MODE_SBAS) {
+    color_fix_mode = "QLabel {background-color: lime; color: rgb(43, 255, 223);}";
+  }
+  else {
     // Unknown
     color_fix_mode = "QLabel {background-color: rgb(152, 152, 152); color: rgb(92, 92, 92);}";
   }

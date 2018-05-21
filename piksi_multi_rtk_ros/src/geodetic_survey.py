@@ -8,7 +8,7 @@
 import rospy
 from piksi_rtk_msgs.srv import *
 import std_srvs.srv
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import (NavSatFix, NavSatStatus)
 import os
 import time
 
@@ -29,7 +29,8 @@ class GeodeticSurvey:
 
         # Settings
         self.number_of_desired_fixes = rospy.get_param('~number_of_desired_fixes', 5000)
-        self.spp_topics_name = rospy.get_param('~spp_topics_name', 'piksi/navsatfix_spp')
+        # Use topic "piksi/navsatfix_best_fix" as base station could output either SPP or SBAS messages.
+        self.navsatfix_topics_name = rospy.get_param('~navsatfix_topics_name', 'piksi/navsatfix_best_fix')
         self.write_settings_service_name = rospy.get_param('~write_settings_service_name', 'piksi/settings_write')
         self.save_settings_service_name = rospy.get_param('~save_settings_service_name', 'piksi/settings_save')
         self.read_req_settings_service_name = rospy.get_param('~read_req_settings_service_name',
@@ -39,12 +40,19 @@ class GeodeticSurvey:
         self.height_base_station_from_ground = rospy.get_param('~height_base_station_from_ground', 0.0)
 
         # Subscribe.
-        rospy.Subscriber(self.spp_topics_name, NavSatFix,
-                         self.navsatfix_spp_callback)
+        rospy.Subscriber(self.navsatfix_topics_name, NavSatFix,
+                         self.navsatfix_callback)
 
         rospy.spin()
 
-    def navsatfix_spp_callback(self, msg):
+    def navsatfix_callback(self, msg):
+        # Sanity check: we should have either SPP or SBAS fix.
+        if msg.status.status != NavSatStatus.STATUS_FIX or msg.status.status != NavSatStatus.STATUS_SBAS_FIX:
+            rospy.logerr(
+                "[navsatfix_callback] received a navsatfix message with status %d." +
+                "Accepted types are 'STATUS_FIX' or 'STATUS_SBAS_FIX'" % msg.status.status)
+            return
+
         self.latitude_accumulator += msg.latitude
         self.longitude_accumulator += msg.longitude
         self.altitude_accumulator += msg.altitude
