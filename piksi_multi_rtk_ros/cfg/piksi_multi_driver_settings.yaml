@@ -37,12 +37,12 @@ navsatfix_frame_id: 'base_link'
 # Variance to be published in the NavSatFix message (in diagonal part).
 # Single Point Positioning (SPP).
 var_spp: [25.0, 25.0, 64.0]
+# Single Point Positioning (SPP) with SBAS.
+var_spp_sbas: [1.0, 1.0, 1.0]
 # RTK float mode.
 var_rtk_float: [25.0, 25.0, 64.0]
 # RTK fix mode.
 var_rtk_fix: [0.0049, 0.0049, 0.01]
-# SBAS mode.
-var_sbas: [1.0, 1.0, 1.0]
 
 # Serial Settings
 

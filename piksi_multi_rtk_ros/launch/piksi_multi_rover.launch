@@ -1,15 +1,13 @@
 <?xml version="1.0"?>
 
 <launch>
-  <!-- Node name -->
-  <arg name="node_name"                   value="piksi"/>
-
   <!-- Arguments -->
+  <arg name="load_enu_origin_from_file"   default="false"/>
   <arg name="base_station_ip"             default="192.168.0.1"/>
   <arg name="load_enu_origin_from_file"   default="false"/>
   <arg name="enu_origin_file"             default="$(find piksi_multi_rtk_ros)/cfg/enu_origin_example.yaml"/>
 
-  <node pkg="piksi_multi_rtk_ros" type="piksi_multi.py" name="$(arg node_name)" output="screen" respawn="true">
+  <node pkg="piksi_multi_rtk_ros" type="piksi_multi.py" name="piksi" output="screen" respawn="true">
     <!-- Load default settings -->
     <rosparam file="$(find piksi_multi_rtk_ros)/cfg/piksi_multi_driver_settings.yaml"/>
 

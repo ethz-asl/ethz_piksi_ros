@@ -128,7 +128,7 @@ class PiksiMulti:
         self.var_spp = rospy.get_param('~var_spp', [25.0, 25.0, 64.0])
         self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
-        self.var_sbas = rospy.get_param('~var_sbas', [1.0, 1.0, 1.0])
+        self.var_spp_sbas = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
         self.navsatfix_frame_id = rospy.get_param('~navsatfix_frame_id', 'gps')
 
         # Local ENU frame settings.
@@ -199,7 +199,7 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
         self.handler.add_callback(self.cb_sbp_obs, msg_type=SBP_MSG_OBS)
         self.handler.add_callback(self.cb_sbp_settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
-        self.handler.add_callback(self.cb_sbp_settings_save, msg_type=SBP_MSG_SETTINGS_READ_RESP)
+        self.handler.add_callback(self.cb_settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
         self.handler.add_callback(self.cb_sbp_tracking_state, msg_type=SBP_MSG_TRACKING_STATE)
 
         # Callbacks generated "automatically".
@@ -336,12 +336,6 @@ class PiksiMulti:
                                                            AgeOfCorrections, queue_size=10)
         publishers['enu_pose_best_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_best_fix',
                                                           PoseWithCovarianceStamped, queue_size=10)
-        publishers['enu_pose_sbas'] = rospy.Publisher(rospy.get_name() + '/enu_pose_sbas',
-                                                      PoseWithCovarianceStamped, queue_size=10)
-        publishers['enu_point_sbas'] = rospy.Publisher(rospy.get_name() + '/enu_point_sbas',
-                                                       PointStamped, queue_size=10)
-        publishers['enu_transform_sbas'] = rospy.Publisher(rospy.get_name() + '/enu_transform_sbas',
-                                                           TransformStamped, queue_size=10)
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -615,8 +609,10 @@ class PiksiMulti:
             # TODO what to do here?
             return
         # RTK messages.
-        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK and self.debug_mode:
-            self.publish_rtk_float(msg.lat, msg.lon, msg.height)
+        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+            # For now publish RTK float only in debug mode.
+            if self.debug_mode:
+                self.publish_rtk_float(msg.lat, msg.lon, msg.height)
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
@@ -631,11 +627,14 @@ class PiksiMulti:
             return
         # SBAS Position
         elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
-            self.publish_sbas(msg.lat, msg.lon, msg.height)
+            # I (marco-tranzatto) that when SBAS mode is set, then we are still talking about SPP
+            # measurements, so this position will be published as SPP message, but with SBAS NavSatStatus.
+            self.publish_spp_sbas(msg.lat, msg.lon, msg.height)
         else:
             rospy.logerr(
                 "[cb_sbp_pos_llh]: Unknown case, you found a bug!" +
-                "Ask to the maintainers of this package to take care of this.")
+                "Ask to the maintainers of this package to take care of this." +
+                "Report: 'msg.flags = %d'" % (msg.flags))
             return
 
         # Update debug msg and publish.
@@ -681,11 +680,11 @@ class PiksiMulti:
                                self.publishers['enu_transform_fix'], self.publishers['best_fix'],
                                self.publishers['enu_pose_best_fix'])
 
-    def publish_sbas(self, latitude, longitude, height):
-        self.publish_gps_point(latitude, longitude, height, self.var_sbas, NavSatStatus.STATUS_SBAS_FIX,
-                               self.publishers['sbas'],
-                               self.publishers['enu_pose_sbas'], self.publishers['enu_point_sbas'],
-                               self.publishers['enu_transform_sbas'], self.publishers['best_fix'],
+    def publish_spp_sbas(self, latitude, longitude, height):
+        self.publish_gps_point(latitude, longitude, height, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX,
+                               self.publishers['spp'],
+                               self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
+                               self.publishers['enu_transform_spp'], self.publishers['best_fix'],
                                self.publishers['enu_pose_best_fix'])
 
     def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point,
@@ -1028,7 +1027,7 @@ class PiksiMulti:
         response = std_srvs.srv.SetBoolResponse()
 
         if request.data:
-            self.cb_sbp_settings_save()
+            self.settings_save()
             response.success = True
             response.message = "Swift receiver settings have been saved to flash."
         else:
@@ -1064,7 +1063,7 @@ class PiksiMulti:
         write_msg = MsgSettingsWrite(setting=setting_string)
         self.framer(write_msg)
 
-    def cb_sbp_settings_save(self):
+    def settings_save(self):
         """
         Save settings message persists the device's current settings
         configuration to its on-board flash memory file system.
