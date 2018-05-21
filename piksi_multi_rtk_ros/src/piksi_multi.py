@@ -600,7 +600,7 @@ class PiksiMulti:
             return
         # SPP GPS messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
-            self.publish_spp(msg.lat, msg.lon, msg.height)
+            self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp, NavSatStatus.STATUS_FIX)
         # Differential GNSS (DGNSS)
         elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
             rospy.logwarn(
@@ -627,9 +627,9 @@ class PiksiMulti:
             return
         # SBAS Position
         elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
-            # I (marco-tranzatto) that when SBAS mode is set, then we are still talking about SPP
+            # I assume (marco-tranzatto) that when SBAS mode is set, then we are still talking about SPP
             # measurements, so this position will be published as SPP message, but with SBAS NavSatStatus.
-            self.publish_spp_sbas(msg.lat, msg.lon, msg.height)
+            self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
         else:
             rospy.logerr(
                 "[cb_sbp_pos_llh]: Unknown case, you found a bug!" +
@@ -659,36 +659,29 @@ class PiksiMulti:
 
         self.publish_receiver_state_msg()
 
-    def publish_spp(self, latitude, longitude, height):
-        self.publish_gps_point(latitude, longitude, height, self.var_spp, NavSatStatus.STATUS_FIX,
-                               self.publishers['spp'],
-                               self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
-                               self.publishers['enu_transform_spp'], self.publishers['best_fix'],
-                               self.publishers['enu_pose_best_fix'])
+    def publish_spp(self, latitude, longitude, height, variance, navsatstatus_fix):
+        self.publish_wgs84_point(latitude, longitude, height, variance, navsatstatus_fix,
+                                 self.publishers['spp'],
+                                 self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
+                                 self.publishers['enu_transform_spp'], self.publishers['best_fix'],
+                                 self.publishers['enu_pose_best_fix'])
 
     def publish_rtk_float(self, latitude, longitude, height):
-        self.publish_gps_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
-                               self.publishers['rtk_float'],
-                               self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
-                               self.publishers['enu_transform_float'], self.publishers['best_fix'],
-                               self.publishers['enu_pose_best_fix'])
+        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
+                                 self.publishers['rtk_float'],
+                                 self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
+                                 self.publishers['enu_transform_float'], self.publishers['best_fix'],
+                                 self.publishers['enu_pose_best_fix'])
 
     def publish_rtk_fix(self, latitude, longitude, height):
-        self.publish_gps_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
-                               self.publishers['rtk_fix'],
-                               self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
-                               self.publishers['enu_transform_fix'], self.publishers['best_fix'],
-                               self.publishers['enu_pose_best_fix'])
+        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
+                                 self.publishers['rtk_fix'],
+                                 self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
+                                 self.publishers['enu_transform_fix'], self.publishers['best_fix'],
+                                 self.publishers['enu_pose_best_fix'])
 
-    def publish_spp_sbas(self, latitude, longitude, height):
-        self.publish_gps_point(latitude, longitude, height, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX,
-                               self.publishers['spp'],
-                               self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
-                               self.publishers['enu_transform_spp'], self.publishers['best_fix'],
-                               self.publishers['enu_pose_best_fix'])
-
-    def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point,
-                          pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
+    def publish_wgs84_point(self, latitude, longitude, height, variance, navsat_status, pub_navsatfix, pub_pose,
+                            pub_point, pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
         # Navsatfix message.
         navsatfix_msg = NavSatFix()
         navsatfix_msg.header.stamp = rospy.Time.now()
@@ -698,7 +691,7 @@ class PiksiMulti:
         navsatfix_msg.latitude = latitude
         navsatfix_msg.longitude = longitude
         navsatfix_msg.altitude = height
-        navsatfix_msg.status.status = status
+        navsatfix_msg.status.status = navsat_status
         navsatfix_msg.position_covariance = [variance[0], 0, 0,
                                              0, variance[1], 0,
                                              0, 0, variance[2]]
