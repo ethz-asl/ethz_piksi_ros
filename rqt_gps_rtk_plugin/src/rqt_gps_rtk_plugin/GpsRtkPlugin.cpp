@@ -121,7 +121,7 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3
   } else if (msg.fix_mode == msg.STR_FIX_MODE_FIXED_RTK) {
     color_fix_mode = "QLabel {background-color: lime; color: rgb(255, 166, 2);}";
   } else if (msg.fix_mode == msg.STR_FIX_MODE_SBAS) {
-    color_fix_mode = "QLabel {background-color: lime; color: rgb(43, 255, 223);}";
+    color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(43, 255, 223);}";
   }
   else {
     // Unknown
