@@ -14,8 +14,9 @@ import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
-                                DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti, InfoWifiCorrections, Log, MagRaw,
-                                Observation, PosEcef, PosLlhMulti, ReceiverState_V2_3_15, TrackingState_V2_3_15,
+                                DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
+                                InfoWifiCorrections, Log, MagRaw, Observation, PosEcef, PosLlhMulti,
+                                ReceiverState_V2_3_15, TrackingState_V2_3_15,
                                 UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
@@ -232,6 +233,9 @@ class PiksiMulti:
                            SBP_MSG_BASELINE_HEADING, MsgBaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
+        self.init_callback('device_monitor', DeviceMonitor_V2_3_15,
+                           SBP_MSG_DEVICE_MONITOR, MsgDeviceMonitor, 'dev_vin', 'cpu_vint', 'cpu_vaux',
+                           'cpu_temperature', 'fe_temperature')
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -314,6 +318,8 @@ class PiksiMulti:
                                             Log, queue_size=10)
         publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/uart_state',
                                                    UartState_V2_3_15, queue_size=10)
+        publishers['device_monitor'] = rospy.Publisher(rospy.get_name() + '/device_monitor',
+                                                       DeviceMonitor_V2_3_15, queue_size=10)
         # Points in ENU frame.
         publishers['enu_pose_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_fix',
                                                      PoseWithCovarianceStamped, queue_size=10)
@@ -571,7 +577,6 @@ class PiksiMulti:
         uart_state_msg.obs_period_current = msg.obs_period.current
 
         self.publishers['uart_state'].publish(uart_state_msg)
-
 
     def multicast_callback(self, msg, **metadata):
         if self.framer:

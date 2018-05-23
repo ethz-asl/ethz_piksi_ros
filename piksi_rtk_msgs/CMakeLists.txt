@@ -24,6 +24,7 @@ add_message_files(
     BaselineNed.msg
     BasePosEcef.msg
     BasePosLlh.msg
+    DeviceMonitor_V2_3_15.msg
     Dops.msg
     DopsMulti.msg
     GpsTime.msg
