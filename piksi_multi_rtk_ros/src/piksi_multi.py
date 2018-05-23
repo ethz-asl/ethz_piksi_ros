@@ -16,7 +16,7 @@ from sensor_msgs.msg import NavSatFix, NavSatStatus
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti, InfoWifiCorrections, Log, MagRaw,
                                 Observation, PosEcef, PosLlhMulti, ReceiverState_V2_3_15, TrackingState_V2_3_15,
-                                UtcTimeMulti, VelEcef, VelNed)
+                                UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -201,6 +201,7 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_sbp_settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
         self.handler.add_callback(self.cb_settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
         self.handler.add_callback(self.cb_sbp_tracking_state, msg_type=SBP_MSG_TRACKING_STATE)
+        self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -311,6 +312,8 @@ class PiksiMulti:
                                                 VelNed, queue_size=10)
         publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
                                             Log, queue_size=10)
+        publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/uart_state',
+                                                   UartState_V2_3_15, queue_size=10)
         # Points in ENU frame.
         publishers['enu_pose_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_fix',
                                                      PoseWithCovarianceStamped, queue_size=10)
@@ -553,6 +556,22 @@ class PiksiMulti:
 
         if self.base_station_mode:
             self.multicaster.sendSbpPacket(msg_raw)
+
+    def cb_sbp_uart_state(self, msg_raw, **metadata):
+        msg = MsgUartState(msg_raw)
+        uart_state_msg = UartState_V2_3_15()
+
+        uart_state_msg.latency_avg = msg.latency.avg
+        uart_state_msg.latency_lmin = msg.latency.lmin
+        uart_state_msg.latency_lmax = msg.latency.lmax
+        uart_state_msg.latency_current = msg.latency.current
+        uart_state_msg.obs_period_avg = msg.obs_period.avg
+        uart_state_msg.obs_period_pmin = msg.obs_period.pmin
+        uart_state_msg.obs_period_pmax = msg.obs_period.pmax
+        uart_state_msg.obs_period_current = msg.obs_period.current
+
+        self.publishers['uart_state'].publish(uart_state_msg)
+
 
     def multicast_callback(self, msg, **metadata):
         if self.framer:

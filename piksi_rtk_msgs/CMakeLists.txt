@@ -45,6 +45,7 @@ add_message_files(
     TrackingState_V2_2_15.msg
     TrackingState_V2_3_15.msg
     UartState.msg
+    UartState_V2_3_15.msg
     UtcTimeMulti.msg
     VelEcef.msg
     VelNed.msg
