@@ -8,7 +8,7 @@
 import rospy
 from piksi_rtk_msgs.srv import *
 import std_srvs.srv
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import (NavSatFix, NavSatStatus)
 import os
 import time
 
@@ -29,22 +29,29 @@ class GeodeticSurvey:
 
         # Settings
         self.number_of_desired_fixes = rospy.get_param('~number_of_desired_fixes', 5000)
-        self.spp_topics_name = rospy.get_param('~spp_topics_name', 'piksi/navsatfix_spp')
-        self.write_settings_service_name = rospy.get_param('~write_settings_service_name', 'piksi/settings_write')
-        self.save_settings_service_name = rospy.get_param('~save_settings_service_name', 'piksi/settings_save')
+        self.navsatfix_topics_name = rospy.get_param('~navsatfix_topics_name', 'piksi_multi_base_station/navsatfix_spp')
+        self.write_settings_service_name = rospy.get_param('~write_settings_service_name', 'piksi_multi_base_station/settings_write')
+        self.save_settings_service_name = rospy.get_param('~save_settings_service_name', 'piksi_multi_base_station/settings_save')
         self.read_req_settings_service_name = rospy.get_param('~read_req_settings_service_name',
-                                                              'piksi/settings_read_req')
+                                                              'piksi_multi_base_station/settings_read_req')
         self.read_resp_settings_service_name = rospy.get_param('~read_resp_settings_service_name',
-                                                               'piksi/settings_read_resp')
+                                                               'piksi_multi_base_station/settings_read_resp')
         self.height_base_station_from_ground = rospy.get_param('~height_base_station_from_ground', 0.0)
 
         # Subscribe.
-        rospy.Subscriber(self.spp_topics_name, NavSatFix,
-                         self.navsatfix_spp_callback)
+        rospy.Subscriber(self.navsatfix_topics_name, NavSatFix,
+                         self.navsatfix_callback)
 
         rospy.spin()
 
-    def navsatfix_spp_callback(self, msg):
+    def navsatfix_callback(self, msg):
+        # Sanity check: we should have either SPP or SBAS fix.
+        if msg.status.status != NavSatStatus.STATUS_FIX and msg.status.status != NavSatStatus.STATUS_SBAS_FIX:
+            rospy.logerr(
+                "[navsatfix_callback] received a navsatfix message with status '%d'." % (msg.status.status) +
+                " Accepted status are 'STATUS_FIX' (%d) or 'STATUS_SBAS_FIX' (%d)" % (NavSatStatus.STATUS_FIX, NavSatStatus.STATUS_SBAS_FIX))
+            return
+
         self.latitude_accumulator += msg.latitude
         self.longitude_accumulator += msg.longitude
         self.altitude_accumulator += msg.altitude

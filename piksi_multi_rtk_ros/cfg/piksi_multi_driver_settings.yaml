@@ -2,24 +2,28 @@
 
 # interface: specifies the interface over which to connect.
 # supported values are 'serial' and 'tcp'
-# if this value is not valid, the driver will default to serial communication
+# if this value is not valid, the driver will default to serial communication.
 interface: 'serial'
 
 # set this to true if the Swift device is acting as RTK Base Station.
 base_station_mode: false
 
-# if true, output every topic read by this driver
+# if true, output every topic read by this driver.
 debug_mode: false
 
 # if true the driver is verbose.
 driver_verbose: true
+
+# if true, raw imu and magnetometer are published
+# (messages are available only if enabled with the swiftnav console).
+publish_raw_imu_and_mag: false
 
 # broadcast_addr: ip address to use for broadcasting corrections
 # whenever possible, use network broadcast, not global ip broadcast
 # use ifconfig to show network broadcast (or calculate it yourself....).
 broadcast_addr: 192.168.0.255
 
-# broadcast_port: port to use for broadcasting corrections
+# broadcast_port: port to use for broadcasting corrections.
 broadcast_port: 26078
 
 # base_station_ip_for_latency_estimation: IP of base station for
@@ -33,6 +37,8 @@ navsatfix_frame_id: 'base_link'
 # Variance to be published in the NavSatFix message (in diagonal part).
 # Single Point Positioning (SPP).
 var_spp: [25.0, 25.0, 64.0]
+# Single Point Positioning (SPP) with SBAS.
+var_spp_sbas: [1.0, 1.0, 1.0]
 # RTK float mode.
 var_rtk_float: [25.0, 25.0, 64.0]
 # RTK fix mode.
@@ -41,7 +47,7 @@ var_rtk_fix: [0.0049, 0.0049, 0.01]
 # Serial Settings
 
 # serial_port: defines which serial device to use for communication
-# ex '/dev/ttyUSB0'
+# ex '/dev/ttyUSB0'.
 serial_port: '/dev/ttyUSB0'
 
 # baud_rate: defines the rate for the serial connection. This driver uses

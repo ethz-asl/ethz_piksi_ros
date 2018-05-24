@@ -1,7 +1,7 @@
 #!/bin/bash
 
 GIT_REPO_LIBSBP=https://github.com/swift-nav/libsbp.git
-REPO_TAG=v2.3.10 #version you want to checkout before installing
+REPO_TAG=v2.3.15 #version you want to checkout before installing
 
 # Sort of reg express used to see if there is another verision on SBP library already installed
 # Adapted from https://stackoverflow.com/questions/6363441/check-if-a-file-exists-with-wildcard-in-shell-script
