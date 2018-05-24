@@ -628,7 +628,7 @@ class PiksiMulti:
         elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
             rospy.logwarn(
                 "[cb_sbp_pos_llh]: case FIX_MODE_DGNSS was not implemented yet." +
-                "Ask to the maintainers to take care of this.")
+                "Contact the package/repository maintainers.")
             # TODO what to do here?
             return
         # RTK messages.
@@ -646,17 +646,15 @@ class PiksiMulti:
         elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             rospy.logwarn(
                 "[cb_sbp_pos_llh]: case FIX_MODE_DEAD_RECKONING was not implemented yet." +
-                "Ask to the maintainers to take care of this.")
+                "Contact the package/repository maintainers.")
             return
         # SBAS Position
         elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
-            # I assume (marco-tranzatto) that when SBAS mode is set, then we are still talking about SPP
-            # measurements, so this position will be published as SPP message, but with SBAS NavSatStatus.
             self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
         else:
             rospy.logerr(
                 "[cb_sbp_pos_llh]: Unknown case, you found a bug!" +
-                "Ask to the maintainers of this package to take care of this." +
+                "Contact the package/repository maintainers." +
                 "Report: 'msg.flags = %d'" % (msg.flags))
             return
 
