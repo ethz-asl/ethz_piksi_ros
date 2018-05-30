@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <unistd.h>
+#include <memory>
 
 #include <ros/ros.h>
 #include <piksi_rtk_msgs/ReceiverState_V2_3_15.h>
@@ -16,11 +17,35 @@
 #include <piksi_rtk_msgs/AgeOfCorrections.h>
 #include <sensor_msgs/NavSatFix.h>
 
+#include <any_worker/Worker.hpp>
+
 constexpr double kSignalStrengthScalingFactor = 4.0;
+
+struct TimeStamps {
+  double receiverStateStamp_;
+  double baselineNedStamp_;
+  double wifiCorrectionsStamp_;
+  double navsatfixRtkFixStamp_;
+  double rtkSppStamp_;
+  double rtkSbasStamp_;
+  double rtkFloatStamp_;
+  double rtkFixStamp_;
+
+  void setGlobalStamp(double stamp) {
+    receiverStateStamp_ = stamp;
+    baselineNedStamp_ = stamp;
+    wifiCorrectionsStamp_ = stamp;
+    navsatfixRtkFixStamp_ = stamp;
+    rtkSppStamp_ = stamp;
+    rtkFloatStamp_ = stamp;
+    rtkFixStamp_ = stamp;
+    rtkSbasStamp_ = stamp;
+  }
+};
 
 class GpsRtkPlugin : public rqt_gui_cpp::Plugin
 {
-  Q_OBJECT
+Q_OBJECT
  public:
   GpsRtkPlugin();
   virtual void initPlugin(qt_gui_cpp::PluginContext& context);
@@ -59,6 +84,8 @@ class GpsRtkPlugin : public rqt_gui_cpp::Plugin
     return scaled_signal_strength;
   }
 
+  bool updateWorkerCb(const any_worker::WorkerEvent& event);
+
   //subscribers
   ros::Subscriber piksiReceiverStateSub_;
   ros::Subscriber piksiBaselineNedSub_;
@@ -85,6 +112,10 @@ class GpsRtkPlugin : public rqt_gui_cpp::Plugin
   int wifiCorrectionsAvgHz_;
   int numCorrectionsFirstSampleMovingWindow_;
   std::vector<double> altitudes_;
+  std::shared_ptr<any_worker::Worker> updateWorker_;
+  TimeStamps lastMsgStamps_;
+  // The max allowed timeout [s] before GUI information is updated with "N/A"
+  double maxTimeout_;
 };
 
 #endif // GPSRTKPLUGIN_H
