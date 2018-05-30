@@ -6,7 +6,7 @@
 #
 
 import rospy
-import os
+import roslib.packages
 import time
 from piksi_rtk_msgs.msg import *
 from sensor_msgs.msg import NavSatFix
@@ -14,12 +14,15 @@ from geometry_msgs.msg import PointStamped
 
 
 class PiksiRtkKml:
+    kRosPackageName = "piksi_rtk_kml"
+
     def __init__(self):
+        rospy.init_node('piksi_rtk_kml')
         # KML file
-        script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+        package_path = roslib.packages.get_pkg_dir(self.kRosPackageName)
         kml_file_name = rospy.get_param('~kml_file_prefix_name', "Piksi") + '-' + time.strftime("%Y-%m-%d-%H-%M-%S")
-        desired_path = "%s/../kml/%s.kml" % (script_path, kml_file_name)
-        self.file_obj = open(desired_path, 'w')
+        self.kml_file_path = "%s/kml/%s.kml" % (package_path, kml_file_name)
+        self.file_obj = open(self.kml_file_path, 'w')
         self.file_obj.write(self.kml_head(rospy.get_param('~document_name', "PiksiRtkKml")))
 
         # Settings.
@@ -86,7 +89,7 @@ class PiksiRtkKml:
     def close_kml_file_handler(self):
         self.file_obj.write(self.kml_tail())
         self.file_obj.close()
-        rospy.loginfo(rospy.get_name() + ' KML file written in "kml" folder.')
+        rospy.loginfo(rospy.get_name() + ' KML file written in \'%s\'' % self.kml_file_path)
 
     # Adapted from: https://github.com/hitzg/bag_tools/blob/master/bag_to_kml.py
     def kml_head(self, name):
@@ -117,14 +120,3 @@ class PiksiRtkKml:
     </Placemark>
 ''' % (name, timestamp, self.extrude_point,
        self.kml_altitude_mode, lon, lat, alt, description)  # KML wants first lon and then lat.
-
-
-# Main function.
-if __name__ == '__main__':
-    rospy.init_node('piksi_rtk_kml')
-
-    # Go to class functions that do all the heavy lifting. Do error checking.
-    try:
-        piksi_rtk_kml = PiksiRtkKml()
-    except rospy.ROSInterruptException:
-        pass

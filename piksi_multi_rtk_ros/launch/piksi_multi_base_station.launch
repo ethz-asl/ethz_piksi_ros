@@ -13,7 +13,7 @@
   <arg name="broadcast_addr"              default="192.168.0.255"/>
 
   <!-- Piksi Multi ROS driver node: base station mode -->
-  <node pkg="piksi_multi_rtk_ros" type="piksi_multi.py" name="piksi_multi_base_station" output="screen" respawn="true">
+  <node pkg="piksi_multi_rtk_ros" type="piksi_multi" name="piksi_multi_base_station" output="screen" respawn="true">
     <!-- Load default settings -->
     <rosparam file="$(find piksi_multi_rtk_ros)/cfg/piksi_multi_driver_settings.yaml"/>
 
