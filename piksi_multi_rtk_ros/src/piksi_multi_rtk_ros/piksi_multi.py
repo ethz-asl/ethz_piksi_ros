@@ -63,6 +63,7 @@ class PiksiMulti:
     def __init__(self):
 
         # Print info.
+        rospy.init_node('piksi')
         rospy.sleep(0.5)  # Wait for a while for init to complete before printing.
         rospy.loginfo(rospy.get_name() + " start")
 
@@ -1124,14 +1125,3 @@ class PiksiMulti:
         self.last_section_setting_read = []
         self.last_setting_read = []
         self.last_value_read = []
-
-
-# Main function.
-if __name__ == '__main__':
-    rospy.init_node('piksi')
-
-    # Go to class functions that do all the heavy lifting. Do error checking.
-    try:
-        piksi_multi = PiksiMulti()
-    except rospy.ROSInterruptException:
-        pass
