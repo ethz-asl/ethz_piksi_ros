@@ -26,20 +26,12 @@ struct TimeStamps {
   double baselineNedStamp_;
   double wifiCorrectionsStamp_;
   double navsatfixRtkFixStamp_;
-  double rtkSppStamp_;
-  double rtkSbasStamp_;
-  double rtkFloatStamp_;
-  double rtkFixStamp_;
 
   void setGlobalStamp(double stamp) {
     receiverStateStamp_ = stamp;
     baselineNedStamp_ = stamp;
     wifiCorrectionsStamp_ = stamp;
     navsatfixRtkFixStamp_ = stamp;
-    rtkSppStamp_ = stamp;
-    rtkFloatStamp_ = stamp;
-    rtkFixStamp_ = stamp;
-    rtkSbasStamp_ = stamp;
   }
 };
 

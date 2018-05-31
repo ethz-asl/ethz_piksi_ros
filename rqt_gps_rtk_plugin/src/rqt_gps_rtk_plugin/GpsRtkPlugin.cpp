@@ -165,18 +165,14 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3
     color_fix_mode = "QLabel {background-color: rgb(239, 41, 41); color: rgb(92, 92, 92);}";
   } else if (msg.fix_mode == msg.STR_FIX_MODE_SPP) {
     color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(2, 2, 255);}";
-    lastMsgStamps_.rtkSppStamp_ = msg.header.stamp.toSec();
   } else if (msg.fix_mode == msg.STR_FIX_MODE_DGNSS) {
     color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(5, 181, 255);}";
   } else if (msg.fix_mode == msg.STR_FIX_MODE_FLOAT_RTK) {
     color_fix_mode = "QLabel {background-color: rgb(255, 138, 138); color: rgb(191, 0, 191);}";
-    lastMsgStamps_.rtkFloatStamp_ = msg.header.stamp.toSec();
   } else if (msg.fix_mode == msg.STR_FIX_MODE_FIXED_RTK) {
     color_fix_mode = "QLabel {background-color: lime; color: rgb(255, 166, 2);}";
-    lastMsgStamps_.rtkFixStamp_ = msg.header.stamp.toSec();
   } else if (msg.fix_mode == msg.STR_FIX_MODE_SBAS) {
     color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(43, 255, 223);}";
-    lastMsgStamps_.rtkSbasStamp_ = msg.header.stamp.toSec();
   }
   else {
     // Unknown
