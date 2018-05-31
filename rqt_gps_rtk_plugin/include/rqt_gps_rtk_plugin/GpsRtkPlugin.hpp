@@ -104,7 +104,7 @@ Q_OBJECT
   int wifiCorrectionsAvgHz_;
   int numCorrectionsFirstSampleMovingWindow_;
   std::vector<double> altitudes_;
-  std::shared_ptr<any_worker::Worker> updateWorker_;
+  std::unique_ptr<any_worker::Worker> updateWorker_;
   TimeStamps lastMsgStamps_;
   // The max allowed timeout [s] before GUI information is updated with "N/A"
   double maxTimeout_;

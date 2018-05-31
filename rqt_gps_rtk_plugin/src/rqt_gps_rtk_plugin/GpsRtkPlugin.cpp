@@ -43,7 +43,7 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   altitudes_.erase(altitudes_.begin(), altitudes_.end());
 
   // initialize update worker
-  updateWorker_.reset(new any_worker::Worker("GpsRtkPlugin::updateWorker", 1, std::bind(&GpsRtkPlugin::updateWorkerCb, this, std::placeholders::_1)));
+  updateWorker_.reset(std::make_unique(any_worker::Worker("GpsRtkPlugin::updateWorker", 1, std::bind(&GpsRtkPlugin::updateWorkerCb, this, std::placeholders::_1))));
   if (!updateWorker_->start()) {
     ROS_WARN_STREAM("[GpsRtkPlugin] Update worker could not be started. GUI information not properly updated.");
   }
