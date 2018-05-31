@@ -5,6 +5,7 @@ project(rqt_gps_rtk_plugin)
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 find_package(catkin REQUIRED COMPONENTS
+   any_worker
    rqt_gui
    rqt_gui_cpp
    piksi_rtk_msgs
@@ -56,6 +57,7 @@ set(rqt_gps_rtk_plugin_INCLUDE_DIRECTORIES
 catkin_package(
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS
+    any_worker
     rqt_gui
     rqt_gui_cpp
     piksi_rtk_msgs
