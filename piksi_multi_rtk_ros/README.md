@@ -6,7 +6,7 @@ The piksi_multi_rtk_ros package has been tested under ROS Indigo and Ubuntu 14.0
 
 
 **WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200').
-This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi#settings).
+This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi-Multi#settings).
   
 ## Installation and Configuration
 **WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page contains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi).
