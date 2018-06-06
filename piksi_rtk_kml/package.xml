@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>piksi_rtk_kml</name>
-  <version>1.6.0</version>
+  <version>1.6.1</version>
   <description>
     ROS node to write KML file from Piksi messages.
   </description>
 
   <author email="marcot@ethz.ch">Marco Tranzatto</author>
-  <maintainer email="marcot@ethz.ch">Marco Tranzatto</maintainer> 
+  <maintainer email="marcot@ethz.ch">Marco Tranzatto</maintainer>
 
   <license>BSD</license>
 
