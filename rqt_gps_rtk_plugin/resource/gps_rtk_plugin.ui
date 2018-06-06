@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GpsRtkInfo</string>
+   <string>GpsRtkPlugin</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_17">
    <item>

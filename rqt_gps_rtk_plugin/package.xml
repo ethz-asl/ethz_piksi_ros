@@ -15,7 +15,6 @@
   <depend>piksi_rtk_msgs</depend>
   <depend>sensor_msgs</depend>
 
-
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <architecture_independent/>
