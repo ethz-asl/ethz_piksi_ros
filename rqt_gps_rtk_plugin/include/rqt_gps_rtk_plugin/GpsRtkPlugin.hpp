@@ -2,14 +2,23 @@
 #define GPSRTKPLUGIN_H
 
 #include <rqt_gui_cpp/plugin.h>
-#include <ui_gps_rtk_plugin.h>
-#include <QWidget>
 
+// Qt
+#include <QWidget>
+#include <QString>
+
+// ui
+#include <rqt_gps_rtk_plugin/ui_gps_rtk_plugin.h>
+
+// std
 #include <algorithm>
 #include <unistd.h>
 #include <memory>
 
+// ros
 #include <ros/ros.h>
+
+// messages
 #include <piksi_rtk_msgs/ReceiverState_V2_3_15.h>
 #include <piksi_rtk_msgs/BaselineNed.h>
 #include <piksi_rtk_msgs/InfoWifiCorrections.h>
@@ -17,6 +26,7 @@
 #include <piksi_rtk_msgs/AgeOfCorrections.h>
 #include <sensor_msgs/NavSatFix.h>
 
+// worker
 #include <any_worker/Worker.hpp>
 
 constexpr double kSignalStrengthScalingFactor = 4.0;

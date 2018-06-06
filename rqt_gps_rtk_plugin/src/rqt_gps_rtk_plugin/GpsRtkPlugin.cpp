@@ -1,8 +1,8 @@
-#include "../include/rqt_gps_rtk_plugin/GpsRtkPlugin.hpp"
 
-#include <pluginlib/class_list_macros.h>
+#include <rqt_gps_rtk_plugin/GpsRtkPlugin.hpp>
+
+// Qt
 #include <QStringList>
-#include <QGridLayout>
 
 // std
 #include <math.h>
@@ -43,7 +43,7 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   altitudes_.erase(altitudes_.begin(), altitudes_.end());
 
   // initialize update worker
-  updateWorker_.reset(std::make_unique(any_worker::Worker("GpsRtkPlugin::updateWorker", 1, std::bind(&GpsRtkPlugin::updateWorkerCb, this, std::placeholders::_1))));
+  updateWorker_.reset(new any_worker::Worker("GpsRtkPlugin::updateWorker", 1, std::bind(&GpsRtkPlugin::updateWorkerCb, this, std::placeholders::_1)));
   if (!updateWorker_->start()) {
     ROS_WARN_STREAM("[GpsRtkPlugin] Update worker could not be started. GUI information not properly updated.");
   }
@@ -312,4 +312,5 @@ void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrection
  // Usually used to open a dialog to offer the user a set of configuration
  }*/
 
+#include <pluginlib/class_list_macros.h>
 PLUGINLIB_DECLARE_CLASS(rqt_gps_rtk_plugin, GpsRtkPlugin, GpsRtkPlugin, rqt_gui_cpp::Plugin)
