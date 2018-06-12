@@ -245,4 +245,4 @@ void triggerConfiguration()
   // Usually used to open a dialog to offer the user a set of configuration
 }*/
 
-PLUGINLIB_DECLARE_CLASS(rqt_gps_rtk_plugin, GpsRtkPlugin, GpsRtkPlugin, rqt_gui_cpp::Plugin)
+PLUGINLIB_EXPORT_CLASS(GpsRtkPlugin, rqt_gui_cpp::Plugin)
