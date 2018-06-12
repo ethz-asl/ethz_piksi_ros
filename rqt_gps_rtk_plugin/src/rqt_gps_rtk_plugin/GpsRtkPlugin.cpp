@@ -42,11 +42,9 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   numCorrectionsFirstSampleMovingWindow_ = 0;
   altitudes_.erase(altitudes_.begin(), altitudes_.end());
 
-  // initialize update worker
-  updateWorker_.reset(new any_worker::Worker("GpsRtkPlugin::updateWorker", 1, std::bind(&GpsRtkPlugin::updateWorkerCb, this, std::placeholders::_1)));
-  if (!updateWorker_->start()) {
-    ROS_WARN_STREAM("[GpsRtkPlugin] Update worker could not be started. GUI information not properly updated.");
-  }
+  // initialize timer
+  ros::NodeHandle nh("~");
+  timer_ = nh.createTimer(ros::Duration(1.0), std::bind(&GpsRtkPlugin::timerCallback, this, std::placeholders::_1));
 
   //init stamps
   lastMsgStamps_.setGlobalStamp(ros::Time::now().toSec());
@@ -117,7 +115,7 @@ void GpsRtkPlugin::initSubscribers() {
   piksiAgeOfCorrectionsSub_ = getNodeHandle().subscribe(piksiAgeOfCorrectionsTopic_, 10, &GpsRtkPlugin::piksiAgeOfCorrectionsCb, this);
 }
 
-bool GpsRtkPlugin::updateWorkerCb(const any_worker::WorkerEvent& event) {
+void GpsRtkPlugin::timerCallback(const ros::TimerEvent& e) {
   double currentStamp = ros::Time::now().toSec();
   QString na = QString::fromStdString("N/A");
   QString color = QString::fromStdString("QLabel {background-color: rgb(152, 152, 152); color: rgb(92, 92, 92);}");
@@ -152,7 +150,6 @@ bool GpsRtkPlugin::updateWorkerCb(const any_worker::WorkerEvent& event) {
   if (currentStamp - lastMsgStamps_.navsatfixRtkFixStamp_ > maxTimeout_) {
     QMetaObject::invokeMethod(ui_.label_navsatFixAlt, "setText", Q_ARG(QString, na));
   }
-  return true;
 }
 
 void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3_15& msg) {

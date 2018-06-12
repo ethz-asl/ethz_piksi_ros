@@ -10,7 +10,6 @@ add_definitions(-std=c++11 -Wall -Werror)
 find_package(catkin REQUIRED COMPONENTS
   rqt_gui
   rqt_gui_cpp
-  any_worker
   piksi_rtk_msgs
   sensor_msgs
 
@@ -58,7 +57,6 @@ catkin_package(
   CATKIN_DEPENDS
     rqt_gui
     rqt_gui_cpp
-    any_worker
     piksi_rtk_msgs
     sensor_msgs
 
