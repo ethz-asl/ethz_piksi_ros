@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>piksi_rtk_kml</name>
-  <version>1.0.0</version>
+  <version>1.6.3</version>
   <description>
     ROS node to write KML file from Piksi messages.
   </description>
 
   <author email="marcot@ethz.ch">Marco Tranzatto</author>
-  <maintainer email="marcot@ethz.ch">Marco Tranzatto</maintainer> 
+  <maintainer email="marcot@ethz.ch">Marco Tranzatto</maintainer>
 
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>rospy</depend>
-  <depend>piksi_rtk_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>piksi_rtk_msgs</depend>
+  <depend>roslib</depend>
+  <depend>rospy</depend>
 
 </package>

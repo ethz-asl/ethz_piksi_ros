@@ -1,0 +1,6 @@
+#! /usr/bin/env python
+
+from  piksi_multi_rtk_ros import GeodeticSurvey
+
+if __name__ == '__main__':
+    geodetic_survey = GeodeticSurvey()
