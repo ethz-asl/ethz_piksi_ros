@@ -1,15 +1,22 @@
 <?xml version="1.0"?>
 
 <launch>
-  <!-- Node name -->
-  <arg name="node_name"                   value="piksi"/>
-
-  <!-- Arguments -->
+  <!-- Settings: will overwrite default setting loaded from file.  -->
+  <!-- Available interfaces where Piksi Multi can be connected: serial or tcp. -->
+  <arg name="interface"                   default="serial"/>
+  <!-- If interface is serial, this specifies baud rate of Piksi Multi. -->
+  <arg name="baud_rate"                   default="230400"/>
+  <!-- If interface is tcp, this specifies the address of Piksi Multi. -->
+  <arg name="tcp_addr"                    default="192.168.0.222"/>
+  <!-- IP of a "pingable" device, used to check network status. -->
   <arg name="base_station_ip"             default="192.168.0.1"/>
+  <!-- Enable/disable load of an origin position of ENU frame. -->
   <arg name="load_enu_origin_from_file"   default="false"/>
+  <!-- Location of the file containing origin ENU frame, used if 'load_enu_origin_from_file' is true. -->
   <arg name="enu_origin_file"             default="$(find piksi_multi_rtk_ros)/cfg/enu_origin_example.yaml"/>
 
-  <node pkg="piksi_multi_rtk_ros" type="piksi_multi.py" name="$(arg node_name)" output="screen" respawn="true">
+  <!-- Piksi Multi ROS driver node: rover mode -->
+  <node pkg="piksi_multi_rtk_ros" type="piksi_multi" name="piksi" output="screen" respawn="true">
     <!-- Load default settings -->
     <rosparam file="$(find piksi_multi_rtk_ros)/cfg/piksi_multi_driver_settings.yaml"/>
 
@@ -17,8 +24,12 @@
     <rosparam file="$(arg enu_origin_file)"   if="$(arg load_enu_origin_from_file)"/>
 
     <!-- Overwrite settings -->
-    <param name="base_station_mode"                       value="false"/>
+    <param name="interface"                               value="$(arg interface)"/>
+    <param name="baud_rate"                               value="$(arg baud_rate)"/>
+    <param name="tcp_addr"                                value="$(arg tcp_addr)"/>
     <param name="base_station_ip_for_latency_estimation"  value="$(arg base_station_ip)"/>
+    <!-- Force rover mode -->
+    <param name="base_station_mode"                       value="false"/>
   </node>
 
 </launch>

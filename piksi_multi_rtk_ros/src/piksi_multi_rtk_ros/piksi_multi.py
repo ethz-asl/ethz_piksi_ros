@@ -13,25 +13,31 @@ import numpy as np
 import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
-from piksi_rtk_msgs.msg import *
+from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
+                                DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
+                                InfoWifiCorrections, Log, MagRaw, Observation, PosEcef, PosLlhMulti,
+                                ReceiverState_V2_3_15, TrackingState_V2_3_15,
+                                UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
-from geometry_msgs.msg import PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped, \
-    Transform
+from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
+                               Transform)
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
+from sbp.client.drivers.network_drivers import TCPDriver
 from sbp.client import Handler, Framer
 from sbp.navigation import *
 from sbp.logging import *
 from sbp.system import *
 from sbp.tracking import *  # WARNING: tracking is part of the draft messages, could be removed in future releases of libsbp.
 from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could be removed in future releases of libsbp.
-from sbp.observation import SBP_MSG_OBS, SBP_MSG_OBS_DEP_A, SBP_MSG_OBS_DEP_B, SBP_MSG_BASE_POS_LLH, \
-    SBP_MSG_BASE_POS_ECEF
-from sbp.piksi import MsgUartState, SBP_MSG_UART_STATE
+from sbp.observation import *
+from sbp.orientation import *  # WARNING: orientation messages are still draft messages.
 from sbp.settings import *
 from zope.interface.exceptions import Invalid
 # Piksi Multi features an IMU
 from sbp.imu import *
+# Piksi Multi features a Magnetometer Bosh bmm150 : https://www.bosch-sensortec.com/bst/products/all_products/bmm150
+from sbp.mag import SBP_MSG_MAG_RAW, MsgMagRaw
 # At the moment importing 'sbp.version' module causes ValueError: Cannot find the version number!
 # import sbp.version
 # networking stuff
@@ -45,7 +51,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.2.15'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.3.15'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -57,6 +63,7 @@ class PiksiMulti:
     def __init__(self):
 
         # Print info.
+        rospy.init_node('piksi')
         rospy.sleep(0.5)  # Wait for a while for init to complete before printing.
         rospy.loginfo(rospy.get_name() + " start")
 
@@ -74,15 +81,25 @@ class PiksiMulti:
                           "Please run the install script: 'install/install_piksi_multi.sh'" % (
                               installed_sbp_version, PiksiMulti.LIB_SBP_VERSION_MULTI))
 
-        # Open a connection to Piksi.
-        serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
-        baud_rate = rospy.get_param('~baud_rate', 115200)
+        # Open a connection to SwiftNav receiver.
+        interface = rospy.get_param('~interface', 'serial')
 
-        try:
-            self.driver = PySerialDriver(serial_port, baud=baud_rate)
-        except SystemExit:
-            rospy.logerr("Piksi not found on serial port '%s'", serial_port)
-            raise
+        if interface == 'tcp':
+            tcp_addr = rospy.get_param('~tcp_addr', '192.168.0.222')
+            tcp_port = rospy.get_param('~tcp_port', 55555)
+            try:
+                self.driver = TCPDriver(tcp_addr, tcp_port)
+            except SystemExit:
+                rospy.logerr("Unable to open TCP connection %s:%s", (tcp_addr, tcp_port))
+                raise
+        else:
+            serial_port = rospy.get_param('~serial_port', '/dev/ttyUSB0')
+            baud_rate = rospy.get_param('~baud_rate', 230400)
+            try:
+                self.driver = PySerialDriver(serial_port, baud=baud_rate)
+            except SystemExit:
+                rospy.logerr("Swift receiver not found on serial port '%s'", serial_port)
+                raise
 
         # Create a handler to connect Piksi driver to callbacks.
         self.driver_verbose = rospy.get_param('~driver_verbose', True)
@@ -91,13 +108,13 @@ class PiksiMulti:
 
         self.debug_mode = rospy.get_param('~debug_mode', False)
         if self.debug_mode:
-            rospy.loginfo("Piksi driver started in debug mode, every available topic will be published.")
+            rospy.loginfo("Swift driver started in debug mode, every available topic will be published.")
             # Debugging parameters.
             debug_delayed_corrections_stack_size = rospy.get_param('~debug_delayed_corrections_stack_size', 10)
-            self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
-            rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
+            # self.received_corrections_fifo_stack = collections.deque([], debug_delayed_corrections_stack_size)
+            # rospy.loginfo("Debug mode: delayed corrections stack size: %d." % debug_delayed_corrections_stack_size)
         else:
-            rospy.loginfo("Piksi driver started in normal mode.")
+            rospy.loginfo("Swift driver started in normal mode.")
 
         # Corrections over WiFi settings.
         self.base_station_mode = rospy.get_param('~base_station_mode', False)
@@ -105,7 +122,7 @@ class PiksiMulti:
         self.udp_port = rospy.get_param('~broadcast_port', 26078)
         self.base_station_ip_for_latency_estimation = rospy.get_param(
             '~base_station_ip_for_latency_estimation',
-            '10.10.10.1')
+            '192.168.0.1')
         self.multicaster = []
         self.multicast_recv = []
 
@@ -113,6 +130,7 @@ class PiksiMulti:
         self.var_spp = rospy.get_param('~var_spp', [25.0, 25.0, 64.0])
         self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
+        self.var_spp_sbas = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
         self.navsatfix_frame_id = rospy.get_param('~navsatfix_frame_id', 'gps')
 
         # Local ENU frame settings.
@@ -141,6 +159,9 @@ class PiksiMulti:
         self.watchdog_time = rospy.get_rostime()
         self.messages_started = False
 
+        # Other parameters.
+        self.publish_raw_imu_and_mag = rospy.get_param('~publish_raw_imu_and_mag', False)
+
         # Advertise topics and services.
         self.publishers = self.advertise_topics()
         self.service_servers = self.advertise_services()
@@ -167,19 +188,22 @@ class PiksiMulti:
         # Only have start-up reset in base station mode
         if self.base_station_mode:
             # Things have 30 seconds to start or we will kill node
-            rospy.Timer(rospy.Duration(30), self.watchdog_callback, True)
+            rospy.Timer(rospy.Duration(30), self.cb_watchdog, True)
 
         # Spin.
         rospy.spin()
 
     def create_topic_callbacks(self):
-        # Callbacks implemented "manually".
-        self.handler.add_callback(self.pos_llh_callback, msg_type=SBP_MSG_POS_LLH)
-        self.handler.add_callback(self.heartbeat_callback, msg_type=SBP_MSG_HEARTBEAT)
-        self.handler.add_callback(self.tracking_state_callback, msg_type=SBP_MSG_TRACKING_STATE)
-        self.handler.add_callback(self.uart_state_callback, msg_type=SBP_MSG_UART_STATE)
-        self.handler.add_callback(self.settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
-        self.handler.add_callback(self.settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
+        # Callbacks from SBP messages (cb_sbp_*) implemented "manually".
+        self.handler.add_callback(self.cb_sbp_glonass_biases, msg_type=SBP_MSG_GLO_BIASES)
+        self.handler.add_callback(self.cb_sbp_heartbeat, msg_type=SBP_MSG_HEARTBEAT)
+        self.handler.add_callback(self.cb_sbp_pos_llh, msg_type=SBP_MSG_POS_LLH)
+        self.handler.add_callback(self.cb_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
+        self.handler.add_callback(self.cb_sbp_obs, msg_type=SBP_MSG_OBS)
+        self.handler.add_callback(self.cb_sbp_settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
+        self.handler.add_callback(self.cb_settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
+        self.handler.add_callback(self.cb_sbp_tracking_state, msg_type=SBP_MSG_TRACKING_STATE)
+        self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -204,34 +228,39 @@ class PiksiMulti:
         self.init_callback('vel_ned', VelNed,
                            SBP_MSG_VEL_NED, MsgVelNED,
                            'tow', 'n', 'e', 'd', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
-        self.init_callback('imu_raw_multi', ImuRawMulti,
-                           SBP_MSG_IMU_RAW, MsgImuRaw,
-                           'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
-        self.init_callback('imu_aux', ImuAuxMulti,
-                           SBP_MSG_IMU_AUX, MsgImuAux, 'imu_type', 'temp', 'imu_conf')
         self.init_callback('log', Log,
                            SBP_MSG_LOG, MsgLog, 'level', 'text')
         self.init_callback('baseline_heading', BaselineHeading,
                            SBP_MSG_BASELINE_HEADING, MsgBaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
+        self.init_callback('device_monitor', DeviceMonitor_V2_3_15,
+                           SBP_MSG_DEVICE_MONITOR, MsgDeviceMonitor, 'dev_vin', 'cpu_vint', 'cpu_vaux',
+                           'cpu_temperature', 'fe_temperature')
+
+        # Raw IMU and Magnetometer measurements.
+        if self.publish_raw_imu_and_mag:
+            self.init_callback('imu_raw', ImuRawMulti,
+                               SBP_MSG_IMU_RAW, MsgImuRaw,
+                               'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
+            self.init_callback('mag_raw', MagRaw,
+                               SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
+
+        # Only if debug mode
+        if self.debug_mode:
+            self.handler.add_callback(self.cb_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
 
         # do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # self.init_callback('pos_llh', PosLlh,
         #                   SBP_MSG_POS_LLH, MsgPosLLH,
         #                   'tow', 'lat', 'lon', 'height', 'h_accuracy', 'v_accuracy', 'n_sats', 'flags')
 
-        # Subscribe to OBS messages and relay them via UDP if in base station mode.
+        # Relay "corrections" messages via UDP if in base station mode.
         if self.base_station_mode:
-            rospy.loginfo("Starting in base station mode")
+            rospy.loginfo("Starting device in Base Station Mode")
             self.multicaster = UdpHelpers.SbpUdpMulticaster(self.udp_broadcast_addr, self.udp_port)
-
-            self.handler.add_callback(self.callback_sbp_obs, msg_type=SBP_MSG_OBS)
-            # not sure if SBP_MSG_BASE_POS_LLH or SBP_MSG_BASE_POS_ECEF is better?
-            # self.handler.add_callback(self.callback_sbp_base_pos_llh, msg_type=SBP_MSG_BASE_POS_LLH)
-            self.handler.add_callback(self.callback_sbp_base_pos_ecef, msg_type=SBP_MSG_BASE_POS_ECEF)
         else:
-            rospy.loginfo("Starting in client station mode")
+            rospy.loginfo("Starting device in Rover Mode")
             self.multicast_recv = UdpHelpers.SbpUdpMulticastReceiver(self.udp_port, self.multicast_callback)
 
     def init_num_corrections_msg(self):
@@ -243,7 +272,7 @@ class PiksiMulti:
         return num_wifi_corrections
 
     def init_receiver_state_msg(self):
-        receiver_state_msg = ReceiverState_V2_2_15()
+        receiver_state_msg = ReceiverState_V2_3_15()
         receiver_state_msg.num_sat = 0  # Unknown.
         receiver_state_msg.rtk_mode_fix = False  # Unknown.
         receiver_state_msg.sat = []  # Unknown.
@@ -258,7 +287,7 @@ class PiksiMulti:
         receiver_state_msg.cn0_sbas = []  # Unknown.
         receiver_state_msg.num_glonass_sat = 0  # Unknown.
         receiver_state_msg.cn0_glonass = []  # Unknown.
-        receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_UNKNOWN
+        receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_UNKNOWN
 
         return receiver_state_msg
 
@@ -278,11 +307,9 @@ class PiksiMulti:
         publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
                                                   Heartbeat, queue_size=10)
         publishers['tracking_state'] = rospy.Publisher(rospy.get_name() + '/tracking_state',
-                                                       TrackingState_V2_2_15, queue_size=10)
+                                                       TrackingState_V2_3_15, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
-                                                       ReceiverState_V2_2_15, queue_size=10)
-        publishers['uart_state_multi'] = rospy.Publisher(rospy.get_name() + '/debug/uart_state',
-                                                         UartState, queue_size=10)
+                                                       ReceiverState_V2_3_15, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
@@ -290,6 +317,10 @@ class PiksiMulti:
                                                 VelNed, queue_size=10)
         publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
                                             Log, queue_size=10)
+        publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/uart_state',
+                                                   UartState_V2_3_15, queue_size=10)
+        publishers['device_monitor'] = rospy.Publisher(rospy.get_name() + '/device_monitor',
+                                                       DeviceMonitor_V2_3_15, queue_size=10)
         # Points in ENU frame.
         publishers['enu_pose_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_fix',
                                                      PoseWithCovarianceStamped, queue_size=10)
@@ -309,16 +340,20 @@ class PiksiMulti:
                                                            BaselineNed, queue_size=10)
         publishers['utc_time_multi'] = rospy.Publisher(rospy.get_name() + '/utc_time',
                                                        UtcTimeMulti, queue_size=10)
-        publishers['imu_raw_multi'] = rospy.Publisher(rospy.get_name() + '/imu_raw',
-                                                      ImuRawMulti, queue_size=10)
-        publishers['imu_aux_multi'] = rospy.Publisher(rospy.get_name() + '/debug/imu_aux',
-                                                      ImuAuxMulti, queue_size=10)
         publishers['baseline_heading'] = rospy.Publisher(rospy.get_name() + '/baseline_heading',
                                                          BaselineHeading, queue_size=10)
         publishers['age_of_corrections'] = rospy.Publisher(rospy.get_name() + '/age_of_corrections',
                                                            AgeOfCorrections, queue_size=10)
         publishers['enu_pose_best_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_best_fix',
                                                           PoseWithCovarianceStamped, queue_size=10)
+
+        # Raw IMU and Magnetometer measurements.
+        if self.publish_raw_imu_and_mag:
+            publishers['imu_raw'] = rospy.Publisher(rospy.get_name() + '/imu_raw',
+                                                    ImuRawMulti, queue_size=10)
+            publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
+                                                    MagRaw, queue_size=10)
+
         # Topics published only if in "debug mode".
         if self.debug_mode:
             publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
@@ -337,7 +372,12 @@ class PiksiMulti:
                                                        DopsMulti, queue_size=10)
             publishers['pos_ecef_multi'] = rospy.Publisher(rospy.get_name() + '/pos_ecef',
                                                            PosEcef, queue_size=10)
-
+            publishers['observation'] = rospy.Publisher(rospy.get_name() + '/observation',
+                                                        Observation, queue_size=10)
+            publishers['base_pos_llh'] = rospy.Publisher(rospy.get_name() + '/base_pos_llh',
+                                                         BasePosLlh, queue_size=10)
+            publishers['base_pos_ecef'] = rospy.Publisher(rospy.get_name() + '/base_pos_ecef',
+                                                          BasePosEcef, queue_size=10)
         if not self.base_station_mode:
             publishers['wifi_corrections'] = rospy.Publisher(rospy.get_name() + '/debug/wifi_corrections',
                                                              InfoWifiCorrections, queue_size=10)
@@ -455,40 +495,105 @@ class PiksiMulti:
             callback_function = self.make_callback(callback_data_type, ros_message, pub, attrs)
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
 
-    def callback_sbp_obs(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS")
-        self.multicaster.sendSbpPacket(msg)
+    def cb_sbp_obs(self, msg_raw, **metadata):
+        if self.debug_mode:
+            msg = MsgObs(msg_raw)
 
-    def callback_sbp_obs_dep_a(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS DEP A")
-        self.multicaster.sendSbpPacket(msg)
+            obs_msg = Observation()
+            obs_msg.header.stamp = rospy.Time.now()
 
-    def callback_sbp_obs_dep_b(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS DEP B")
-        self.multicaster.sendSbpPacket(msg)
+            obs_msg.tow = msg.header.t.tow
+            obs_msg.ns_residual = msg.header.t.ns_residual
+            obs_msg.wn = msg.header.t.wn
+            obs_msg.n_obs = msg.header.n_obs
 
-    def callback_sbp_base_pos_llh(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS BASE LLH")
-        self.multicaster.sendSbpPacket(msg)
+            obs_msg.P = []
+            obs_msg.L_i = []
+            obs_msg.L_f = []
+            obs_msg.D_i = []
+            obs_msg.D_f = []
+            obs_msg.cn0 = []
+            obs_msg.lock = []
+            obs_msg.flags = []
+            obs_msg.sid_sat = []
+            obs_msg.sid_code = []
 
-    def callback_sbp_base_pos_ecef(self, msg, **metadata):
-        # rospy.logwarn("CALLBACK SBP OBS BASE LLH")
-        self.multicaster.sendSbpPacket(msg)
+            for observation in msg.obs:
+                obs_msg.P.append(observation.P)
+                obs_msg.L_i.append(observation.L.i)
+                obs_msg.L_f.append(observation.L.f)
+                obs_msg.D_i.append(observation.D.i)
+                obs_msg.D_f.append(observation.D.f)
+                obs_msg.cn0.append(observation.cn0)
+                obs_msg.lock.append(observation.lock)
+                obs_msg.flags.append(observation.flags)
+                obs_msg.sid_sat.append(observation.sid.sat)
+                obs_msg.sid_code.append(observation.sid.code)
+
+            self.publishers['observation'].publish(obs_msg)
+
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
+
+    def cb_sbp_base_pos_llh(self, msg_raw, **metadata):
+        if self.debug_mode:
+            msg = MsgBasePosLLH(msg_raw)
+
+            pose_llh_msg = BasePosLlh()
+            pose_llh_msg.header.stamp = rospy.Time.now()
+
+            pose_llh_msg.lat = msg.lat
+            pose_llh_msg.lon = msg.lon
+            pose_llh_msg.height = msg.height
+
+            self.publishers['base_pos_llh'].publish(pose_llh_msg)
+
+    def cb_sbp_base_pos_ecef(self, msg_raw, **metadata):
+        if self.debug_mode:
+            msg = MsgBasePosECEF(msg_raw)
+
+            pose_ecef_msg = BasePosEcef()
+            pose_ecef_msg.header.stamp = rospy.Time.now()
+
+            pose_ecef_msg.x = msg.x
+            pose_ecef_msg.y = msg.y
+            pose_ecef_msg.z = msg.z
+
+            self.publishers['base_pos_ecef'].publish(pose_ecef_msg)
+
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
+
+    def cb_sbp_uart_state(self, msg_raw, **metadata):
+        msg = MsgUartState(msg_raw)
+        uart_state_msg = UartState_V2_3_15()
+
+        uart_state_msg.latency_avg = msg.latency.avg
+        uart_state_msg.latency_lmin = msg.latency.lmin
+        uart_state_msg.latency_lmax = msg.latency.lmax
+        uart_state_msg.latency_current = msg.latency.current
+        uart_state_msg.obs_period_avg = msg.obs_period.avg
+        uart_state_msg.obs_period_pmin = msg.obs_period.pmin
+        uart_state_msg.obs_period_pmax = msg.obs_period.pmax
+        uart_state_msg.obs_period_current = msg.obs_period.current
+
+        self.publishers['uart_state'].publish(uart_state_msg)
 
     def multicast_callback(self, msg, **metadata):
-        # rospy.logwarn("MULTICAST Callback")
         if self.framer:
 
-            if self.debug_mode:
-                # Test network delay by storing a fixed number of correction messages and retrieving the oldest one.
-                # TODO (marco-tranzatto) check if we need to store even **metadata or not
-                # self.received_corrections_fifo_stack.append([msg, **metadata])
-                # oldest_correction = self.received_corrections_fifo_stack.popleft()
-                self.received_corrections_fifo_stack.append(msg)
-                oldest_correction = self.received_corrections_fifo_stack.popleft()
-                self.framer(oldest_correction, **metadata)
-            else:
-                self.framer(msg, **metadata)
+            # TODO (marco-tranzatto) probably next commented part should be completely deleted.
+            # if self.debug_mode:
+            #     # Test network delay by storing a fixed number of correction messages and retrieving the oldest one.
+            #     # TODO (marco-tranzatto) check if we need to store even **metadata or not
+            #     # self.received_corrections_fifo_stack.append([msg, **metadata])
+            #     # oldest_correction = self.received_corrections_fifo_stack.popleft()
+            #     self.received_corrections_fifo_stack.append(msg)
+            #     oldest_correction = self.received_corrections_fifo_stack.popleft()
+            #     self.framer(oldest_correction, **metadata)
+            # else:
+            #     self.framer(msg, **metadata)
+            self.framer(msg, **metadata)
 
             # Publish debug message about wifi corrections, if enabled.
             self.num_wifi_corrections.header.seq += 1
@@ -500,14 +605,18 @@ class PiksiMulti:
         else:
             rospy.logwarn("Received external SBP msg, but Piksi not connected.")
 
-    def watchdog_callback(self, event):
+    def cb_sbp_glonass_biases(self, msg_raw, **metadata):
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
+
+    def cb_watchdog(self, event):
         if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 10.0):
             rospy.logwarn("Heartbeat failed, watchdog triggered.")
 
             if self.base_station_mode:
                 rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
 
-    def pos_llh_callback(self, msg_raw, **metadata):
+    def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
 
         # Invalid messages.
@@ -515,61 +624,86 @@ class PiksiMulti:
             return
         # SPP GPS messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
-            self.publish_spp(msg.lat, msg.lon, msg.height)
-
-        # TODO: Differential GNSS (DGNSS)
-        # elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS
-
-        # RTK GPS messages.
-        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK and self.debug_mode:
-            self.publish_rtk_float(msg.lat, msg.lon, msg.height)
+            self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp, NavSatStatus.STATUS_FIX)
+        # Differential GNSS (DGNSS)
+        elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
+            rospy.logwarn(
+                "[cb_sbp_pos_llh]: case FIX_MODE_DGNSS was not implemented yet." +
+                "Contact the package/repository maintainers.")
+            # TODO what to do here?
+            return
+        # RTK messages.
+        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+            # For now publish RTK float only in debug mode.
+            if self.debug_mode:
+                self.publish_rtk_float(msg.lat, msg.lon, msg.height)
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
 
             self.publish_rtk_fix(msg.lat, msg.lon, msg.height)
+        # Dead reckoning
+        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+            rospy.logwarn(
+                "[cb_sbp_pos_llh]: case FIX_MODE_DEAD_RECKONING was not implemented yet." +
+                "Contact the package/repository maintainers.")
+            return
+        # SBAS Position
+        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
+            self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
+        else:
+            rospy.logerr(
+                "[cb_sbp_pos_llh]: Unknown case, you found a bug!" +
+                "Contact the package/repository maintainers." +
+                "Report: 'msg.flags = %d'" % (msg.flags))
+            return
+
         # Update debug msg and publish.
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
 
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_INVALID
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_INVALID
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_SPP
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_SPP
         elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_DGNSS
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_DGNSS
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_FLOAT_RTK
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_FLOAT_RTK
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_FIXED_RTK
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_FIXED_RTK
+        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.FIX_MODE_DEAD_RECKONING
+        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_SBAS
         else:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_2_15.STR_FIX_MODE_UNKNOWN
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_UNKNOWN
 
         self.publish_receiver_state_msg()
 
-    def publish_spp(self, latitude, longitude, height):
-        self.publish_gps_point(latitude, longitude, height, self.var_spp, NavSatStatus.STATUS_FIX,
-                               self.publishers['spp'],
-                               self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
-                               self.publishers['enu_transform_spp'], self.publishers['best_fix'],
-                               self.publishers['enu_pose_best_fix'])
+    def publish_spp(self, latitude, longitude, height, variance, navsatstatus_fix):
+        self.publish_wgs84_point(latitude, longitude, height, variance, navsatstatus_fix,
+                                 self.publishers['spp'],
+                                 self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
+                                 self.publishers['enu_transform_spp'], self.publishers['best_fix'],
+                                 self.publishers['enu_pose_best_fix'])
 
     def publish_rtk_float(self, latitude, longitude, height):
-        self.publish_gps_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
-                               self.publishers['rtk_float'],
-                               self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
-                               self.publishers['enu_transform_float'], self.publishers['best_fix'],
-                               self.publishers['enu_pose_best_fix'])
+        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
+                                 self.publishers['rtk_float'],
+                                 self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
+                                 self.publishers['enu_transform_float'], self.publishers['best_fix'],
+                                 self.publishers['enu_pose_best_fix'])
 
     def publish_rtk_fix(self, latitude, longitude, height):
-        self.publish_gps_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
-                               self.publishers['rtk_fix'],
-                               self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
-                               self.publishers['enu_transform_fix'], self.publishers['best_fix'],
-                               self.publishers['enu_pose_best_fix'])
+        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
+                                 self.publishers['rtk_fix'],
+                                 self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
+                                 self.publishers['enu_transform_fix'], self.publishers['best_fix'],
+                                 self.publishers['enu_pose_best_fix'])
 
-    def publish_gps_point(self, latitude, longitude, height, variance, status, pub_navsatfix, pub_pose, pub_point,
-                          pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
+    def publish_wgs84_point(self, latitude, longitude, height, variance, navsat_status, pub_navsatfix, pub_pose,
+                            pub_point, pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
         # Navsatfix message.
         navsatfix_msg = NavSatFix()
         navsatfix_msg.header.stamp = rospy.Time.now()
@@ -579,7 +713,7 @@ class PiksiMulti:
         navsatfix_msg.latitude = latitude
         navsatfix_msg.longitude = longitude
         navsatfix_msg.altitude = height
-        navsatfix_msg.status.status = status
+        navsatfix_msg.status.status = navsat_status
         navsatfix_msg.position_covariance = [variance[0], 0, 0,
                                              0, variance[1], 0,
                                              0, 0, variance[2]]
@@ -613,16 +747,16 @@ class PiksiMulti:
         pub_navsatfix_best_pose.publish(navsatfix_msg)
         pub_pose_best_fix.publish(pose_msg)
 
-    def heartbeat_callback(self, msg_raw, **metadata):
+    def cb_sbp_heartbeat(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
 
         # Let watchdag know messages are still arriving
         self.watchdog_time = rospy.get_rostime()
 
         # Start watchdog with 10 second timeout to ensure we keep getting gps
-        if (not self.messages_started):
+        if not self.messages_started:
             self.messages_started = True
-            rospy.Timer(rospy.Duration(10), self.watchdog_callback)
+            rospy.Timer(rospy.Duration(10), self.cb_watchdog)
 
         heartbeat_msg = Heartbeat()
         heartbeat_msg.header.stamp = rospy.Time.now()
@@ -642,7 +776,10 @@ class PiksiMulti:
         self.receiver_state_msg.external_antenna_present = heartbeat_msg.external_antenna_present
         self.publish_receiver_state_msg()
 
-    def tracking_state_callback(self, msg_raw, **metadata):
+        if self.base_station_mode:
+            self.multicaster.sendSbpPacket(msg_raw)
+
+    def cb_sbp_tracking_state(self, msg_raw, **metadata):
         msg = MsgTrackingState(msg_raw)
 
         # print "\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
@@ -651,7 +788,7 @@ class PiksiMulti:
         #     print single_tracking_state
         #     print "--------------------\n"
 
-        tracking_state_msg = TrackingState_V2_2_15()
+        tracking_state_msg = TrackingState_V2_3_15()
         tracking_state_msg.header.stamp = rospy.Time.now()
         tracking_state_msg.sat = []
         tracking_state_msg.code = []
@@ -678,19 +815,19 @@ class PiksiMulti:
 
                 # Receiver state fields.
                 code = single_tracking_state.sid.code
-                if code == ReceiverState_V2_2_15.CODE_GPS_L1CA or \
-                                code == ReceiverState_V2_2_15.CODE_GPS_L2CM or \
-                                code == ReceiverState_V2_2_15.CODE_GPS_L1P or \
-                                code == ReceiverState_V2_2_15.CODE_GPS_L2P:
+                if code == TrackingState_V2_3_15.CODE_GPS_L1CA or \
+                                code == TrackingState_V2_3_15.CODE_GPS_L2CM or \
+                                code == TrackingState_V2_3_15.CODE_GPS_L1P or \
+                                code == TrackingState_V2_3_15.CODE_GPS_L2P:
                     num_gps_sat += 1
                     cn0_gps.append(single_tracking_state.cn0)
 
-                if code == ReceiverState_V2_2_15.CODE_SBAS_L1CA:
+                if code == TrackingState_V2_3_15.CODE_SBAS_L1CA:
                     num_sbas_sat += 1
                     cn0_sbas.append(single_tracking_state.cn0)
 
-                if code == ReceiverState_V2_2_15.CODE_GLO_L1CA or \
-                                code == ReceiverState_V2_2_15.CODE_GLO_L1CA:
+                if code == TrackingState_V2_3_15.CODE_GLO_L1CA or \
+                                code == TrackingState_V2_3_15.CODE_GLO_L1CA:
                     num_glonass_sat += 1
                     cn0_glonass.append(single_tracking_state.cn0)
 
@@ -699,19 +836,12 @@ class PiksiMulti:
                 and len(tracking_state_msg.code) \
                 and len(tracking_state_msg.fcn) \
                 and len(tracking_state_msg.cn0):
-
             self.publishers['tracking_state'].publish(tracking_state_msg)
 
             # Update debug msg and publish.
-            self.receiver_state_msg.num_sat = 0
-            for satellite_cno in tracking_state_msg.cn0:
-                # Use number of satellites with valid cn0.
-                if satellite_cno > 0.0:
-                    self.receiver_state_msg.num_sat += 1
-
+            self.receiver_state_msg.num_sat = num_gps_sat + num_sbas_sat + num_glonass_sat
             self.receiver_state_msg.sat = tracking_state_msg.sat
             self.receiver_state_msg.cn0 = tracking_state_msg.cn0
-
             self.receiver_state_msg.num_gps_sat = num_gps_sat
             self.receiver_state_msg.cn0_gps = cn0_gps
             self.receiver_state_msg.num_sbas_sat = num_sbas_sat
@@ -721,60 +851,9 @@ class PiksiMulti:
 
             self.publish_receiver_state_msg()
 
-            #     def utc_time_callback(self, msg_raw, **metadata):
-            #         msg = MsgUtcTime(msg_raw)
-            #
-            #         # check i message is valid
-            #         if msg.flags & 0x01 == True: # msg valid TODO: use bitmask instead
-            #             # TODO: calc delta_t to rospy.Time.now()
-            #             # delta_t_vec.append(delta_t)
-            #             # self.delta_t_MA = moving_average_filter(delta_t_vec, N)
-            #             return
-            #         else: # msg invalid
-            #             return
-
     def publish_receiver_state_msg(self):
         self.receiver_state_msg.header.stamp = rospy.Time.now()
         self.publishers['receiver_state'].publish(self.receiver_state_msg)
-
-    def uart_state_callback(self, msg_raw, **metadata):
-        msg = MsgUartState(msg_raw)
-
-        uart_state_msg = UartState()
-        uart_state_msg.header.stamp = rospy.Time.now()
-
-        uart_state_msg.uart_a_tx_throughput = msg.uart_a.tx_throughput
-        uart_state_msg.uart_a_rx_throughput = msg.uart_a.rx_throughput
-        uart_state_msg.uart_a_crc_error_count = msg.uart_a.crc_error_count
-        uart_state_msg.uart_a_io_error_count = msg.uart_a.io_error_count
-        uart_state_msg.uart_a_tx_buffer_level = msg.uart_a.tx_buffer_level
-        uart_state_msg.uart_a_rx_buffer_level = msg.uart_a.rx_buffer_level
-
-        uart_state_msg.uart_b_tx_throughput = msg.uart_b.tx_throughput
-        uart_state_msg.uart_b_rx_throughput = msg.uart_b.rx_throughput
-        uart_state_msg.uart_b_crc_error_count = msg.uart_b.crc_error_count
-        uart_state_msg.uart_b_io_error_count = msg.uart_b.io_error_count
-        uart_state_msg.uart_b_tx_buffer_level = msg.uart_b.tx_buffer_level
-        uart_state_msg.uart_b_rx_buffer_level = msg.uart_b.rx_buffer_level
-
-        uart_state_msg.uart_ftdi_tx_throughput = msg.uart_ftdi.tx_throughput
-        uart_state_msg.uart_ftdi_rx_throughput = msg.uart_ftdi.rx_throughput
-        uart_state_msg.uart_ftdi_crc_error_count = msg.uart_ftdi.crc_error_count
-        uart_state_msg.uart_ftdi_io_error_count = msg.uart_ftdi.io_error_count
-        uart_state_msg.uart_ftdi_tx_buffer_level = msg.uart_ftdi.tx_buffer_level
-        uart_state_msg.uart_ftdi_rx_buffer_level = msg.uart_ftdi.rx_buffer_level
-
-        uart_state_msg.latency_avg = msg.latency.avg
-        uart_state_msg.latency_lmin = msg.latency.lmin
-        uart_state_msg.latency_lmax = msg.latency.lmax
-        uart_state_msg.latency_current = msg.latency.current
-
-        uart_state_msg.obs_period_avg = msg.obs_period.avg
-        uart_state_msg.obs_period_pmin = msg.obs_period.pmin
-        uart_state_msg.obs_period_pmax = msg.obs_period.pmax
-        uart_state_msg.obs_period_current = msg.obs_period.current
-
-        self.publishers['uart_state_multi'].publish(uart_state_msg)
 
     def init_geodetic_reference(self, latitude, longitude, altitude):
         if self.origin_enu_set:
@@ -905,17 +984,17 @@ class PiksiMulti:
             reset_msg = reset_sbp.pack()
             self.driver.write(reset_msg)
 
-            rospy.logwarn("Piksi hard reset via rosservice call.")
+            rospy.logwarn("Swift receiver hard reset via rosservice call.")
 
             # Init messages with "memory".
             self.receiver_state_msg = self.init_receiver_state_msg()
             self.num_wifi_corrections = self.init_num_corrections_msg()
 
             response.success = True
-            response.message = "Piksi reset command sent."
+            response.message = "Swift receiver reset command sent."
         else:
             response.success = False
-            response.message = "Piksi reset command not sent."
+            response.message = "Swift receiver reset command not sent."
 
         return response
 
@@ -965,7 +1044,7 @@ class PiksiMulti:
         if request.data:
             self.settings_save()
             response.success = True
-            response.message = "Piksi settings have been saved to flash."
+            response.message = "Swift receiver settings have been saved to flash."
         else:
             response.success = False
             response.message = "Please pass 'true' to this service call to explicitly save to flash the local settings."
@@ -993,7 +1072,7 @@ class PiksiMulti:
 
     def settings_write(self, section_setting, setting, value):
         """
-        Write the defined configuration to Piksi.
+        Write the defined configuration to Swift receiver.
         """
         setting_string = '%s\0%s\0%s\0' % (section_setting, setting, value)
         write_msg = MsgSettingsWrite(setting=setting_string)
@@ -1009,13 +1088,13 @@ class PiksiMulti:
 
     def settings_read_req(self, section_setting, setting):
         """
-        Request a configuration value to Piksi.
+        Request a configuration value to Swift receiver.
         """
         setting_string = '%s\0%s\0' % (section_setting, setting)
         read_req_msg = MsgSettingsReadReq(setting=setting_string)
         self.framer(read_req_msg)
 
-    def settings_read_resp(self, msg_raw, **metadata):
+    def cb_settings_read_resp(self, msg_raw, **metadata):
         """
         Response to a settings_read_req.
         """
@@ -1027,12 +1106,12 @@ class PiksiMulti:
 
     def settings_read_by_index_req(self, index):
         """
-        Request a configuration value to Piksi by parameter index number.
+        Request a configuration value to Swift receiver by parameter index number.
         """
         read_req_by_index_msg = MsgSettingsReadByIndexReq(index=index)
         self.framer(read_req_by_index_msg)
 
-    def settings_read_by_index_resp(self, msg_raw, **metadata):
+    def cb_sbp_settings_read_by_index_resp(self, msg_raw, **metadata):
         """
         Response to a settings_read_by_index_req.
         """
@@ -1046,14 +1125,3 @@ class PiksiMulti:
         self.last_section_setting_read = []
         self.last_setting_read = []
         self.last_value_read = []
-
-
-# Main function.
-if __name__ == '__main__':
-    rospy.init_node('piksi')
-
-    # Go to class functions that do all the heavy lifting. Do error checking.
-    try:
-        piksi_multi = PiksiMulti()
-    except rospy.ROSInterruptException:
-        pass

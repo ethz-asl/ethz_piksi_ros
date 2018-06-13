@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>ethz_piksi_ros</name>
-  <version>1.0.3</version>
+  <version>1.6.3</version>
   <description>Meta-package for the ethz_piksi_ros repository.</description>
 
   <maintainer email="marcot@ethz.ch">Marco Tranzatto</maintainer>

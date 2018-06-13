@@ -2,27 +2,28 @@ piksi_multi_rtk_gps
 ======
 ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
 
-The piksi_multi_rtk_ros package has been tested under:
-  * [ROS] Indigo and Ubuntu 14.04, and [ROS] Kinetic and Ubuntu 16.04;
-  * The latest version relies on Piksi Multi Firmware **1.2.14** release (see [Swift Nav firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware)).
+The piksi_multi_rtk_ros package has been tested under ROS Indigo and Ubuntu 14.04, and ROS Kinetic and Ubuntu 16.04.
 
-**WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200'). This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi#settings).
+
+**WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200').
+This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi-Multi#settings).
   
 ## Installation and Configuration
-**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page cointains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi).
+**WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page contains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi).
 If you are using [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf) please check its driver version: [piksi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_rtk_gps)** (it is not supported anymore).
 
-The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-2.2.15-py2.7.egg/sbp/`.
+The following code will automatically download the required version of libsbp and install it in the default folder `/usr/local/lib/python2.7/dist-packages/sbp-<SBP_LIB_VERSION>-py2.7.egg/sbp/`.
 
 ```
-# From the repository folder
+# Execute this line in the package folder 'piksi_multi_rtk_ros'
 source install/install_piksi_multi.sh
 ```
 
 ### Firmware and SBP Lib Version
-Please check [here](https://support.swiftnav.com/customer/en/portal/articles/2492810-swift-binary-protocol) which Piksi Multi fimrware version based on the current SBP Lib version.
+Please check [here](https://support.swiftnav.com/customer/en/portal/articles/2492810-swift-binary-protocol) which Piksi Multi firmware version based on the current SBP Lib version.
 
-Currently the `install_piksi_multi.sh` will install SBP Lib 2.2.15 (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)). This means you are supposed to install Firmware 1.2.14 from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
+Currently the `install_piksi_multi.sh` will install **SBP Lib 2.3.15** (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)).
+This means you are supposed to install **Firmware 1.5.12** from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
 
 ## Usage
 **Make sure** you configured your Piksi(s) by following [these instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi).
@@ -67,6 +68,10 @@ The most interesting advertised topics are:
    this message contains ENU (East-North-Up) coordinate of the receiver with best available fix at the moment (either RTK or SPP). Orientation is set to identity quaternion (w=1);
    
 For a complete list of advertised topics please check function [`advertise_topics`](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/src/piksi_multi.py#L264).
+
+### Raw IMU and Magnetometer Measurements
+Raw IMU and magnetometer measurements are not published by default. If you want to publish them in ROS you need to: (a) Open Swifnav console, connect to Piksi, navigate to "Settings", and then in the "imu" section enable "imu raw output" and "mag raw output" (save these new settings, so you need to do this operation only once); (b) set to true the flag [publish_raw_imu_and_mag](./cfg/piksi_multi_driver_settings.yaml#L19).
+Raw measurements are published in `/piksi/imu_raw` and `/piksi/mag_raw`.
 
 ## Origin ENU Frame
 The origin of the ENU (East-North-Up) frame is set either using rosparameters or using the first RTK fix message obtained.

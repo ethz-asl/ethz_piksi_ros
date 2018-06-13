@@ -2,13 +2,28 @@
 
 <launch>
 
-  <node pkg="piksi_multi_rtk_ros" type="piksi_multi.py" name="piksi" output="screen" respawn="true">
+  <!-- Settings: will overwrite default setting loaded from file.  -->
+  <!-- Available interfaces where Piksi Multi can be connected: serial or tcp. -->
+  <arg name="interface"                   default="serial"/>
+  <!-- If interface is serial, this specifies baud rate of Piksi Multi. -->
+  <arg name="baud_rate"                   default="230400"/>
+  <!-- If interface is tcp, this specifies the address of Piksi Multi. -->
+  <arg name="tcp_addr"                    default="192.168.0.222"/>
+  <!-- Broadcast address for corrections: used to send corrections over WiFi. -->
+  <arg name="broadcast_addr"              default="192.168.0.255"/>
+
+  <!-- Piksi Multi ROS driver node: base station mode -->
+  <node pkg="piksi_multi_rtk_ros" type="piksi_multi" name="piksi_multi_base_station" output="screen" respawn="true">
     <!-- Load default settings -->
     <rosparam file="$(find piksi_multi_rtk_ros)/cfg/piksi_multi_driver_settings.yaml"/>
 
-    <!-- Overwrtie needed settings -->
-    <param name="base_station_mode" value="true"/>
-    <param name="broadcast_addr" value="192.168.0.255"/> <!--'ifconfig' to check Bcast -->
+    <!-- Overwrite settings -->
+    <param name="interface"               value="$(arg interface)"/>
+    <param name="baud_rate"               value="$(arg baud_rate)"/>
+    <param name="tcp_addr"                value="$(arg tcp_addr)"/>
+    <param name="broadcast_addr"          value="$(arg broadcast_addr)"/>
+    <!-- Force base station mode -->
+    <param name="base_station_mode"       value="true"/>
   </node>
 
 </launch>

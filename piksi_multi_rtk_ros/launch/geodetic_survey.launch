@@ -3,14 +3,20 @@
 <launch>
 
   <!-- Parameters. -->
-  <arg name="number_of_desired_fixes"     default="5000"/>
+  <arg name="number_of_desired_fixes"                 default="5000"/>
+  <!-- Height antenna base station from ground for RSL-ETHZ tripod.
+       This parameter is used only for convenience by RSL-ETHZ staff to
+       create the origin of the ENU frame on the ground below the antenna of the base station.
+       The surveyed position of the antenna is NOT affected by this parameter. -->
+  <arg name="height_base_station_from_ground"         default="1.89"/>
 
   <!-- Piksi. -->
   <include file="$(find piksi_multi_rtk_ros)/launch/piksi_multi_base_station.launch"/>
 
   <!-- Geodetic Survey. -->
-  <node pkg="piksi_multi_rtk_ros" type="geodetic_survey.py" name="geodetic_survey" output="screen">
-    <param name="number_of_desired_fixes" value="$(arg number_of_desired_fixes)"/>
+  <node pkg="piksi_multi_rtk_ros" type="geodetic_survey" name="geodetic_survey" output="screen">
+    <param name="number_of_desired_fixes"             value="$(arg number_of_desired_fixes)"/>
+    <param name="height_base_station_from_ground"     value="$(arg height_base_station_from_ground)"/>
   </node>
 
 </launch>
