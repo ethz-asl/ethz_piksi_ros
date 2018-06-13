@@ -310,4 +310,4 @@ void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrection
  }*/
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_DECLARE_CLASS(rqt_gps_rtk_plugin, GpsRtkPlugin, GpsRtkPlugin, rqt_gui_cpp::Plugin)
+PLUGINLIB_EXPORT_CLASS(GpsRtkPlugin, rqt_gui_cpp::Plugin)
