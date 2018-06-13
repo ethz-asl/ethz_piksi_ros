@@ -26,9 +26,6 @@
 #include <piksi_rtk_msgs/AgeOfCorrections.h>
 #include <sensor_msgs/NavSatFix.h>
 
-// worker
-#include <any_worker/Worker.hpp>
-
 constexpr double kSignalStrengthScalingFactor = 4.0;
 
 struct TimeStamps {
@@ -86,7 +83,7 @@ Q_OBJECT
     return scaled_signal_strength;
   }
 
-  bool updateWorkerCb(const any_worker::WorkerEvent& event);
+  void timerCallback(const ros::TimerEvent& e);
 
   //subscribers
   ros::Subscriber piksiReceiverStateSub_;
@@ -114,7 +111,7 @@ Q_OBJECT
   int wifiCorrectionsAvgHz_;
   int numCorrectionsFirstSampleMovingWindow_;
   std::vector<double> altitudes_;
-  std::unique_ptr<any_worker::Worker> updateWorker_;
+  ros::Timer timer_;
   TimeStamps lastMsgStamps_;
   // The max allowed timeout [s] before GUI information is updated with "N/A"
   double maxTimeout_;
