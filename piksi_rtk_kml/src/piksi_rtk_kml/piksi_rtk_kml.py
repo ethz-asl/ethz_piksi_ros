@@ -84,8 +84,6 @@ class PiksiRtkKml:
             lon = msg.longitude
             if self.use_altitude_from_enu:
                 alt = self.last_enu_altitude
-            elif self.stick_points_to_ground:
-                alt = 0
             else:
                 alt = msg.altitude
             description = ''
