@@ -9,6 +9,9 @@
   <!-- Use simulation clock -->
   <arg name="use_sim_time"                 default="true"/>
 
+  <!-- simulation time -->
+  <param name="/use_sim_time"              value="$(arg use_sim_time)"/>
+
   <!-- Node to convert Piksi ROS driver output to KML format -->
   <node pkg="piksi_rtk_kml" type="piksi_rtk_kml" name="piksi_rtk_kml" output="screen">
     <!-- Load default settings -->
