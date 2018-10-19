@@ -40,6 +40,7 @@ fi
 cd ./python
 echo "Installing SBP dependencies."
 sudo apt-get install pandoc
+sudo apt-get install python-pip
 sudo pip install tox
 sudo pip install -r requirements.txt
 sudo pip install markupsafe
