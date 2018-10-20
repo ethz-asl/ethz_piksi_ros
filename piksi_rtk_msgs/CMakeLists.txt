@@ -35,16 +35,12 @@ add_message_files(
     InfoWifiCorrections.msg
     Log.msg
     MagRaw.msg
+    MeasurementState.msg
     Observation.msg
     PosEcef.msg
     PosLlh.msg
     PosLlhMulti.msg
     ReceiverState.msg
-    ReceiverState_V2_2_15.msg
-    ReceiverState_V2_3_15.msg
-    TrackingState.msg
-    TrackingState_V2_2_15.msg
-    TrackingState_V2_3_15.msg
     UartState.msg
     UartState_V2_3_15.msg
     UtcTimeMulti.msg
