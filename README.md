@@ -20,7 +20,7 @@ Overview
 - [piksi_rtk_msgs](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_rtk_msgs): ROS messages used by the driver(s).
 - [piksi_v2_rtk_ros](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_v2_rtk_ros): ROS driver for Piksi RTK receiver device, hardware version [V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf). **Discontinued**
 - [rqt_gps_rtk_plugin](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/rqt_gps_rtk_plugin): Graphical User Interface to check the status of RTK fix. This gui is implemented wit [Qt](https://wiki.qt.io/Install_Qt_5_on_Ubuntu) such that it may be added to your preferred rqt perspective.
-- [utils](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/utils): collection of configurations and useful scripts.
+- [utils](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/utils): collection of configurations and useful scripts. This folder contains [piksi_rtklib_postp](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/utils/piksi_rtklib_postp) which can be used to obtained post processed RTK positions using only Piksi Multi for data collection (i.e. a base station is not needed). See the corresponding [wiki page](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Data-collection-and-post-processing).
 
 Impatient Users
 ------
