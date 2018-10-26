@@ -1,4 +1,4 @@
-# This message contains temperature and voltage level measurements from the processor’s monitoring
+# This message contains temperature and voltage level measurements from the processor's monitoring
 # system and the RF frontend die temperature if available.
 
 # Message definition based on libsbp v2.2.15
