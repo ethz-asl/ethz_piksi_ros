@@ -33,6 +33,7 @@ add_message_files(
     ImuAuxMulti.msg
     ImuRawMulti.msg
     InfoWifiCorrections.msg
+    INSStatus.msg
     Log.msg
     MagRaw.msg
     Observation.msg
@@ -42,12 +43,14 @@ add_message_files(
     ReceiverState.msg
     ReceiverState_V2_2_15.msg
     ReceiverState_V2_3_15.msg
+    ReceiverState_V2_4_1.msg
     TrackingState.msg
     TrackingState_V2_2_15.msg
     TrackingState_V2_3_15.msg
     UartState.msg
     UartState_V2_3_15.msg
     UtcTimeMulti.msg
+    VelBody.msg
     VelEcef.msg
     VelNed.msg
 )

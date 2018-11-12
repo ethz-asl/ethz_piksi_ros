@@ -12,12 +12,12 @@ import math
 import numpy as np
 import std_srvs.srv
 # Import message types
-from sensor_msgs.msg import NavSatFix, NavSatStatus
+from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
                                 InfoWifiCorrections, Log, MagRaw, Observation, PosEcef, PosLlhMulti,
-                                ReceiverState_V2_3_15, TrackingState_V2_3_15,
-                                UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
+                                ReceiverState_V2_4_1, TrackingState_V2_3_15,
+                                UartState_V2_3_15, UtcTimeMulti, VelBody, VelEcef, VelNed, INSStatus)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -51,7 +51,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.3.15'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.4.0'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -80,7 +80,6 @@ class PiksiMulti:
             rospy.logwarn("Lib SBP version in usage (%s) is different than the one used to test this driver (%s)!\n"
                           "Please run the install script: 'install/install_piksi_multi.sh'" % (
                               installed_sbp_version, PiksiMulti.LIB_SBP_VERSION_MULTI))
-
         # Open a connection to SwiftNav receiver.
         interface = rospy.get_param('~interface', 'serial')
 
@@ -131,6 +130,7 @@ class PiksiMulti:
         self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
         self.var_spp_sbas = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
+        self.var_deadreckoning = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
         self.navsatfix_frame_id = rospy.get_param('~navsatfix_frame_id', 'gps')
 
         # Local ENU frame settings.
@@ -205,6 +205,7 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_sbp_tracking_state, msg_type=SBP_MSG_TRACKING_STATE)
         self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
 
+        
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
                            SBP_MSG_BASELINE_ECEF, MsgBaselineECEF,
@@ -245,6 +246,10 @@ class PiksiMulti:
                                'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
             self.init_callback('mag_raw', MagRaw,
                                SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
+	    self.handler.add_callback(self.cb_sbp_ins_status, msg_type=SBP_MSG_INS_STATUS)
+	    self.handler.add_callback(self.cb_sbp_vel_body, msg_type=SBP_MSG_VEL_BODY)
+	    self.handler.add_callback(self.cb_sbp_angular_rate, msg_type=SBP_MSG_ANGULAR_RATE)
+	    self.handler.add_callback(self.cb_sbp_orient_quat, msg_type=SBP_MSG_ORIENT_QUAT)
 
         # Only if debug mode
         if self.debug_mode:
@@ -272,7 +277,7 @@ class PiksiMulti:
         return num_wifi_corrections
 
     def init_receiver_state_msg(self):
-        receiver_state_msg = ReceiverState_V2_3_15()
+        receiver_state_msg = ReceiverState_V2_4_1()
         receiver_state_msg.num_sat = 0  # Unknown.
         receiver_state_msg.rtk_mode_fix = False  # Unknown.
         receiver_state_msg.sat = []  # Unknown.
@@ -287,8 +292,8 @@ class PiksiMulti:
         receiver_state_msg.cn0_sbas = []  # Unknown.
         receiver_state_msg.num_glonass_sat = 0  # Unknown.
         receiver_state_msg.cn0_glonass = []  # Unknown.
-        receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_UNKNOWN
-
+        receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_UNKNOWN
+	receiver_state_msg.fix_mode = ReceiverState_V2_4_1.INS_NAV_MODE_UNKNOWN
         return receiver_state_msg
 
     def advertise_topics(self):
@@ -304,12 +309,20 @@ class PiksiMulti:
                                             NavSatFix, queue_size=10)
         publishers['best_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_best_fix',
                                                  NavSatFix, queue_size=10)
+	publishers['deadreckoning'] = rospy.Publisher(rospy.get_name() + '/navsatfix_dr_fix',
+                                                 NavSatFix, queue_size=10)
+	publishers['enu_pose_dr'] = rospy.Publisher(rospy.get_name() + '/enu_pose_dr',
+                                                     PoseWithCovarianceStamped, queue_size=10)
+        publishers['enu_point_dr'] = rospy.Publisher(rospy.get_name() + '/enu_point_dr',
+                                                      PointStamped, queue_size=10)
+        publishers['enu_transform_dr'] = rospy.Publisher(rospy.get_name() + '/enu_transform_dr',
+                                                          TransformStamped, queue_size=10)
         publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
                                                   Heartbeat, queue_size=10)
         publishers['tracking_state'] = rospy.Publisher(rospy.get_name() + '/tracking_state',
                                                        TrackingState_V2_3_15, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
-                                                       ReceiverState_V2_3_15, queue_size=10)
+                                                       ReceiverState_V2_4_1, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
@@ -353,6 +366,14 @@ class PiksiMulti:
                                                     ImuRawMulti, queue_size=10)
             publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
                                                     MagRaw, queue_size=10)
+	    publishers['imu_angular_velocity'] = rospy.Publisher(rospy.get_name() + '/imu_angular_velocity',
+							      Imu, queue_size=10)
+	    publishers['imu_orientation'] = rospy.Publisher(rospy.get_name() + '/imu_orientation',
+							      Imu, queue_size=10)
+	    publishers['ins_status'] = rospy.Publisher(rospy.get_name() + '/ins_status',
+                                                  INSStatus, queue_size=10)
+	    publishers['vel_body'] = rospy.Publisher(rospy.get_name() + '/vel_body',
+                                                  VelBody, queue_size=10)
 
         # Topics published only if in "debug mode".
         if self.debug_mode:
@@ -578,6 +599,8 @@ class PiksiMulti:
         uart_state_msg.obs_period_current = msg.obs_period.current
 
         self.publishers['uart_state'].publish(uart_state_msg)
+        
+   
 
     def multicast_callback(self, msg, **metadata):
         if self.framer:
@@ -617,40 +640,38 @@ class PiksiMulti:
                 rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
 
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
-        msg = MsgPosLLH(msg_raw)
+        msg = MsgPosLLH(msg_raw)     
 
         # Invalid messages.
-        if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
+        if (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_INVALID:
             return
         # SPP GPS messages.
-        elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_SPP:
             self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp, NavSatStatus.STATUS_FIX)
         # Differential GNSS (DGNSS)
-        elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_DGNSS:
             rospy.logwarn(
                 "[cb_sbp_pos_llh]: case FIX_MODE_DGNSS was not implemented yet." +
                 "Contact the package/repository maintainers.")
             # TODO what to do here?
             return
         # RTK messages.
-        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_FLOAT_RTK:
             # For now publish RTK float only in debug mode.
             if self.debug_mode:
                 self.publish_rtk_float(msg.lat, msg.lon, msg.height)
-        elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_FIX_RTK:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
 
             self.publish_rtk_fix(msg.lat, msg.lon, msg.height)
         # Dead reckoning
-        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
-            rospy.logwarn(
-                "[cb_sbp_pos_llh]: case FIX_MODE_DEAD_RECKONING was not implemented yet." +
-                "Contact the package/repository maintainers.")
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+            self.publish_deadreckoning(msg.lat, msg.lon, msg.height)
             return
         # SBAS Position
-        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_SBAS:
             self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
         else:
             rospy.logerr(
@@ -659,25 +680,34 @@ class PiksiMulti:
                 "Report: 'msg.flags = %d'" % (msg.flags))
             return
 
-        # Update debug msg and publish.
+       # Update debug msg and publish.
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
-
-        if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_INVALID
-        elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_SPP
-        elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_DGNSS
-        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_FLOAT_RTK
-        elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_FIXED_RTK
-        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.FIX_MODE_DEAD_RECKONING
-        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_SBAS
+        
+        if (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_INVALID:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_INVALID
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_SPP:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SPP
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_DGNSS:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_DGNSS
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FLOAT_RTK
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_FIX_RTK:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FIXED_RTK
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.FIX_MODE_DEAD_RECKONING
+        elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_SBAS:
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SBAS
         else:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_UNKNOWN
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_UNKNOWN
+        
+        #Inertial Navigation Mode
+        inertial_nav_mode = (msg.flags & 0x18) >> 3
+        if inertial_nav_mode == 0: 
+            self.receiver_state_msg.ins_mode = ReceiverState_V2_4_1.INS_NAV_MODE_NONE
+        elif inertial_nav_mode == 1:
+            self.receiver_state_msg.ins_mode = ReceiverState_V2_4_1.INS_NAV_MODE_USED
+        else:
+            self.receiver_state_msg.ins_mode = ReceiverState_V2_4_1.INS_NAV_MODE_UNKNOWN
 
         self.publish_receiver_state_msg()
 
@@ -701,6 +731,13 @@ class PiksiMulti:
                                  self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
                                  self.publishers['enu_transform_fix'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
+                                 
+    def publish_deadreckoning(self, latitude, longitude, height):
+        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
+                                 self.publishers['deadreckoning'],
+                                 self.publishers['enu_pose_dr'], self.publishers['enu_point_dr'],
+                                 self.publishers['enu_transform_dr'], self.publishers['best_fix'],
+                                 self.publishers['enu_pose_best_fix'])
 
     def publish_wgs84_point(self, latitude, longitude, height, variance, navsat_status, pub_navsatfix, pub_pose,
                             pub_point, pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
@@ -710,7 +747,7 @@ class PiksiMulti:
         navsatfix_msg.header.frame_id = self.navsatfix_frame_id
         navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
         navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
-        navsatfix_msg.latitude = latitude
+        #navsatfix_msg.latitude = latitude
         navsatfix_msg.longitude = longitude
         navsatfix_msg.altitude = height
         navsatfix_msg.status.status = navsat_status
@@ -746,7 +783,83 @@ class PiksiMulti:
         pub_transform.publish(transform_msg)
         pub_navsatfix_best_pose.publish(navsatfix_msg)
         pub_pose_best_fix.publish(pose_msg)
+        
+    def cb_sbp_vel_body(self, msg_raw, **metadata):
+	msg = MsgVelBody(msg_raw)
 
+	vel_body_msg = VelBody()
+	vel_body_msg.header.stamp = rospy.Time.now()
+	vel_body_msg.velocity.x = msg.x
+	vel_body_msg.velocity.y = msg.y
+	vel_body_msg.velocity.z = msg.z
+	vel_body_msg.cov_xx = msg.cov_x_x
+	vel_body_msg.cov_xy = msg.cov_x_y
+	vel_body_msg.cov_xz = msg.cov_x_z
+	vel_body_msg.cov_yy = msg.cov_y_y
+	vel_body_msg.cov_yz = msg.cov_y_z
+	vel_body_msg.cov_zz = msg.cov_z_z
+
+	if (msg.flags & 0x07) == 0:
+	  vel_body_msg.vel_mode = VelBody.VEL_MODE_INVALID
+	elif (msg.flags & 0x07) == 1:
+	  vel_body_msg.vel_mode = VelBody.VEL_MODE_MEASURED
+	elif (msg.flags & 0x07) == 2:
+	  vel_body_msg.vel_mode = VelBody.VEL_MODE_COMPUTED
+	elif (msg.flags & 0x07) == 3:
+	  vel_body_msg.vel_mode = VelBody.VEL_MODE_DR
+	else:
+	  vel_body_msg.vel_mode = -1
+	  
+	if ((msg.flags & 0x18)>>3) == 0:
+	  vel_body_msg.ins_mode = VelBody.INS_NAV_MODE_NONE
+	elif ((msg.flags & 0x07)>>3) == 1:
+	  vel_body_msg.ins_mode = VelBody.INS_NAV_MODE_USED
+	else:
+	  vel_body_msg.ins_mode = -1
+	self.publishers['vel_body'].publish(vel_body_msg)
+    
+
+    def cb_sbp_angular_rate(self, msg_raw, **metadata):
+        msg = MsgAngularRate(msg_raw)
+        
+        mag_imu_msg = Imu()
+        mag_imu_msg.orientation_covariance[0] = -1
+        
+        mag_imu_msg.angular_velocity.x = radians(msg.x/10*6)
+        mag_imu_msg.angular_velocity.y = radians(msg.y/10*6)
+        mag_imu_msg.angular_velocity.z = radians(msg.z/10*6)
+        
+        mag_imu_msg.linear_acceleration_covariance[0] = -1
+        
+        self.publishers['imu_angular_velocity'].publish(mag_imu_msg)
+        
+    def cb_sbp_orient_quat(self, msg_raw, **metadata):
+        msg = MsgOrientQuat(msg_raw)
+        
+        imu_msg = Imu()
+        imu_msg.orientation.x = msg_raw.x
+        imu_msg.orientation.y = msg_raw.y
+        imu_msg.orientation.z = msg_raw.z
+        imu_msg.orientation.w = msg_raw.w
+        
+        imu_msg.angular_velocity_covariance[0] = -1
+        
+        imu_msg.linear_acceleration_covariance[0] = -1
+        
+        self.publishers['imu_orientation'].publish(imu_msg)
+                
+     
+    def cb_sbp_ins_status(self, msg_raw, **metadata):
+        msg = MsgInsStatus(msg_raw)
+        
+        ins_status_msg = INSStatus()
+        ins_status_msg.header.stamp = rospy.Time.now()
+        ins_status_msg.mode = msg.flags & 0x07
+        ins_status_msg.gnss_fix = msg.flags & 0x08
+        ins_status_msg.ins_error = (msg.flags & 0xF0) >> 4
+ 
+        self.publishers['ins_status'].publish(ins_status_msg)
+    
     def cb_sbp_heartbeat(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
 
@@ -927,9 +1040,10 @@ class PiksiMulti:
 
         return ret
 
+        
     def enu_to_pose_msg(self, east, north, up, variance):
         pose_msg = PoseWithCovariance()
-
+       
         # Fill covariance using variance parameter of GPS.
         pose_msg.covariance[6 * 0 + 0] = variance[0]
         pose_msg.covariance[6 * 1 + 1] = variance[1]
