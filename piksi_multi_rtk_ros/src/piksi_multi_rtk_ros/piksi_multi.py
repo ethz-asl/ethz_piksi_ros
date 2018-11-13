@@ -15,9 +15,9 @@ import std_srvs.srv
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 import piksi_rtk_msgs
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
-                                DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
+                                DeviceMonitor, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
                                 InfoWifiCorrections, Log, MagRaw, Observation, PosEcef, PosLlhMulti,
-                                ReceiverState, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
+                                ReceiverState, UartState, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -234,7 +234,7 @@ class PiksiMulti:
                            SBP_MSG_BASELINE_HEADING, MsgBaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
-        self.init_callback('device_monitor', DeviceMonitor_V2_3_15,
+        self.init_callback('device_monitor', DeviceMonitor,
                            SBP_MSG_DEVICE_MONITOR, MsgDeviceMonitor, 'dev_vin', 'cpu_vint', 'cpu_vaux',
                            'cpu_temperature', 'fe_temperature')
 
@@ -318,9 +318,9 @@ class PiksiMulti:
         publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
                                             Log, queue_size=10)
         publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/uart_state',
-                                                   UartState_V2_3_15, queue_size=10)
+                                                   UartState, queue_size=10)
         publishers['device_monitor'] = rospy.Publisher(rospy.get_name() + '/device_monitor',
-                                                       DeviceMonitor_V2_3_15, queue_size=10)
+                                                       DeviceMonitor, queue_size=10)
         # Points in ENU frame.
         publishers['enu_pose_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_fix',
                                                      PoseWithCovarianceStamped, queue_size=10)
@@ -566,7 +566,7 @@ class PiksiMulti:
 
     def cb_sbp_uart_state(self, msg_raw, **metadata):
         msg = MsgUartState(msg_raw)
-        uart_state_msg = UartState_V2_3_15()
+        uart_state_msg = UartState()
 
         uart_state_msg.latency_avg = msg.latency.avg
         uart_state_msg.latency_lmin = msg.latency.lmin
