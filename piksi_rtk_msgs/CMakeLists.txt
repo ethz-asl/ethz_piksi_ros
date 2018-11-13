@@ -24,7 +24,7 @@ add_message_files(
     BaselineNed.msg
     BasePosEcef.msg
     BasePosLlh.msg
-    DeviceMonitor_V2_3_15.msg
+    DeviceMonitor.msg
     Dops.msg
     DopsMulti.msg
     GpsTime.msg
@@ -42,7 +42,6 @@ add_message_files(
     PosLlhMulti.msg
     ReceiverState.msg
     UartState.msg
-    UartState_V2_3_15.msg
     UtcTimeMulti.msg
     VelEcef.msg
     VelNed.msg
