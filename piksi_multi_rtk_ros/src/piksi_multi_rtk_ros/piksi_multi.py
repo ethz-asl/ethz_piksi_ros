@@ -812,9 +812,9 @@ class PiksiMulti:
                 # Receiver state fields.
                 code = single_measurement_state.mesid.code
                 if code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L1CA or \
-                                code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L2CM or \
-                                code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L1P or \
-                                code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L2P:
+                   code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L2CM or \
+                   code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L1P or \
+                   code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L2P:
                     num_gps_sat += 1
                     cn0_gps.append(single_measurement_state.cn0)
 
@@ -823,17 +823,17 @@ class PiksiMulti:
                     cn0_sbas.append(single_measurement_state.cn0)
 
                 elif code == piksi_rtk_msgs.msg.MeasurementState.CODE_GLO_L1CA or \
-                                code == piksi_rtk_msgs.msg.MeasurementState.CODE_GLO_L2CA:
+                     code == piksi_rtk_msgs.msg.MeasurementState.CODE_GLO_L2CA:
                     num_glonass_sat += 1
                     cn0_glonass.append(single_measurement_state.cn0)
 
                 elif code == piksi_rtk_msgs.msg.MeasurementState.CODE_BDS2_B1 or \
-                                code == piksi_rtk_msgs.msg.MeasurementState.CODE_BDS2_B1:
+                     code == piksi_rtk_msgs.msg.MeasurementState.CODE_BDS2_B2:
                     num_bds_sat += 1
                     cn0_bds.append(single_measurement_state.cn0)
 
                 elif code == piksi_rtk_msgs.msg.MeasurementState.CODE_GAL_E1B or \
-                                code == piksi_rtk_msgs.msg.MeasurementState.CODE_GAL_E7I:
+                     code == piksi_rtk_msgs.msg.MeasurementState.CODE_GAL_E7I:
                     num_gal_sat += 1
                     cn0_gal.append(single_measurement_state.cn0)
 
