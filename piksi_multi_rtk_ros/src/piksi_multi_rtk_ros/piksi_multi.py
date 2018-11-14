@@ -204,7 +204,10 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
         self.handler.add_callback(self.cb_sbp_tracking_state, msg_type=SBP_MSG_TRACKING_STATE)
         self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
-
+	self.handler.add_callback(self.cb_sbp_ins_status, msg_type=SBP_MSG_INS_STATUS)
+	self.handler.add_callback(self.cb_sbp_vel_body, msg_type=SBP_MSG_VEL_BODY)
+	self.handler.add_callback(self.cb_sbp_angular_rate, msg_type=SBP_MSG_ANGULAR_RATE)
+	self.handler.add_callback(self.cb_sbp_orient_quat, msg_type=SBP_MSG_ORIENT_QUAT)
         
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -246,10 +249,7 @@ class PiksiMulti:
                                'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
             self.init_callback('mag_raw', MagRaw,
                                SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
-	    self.handler.add_callback(self.cb_sbp_ins_status, msg_type=SBP_MSG_INS_STATUS)
-	    self.handler.add_callback(self.cb_sbp_vel_body, msg_type=SBP_MSG_VEL_BODY)
-	    self.handler.add_callback(self.cb_sbp_angular_rate, msg_type=SBP_MSG_ANGULAR_RATE)
-	    self.handler.add_callback(self.cb_sbp_orient_quat, msg_type=SBP_MSG_ORIENT_QUAT)
+
 
         # Only if debug mode
         if self.debug_mode:
@@ -359,6 +359,14 @@ class PiksiMulti:
                                                            AgeOfCorrections, queue_size=10)
         publishers['enu_pose_best_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_best_fix',
                                                           PoseWithCovarianceStamped, queue_size=10)
+	publishers['imu_angular_velocity'] = rospy.Publisher(rospy.get_name() + '/imu_angular_velocity',
+							  Imu, queue_size=10)
+	publishers['imu_orientation'] = rospy.Publisher(rospy.get_name() + '/imu_orientation',
+							  Imu, queue_size=10)
+	publishers['ins_status'] = rospy.Publisher(rospy.get_name() + '/ins_status',
+					      INSStatus, queue_size=10)
+	publishers['vel_body'] = rospy.Publisher(rospy.get_name() + '/vel_body',
+						VelBody, queue_size=10)
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -366,15 +374,7 @@ class PiksiMulti:
                                                     ImuRawMulti, queue_size=10)
             publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
                                                     MagRaw, queue_size=10)
-	    publishers['imu_angular_velocity'] = rospy.Publisher(rospy.get_name() + '/imu_angular_velocity',
-							      Imu, queue_size=10)
-	    publishers['imu_orientation'] = rospy.Publisher(rospy.get_name() + '/imu_orientation',
-							      Imu, queue_size=10)
-	    publishers['ins_status'] = rospy.Publisher(rospy.get_name() + '/ins_status',
-                                                  INSStatus, queue_size=10)
-	    publishers['vel_body'] = rospy.Publisher(rospy.get_name() + '/vel_body',
-                                                  VelBody, queue_size=10)
-
+	
         # Topics published only if in "debug mode".
         if self.debug_mode:
             publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
@@ -808,14 +808,14 @@ class PiksiMulti:
 	elif (msg.flags & 0x07) == 3:
 	  vel_body_msg.vel_mode = VelBody.VEL_MODE_DR
 	else:
-	  vel_body_msg.vel_mode = -1
+	  vel_body_msg.vel_mode = 0 #TODO: Better flags
 	  
 	if ((msg.flags & 0x18)>>3) == 0:
 	  vel_body_msg.ins_mode = VelBody.INS_NAV_MODE_NONE
 	elif ((msg.flags & 0x07)>>3) == 1:
 	  vel_body_msg.ins_mode = VelBody.INS_NAV_MODE_USED
 	else:
-	  vel_body_msg.ins_mode = -1
+	  vel_body_msg.ins_mode = 0
 	self.publishers['vel_body'].publish(vel_body_msg)
     
 
@@ -825,9 +825,9 @@ class PiksiMulti:
         mag_imu_msg = Imu()
         mag_imu_msg.orientation_covariance[0] = -1
         
-        mag_imu_msg.angular_velocity.x = radians(msg.x/10*6)
-        mag_imu_msg.angular_velocity.y = radians(msg.y/10*6)
-        mag_imu_msg.angular_velocity.z = radians(msg.z/10*6)
+        mag_imu_msg.angular_velocity.x = math.radians(msg.x/10**6)
+        mag_imu_msg.angular_velocity.y = math.radians(msg.y/10**6)
+        mag_imu_msg.angular_velocity.z = math.radians(msg.z/10**6)
         
         mag_imu_msg.linear_acceleration_covariance[0] = -1
         
@@ -837,10 +837,11 @@ class PiksiMulti:
         msg = MsgOrientQuat(msg_raw)
         
         imu_msg = Imu()
-        imu_msg.orientation.x = msg_raw.x
-        imu_msg.orientation.y = msg_raw.y
-        imu_msg.orientation.z = msg_raw.z
-        imu_msg.orientation.w = msg_raw.w
+        imu_msg.orientation.x = msg_raw.x*(2**-31)
+        imu_msg.orientation.y = msg_raw.y*(2**-31)
+        imu_msg.orientation.z = msg_raw.z*(2**-31)
+        imu_msg.orientation.w = msg_raw.w*(2**-31)
+        imu_msg.orientation_covariance[0] = imu_msg.orientation.x + imu_msg.orientation.y + imu_msg.orientation.z +imu_msg.orientation.w
         
         imu_msg.angular_velocity_covariance[0] = -1
         
