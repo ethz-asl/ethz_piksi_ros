@@ -21,6 +21,7 @@ from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading,
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
+# from decimal import Decimal
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -669,7 +670,6 @@ class PiksiMulti:
         # Dead reckoning
         elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             self.publish_deadreckoning(msg.lat, msg.lon, msg.height)
-            return
         # SBAS Position
         elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_SBAS:
             self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
@@ -694,7 +694,7 @@ class PiksiMulti:
         elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_FIX_RTK:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FIXED_RTK
         elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.FIX_MODE_DEAD_RECKONING
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_DEAD_RECKONING
         elif (msg.flags & 0x07) == PosLlhMulti.FIX_MODE_SBAS:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SBAS
         else:
@@ -747,7 +747,7 @@ class PiksiMulti:
         navsatfix_msg.header.frame_id = self.navsatfix_frame_id
         navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
         navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
-        #navsatfix_msg.latitude = latitude
+        navsatfix_msg.latitude = latitude
         navsatfix_msg.longitude = longitude
         navsatfix_msg.altitude = height
         navsatfix_msg.status.status = navsat_status
@@ -786,7 +786,7 @@ class PiksiMulti:
         
     def cb_sbp_vel_body(self, msg_raw, **metadata):
 	msg = MsgVelBody(msg_raw)
-
+	
 	vel_body_msg = VelBody()
 	vel_body_msg.header.stamp = rospy.Time.now()
 	vel_body_msg.velocity.x = msg.x
@@ -798,7 +798,8 @@ class PiksiMulti:
 	vel_body_msg.cov_yy = msg.cov_y_y
 	vel_body_msg.cov_yz = msg.cov_y_z
 	vel_body_msg.cov_zz = msg.cov_z_z
-
+	
+	flag_not_found = False
 	if (msg.flags & 0x07) == 0:
 	  vel_body_msg.vel_mode = VelBody.VEL_MODE_INVALID
 	elif (msg.flags & 0x07) == 1:
@@ -808,15 +809,17 @@ class PiksiMulti:
 	elif (msg.flags & 0x07) == 3:
 	  vel_body_msg.vel_mode = VelBody.VEL_MODE_DR
 	else:
-	  vel_body_msg.vel_mode = 0 #TODO: Better flags
+	  flag_not_found = True
 	  
 	if ((msg.flags & 0x18)>>3) == 0:
 	  vel_body_msg.ins_mode = VelBody.INS_NAV_MODE_NONE
 	elif ((msg.flags & 0x07)>>3) == 1:
 	  vel_body_msg.ins_mode = VelBody.INS_NAV_MODE_USED
 	else:
-	  vel_body_msg.ins_mode = 0
-	self.publishers['vel_body'].publish(vel_body_msg)
+	  flag_not_found = True
+	  
+	if flag_not_found == False:
+	  self.publishers['vel_body'].publish(vel_body_msg)
     
 
     def cb_sbp_angular_rate(self, msg_raw, **metadata):
@@ -837,12 +840,12 @@ class PiksiMulti:
         msg = MsgOrientQuat(msg_raw)
         
         imu_msg = Imu()
-        imu_msg.orientation.x = msg_raw.x*(2**-31)
-        imu_msg.orientation.y = msg_raw.y*(2**-31)
-        imu_msg.orientation.z = msg_raw.z*(2**-31)
-        imu_msg.orientation.w = msg_raw.w*(2**-31)
-        imu_msg.orientation_covariance[0] = imu_msg.orientation.x + imu_msg.orientation.y + imu_msg.orientation.z +imu_msg.orientation.w
-        
+        imu_msg.orientation.x = msg.x*(2**-31)
+        imu_msg.orientation.y = msg.y*(2**-31)
+        imu_msg.orientation.z = msg.z*(2**-31)
+        imu_msg.orientation.w = msg.w*(2**-31)
+        imu_msg.orientation_covariance[0] = (imu_msg.orientation.x**2) + (imu_msg.orientation.y**2) + (imu_msg.orientation.z**2) + (imu_msg.orientation.w**2)
+        imu_msg.orientation_covariance[1] = msg.x*(2**-31)**2 + msg.y*(2**-31)**2 + msg.z*(2**-31)**2 + msg.w*(2**-31)**2
         imu_msg.angular_velocity_covariance[0] = -1
         
         imu_msg.linear_acceleration_covariance[0] = -1
