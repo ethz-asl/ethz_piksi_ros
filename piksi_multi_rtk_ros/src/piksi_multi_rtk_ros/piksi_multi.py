@@ -21,7 +21,6 @@ from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading,
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
-# from decimal import Decimal
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -52,7 +51,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.4.0'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.4.2'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -131,7 +130,7 @@ class PiksiMulti:
         self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
         self.var_spp_sbas = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
-        self.var_deadreckoning = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
+        self.var_deadreckoning = rospy.get_param('~var_dr_fix', [1.0, 1.0, 1.0])
         self.navsatfix_frame_id = rospy.get_param('~navsatfix_frame_id', 'gps')
 
         # Local ENU frame settings.
@@ -733,7 +732,7 @@ class PiksiMulti:
                                  self.publishers['enu_pose_best_fix'])
                                  
     def publish_deadreckoning(self, latitude, longitude, height):
-        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
+        self.publish_wgs84_point(latitude, longitude, height, self.var_dr_fix, NavSatStatus.STATUS_GBAS_FIX,
                                  self.publishers['deadreckoning'],
                                  self.publishers['enu_pose_dr'], self.publishers['enu_point_dr'],
                                  self.publishers['enu_transform_dr'], self.publishers['best_fix'],

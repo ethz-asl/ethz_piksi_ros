@@ -29,7 +29,7 @@ string STR_FIX_MODE_SPP            = SPP
 string STR_FIX_MODE_DGNSS          = DGNSS
 string STR_FIX_MODE_FLOAT_RTK      = FLOAT_RTK
 string STR_FIX_MODE_FIXED_RTK      = FIXED_RTK
-string STR_FIX_MODE_DEAD_RECKONING = DEAD_RECKONING
+string STR_FIX_MODE_DEAD_RECKONING = DR
 string STR_FIX_MODE_SBAS           = SBAS
 string STR_FIX_MODE_UNKNOWN        = Unknown
 
