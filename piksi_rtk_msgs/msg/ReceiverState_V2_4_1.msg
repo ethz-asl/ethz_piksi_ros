@@ -1,6 +1,6 @@
 # Miscellaneous information form different SBP messages
 
-# Message definition based on libsbp v2.3.15
+# Message definition based on libsbp v2.4.1
 
 
 Header header
@@ -22,7 +22,7 @@ uint8[] cn0_glonass             # Carrier-to-Noise density of GLONASS satellites
 string fix_mode                 # Invalid, Single Point Position (SPP), Differential GNSS (DGNSS), Float RTK, Fixed RTK.
 string ins_mode                 # INS used or not used.
 
-# codes available in message "TrackingState_V2_3_15.msg"
+# codes available in message "TrackingState_V2_4_1.msg"
 
 string STR_FIX_MODE_INVALID        = Invalid
 string STR_FIX_MODE_SPP            = SPP

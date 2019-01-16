@@ -14,10 +14,10 @@ import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
-                                DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
+                                DeviceMonitor_V2_4_1, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
                                 InfoWifiCorrections, Log, MagRaw, Observation, PosEcef, PosLlhMulti,
-                                ReceiverState_V2_4_1, TrackingState_V2_3_15,
-                                UartState_V2_3_15, UtcTimeMulti, VelBody, VelEcef, VelNed, INSStatus)
+                                ReceiverState_V2_4_1, TrackingState_V2_4_1,
+                                UartState_V2_4_1, UtcTimeMulti, VelBody, VelEcef, VelNed, INSStatus)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -51,7 +51,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.4.2'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.4.1'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -238,7 +238,7 @@ class PiksiMulti:
                            SBP_MSG_BASELINE_HEADING, MsgBaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
-        self.init_callback('device_monitor', DeviceMonitor_V2_3_15,
+        self.init_callback('device_monitor', DeviceMonitor_V2_4_1,
                            SBP_MSG_DEVICE_MONITOR, MsgDeviceMonitor, 'dev_vin', 'cpu_vint', 'cpu_vaux',
                            'cpu_temperature', 'fe_temperature')
 
@@ -320,7 +320,7 @@ class PiksiMulti:
         publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
                                                   Heartbeat, queue_size=10)
         publishers['tracking_state'] = rospy.Publisher(rospy.get_name() + '/tracking_state',
-                                                       TrackingState_V2_3_15, queue_size=10)
+                                                       TrackingState_V2_4_1, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
                                                        ReceiverState_V2_4_1, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
@@ -331,9 +331,9 @@ class PiksiMulti:
         publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
                                             Log, queue_size=10)
         publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/uart_state',
-                                                   UartState_V2_3_15, queue_size=10)
+                                                   UartState_V2_4_1, queue_size=10)
         publishers['device_monitor'] = rospy.Publisher(rospy.get_name() + '/device_monitor',
-                                                       DeviceMonitor_V2_3_15, queue_size=10)
+                                                       DeviceMonitor_V2_4_1, queue_size=10)
         # Points in ENU frame.
         publishers['enu_pose_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_fix',
                                                      PoseWithCovarianceStamped, queue_size=10)
@@ -587,7 +587,7 @@ class PiksiMulti:
 
     def cb_sbp_uart_state(self, msg_raw, **metadata):
         msg = MsgUartState(msg_raw)
-        uart_state_msg = UartState_V2_3_15()
+        uart_state_msg = UartState_V2_4_1()
 
         uart_state_msg.latency_avg = msg.latency.avg
         uart_state_msg.latency_lmin = msg.latency.lmin
@@ -904,7 +904,7 @@ class PiksiMulti:
         #     print single_tracking_state
         #     print "--------------------\n"
 
-        tracking_state_msg = TrackingState_V2_3_15()
+        tracking_state_msg = TrackingState_V2_4_1()
         tracking_state_msg.header.stamp = rospy.Time.now()
         tracking_state_msg.sat = []
         tracking_state_msg.code = []
@@ -931,19 +931,19 @@ class PiksiMulti:
 
                 # Receiver state fields.
                 code = single_tracking_state.sid.code
-                if code == TrackingState_V2_3_15.CODE_GPS_L1CA or \
-                                code == TrackingState_V2_3_15.CODE_GPS_L2CM or \
-                                code == TrackingState_V2_3_15.CODE_GPS_L1P or \
-                                code == TrackingState_V2_3_15.CODE_GPS_L2P:
+                if code == TrackingState_V2_4_1.CODE_GPS_L1CA or \
+                                code == TrackingState_V2_4_1.CODE_GPS_L2CM or \
+                                code == TrackingState_V2_4_1.CODE_GPS_L1P or \
+                                code == TrackingState_V2_4_1.CODE_GPS_L2P:
                     num_gps_sat += 1
                     cn0_gps.append(single_tracking_state.cn0)
 
-                if code == TrackingState_V2_3_15.CODE_SBAS_L1CA:
+                if code == TrackingState_V2_4_1.CODE_SBAS_L1CA:
                     num_sbas_sat += 1
                     cn0_sbas.append(single_tracking_state.cn0)
 
-                if code == TrackingState_V2_3_15.CODE_GLO_L1CA or \
-                                code == TrackingState_V2_3_15.CODE_GLO_L1CA:
+                if code == TrackingState_V2_4_1.CODE_GLO_L1CA or \
+                                code == TrackingState_V2_4_1.CODE_GLO_L1CA:
                     num_glonass_sat += 1
                     cn0_glonass.append(single_tracking_state.cn0)
 
