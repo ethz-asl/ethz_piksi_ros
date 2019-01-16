@@ -3,7 +3,7 @@
 # interface: specifies the interface over which to connect.
 # supported values are 'serial' and 'tcp'
 # if this value is not valid, the driver will default to serial communication.
-interface: 'tcp'
+interface: 'serial'
 
 # set this to true if the Swift device is acting as RTK Base Station.
 base_station_mode: false
@@ -16,7 +16,7 @@ driver_verbose: true
 
 # if true, raw imu and magnetometer are published
 # (messages are available only if enabled with the swiftnav console).
-publish_raw_imu_and_mag: true
+publish_raw_imu_and_mag: false
 
 # broadcast_addr: ip address to use for broadcasting corrections
 # whenever possible, use network broadcast, not global ip broadcast
@@ -41,6 +41,8 @@ var_spp: [25.0, 25.0, 64.0]
 var_spp_sbas: [1.0, 1.0, 1.0]
 # RTK float mode.
 var_rtk_float: [25.0, 25.0, 64.0]
+# RTK fix mode.
+var_rtk_fix: [0.0049, 0.0049, 0.01]
 # Dead Reckoning fix mode.
 var_dr_fix: [1.0, 1.0, 1.0]
 
@@ -54,13 +56,13 @@ serial_port: '/dev/ttyUSB0'
 # baud_rate: defines the rate for the serial connection. This driver uses
 # 230400 as the default. Swift Navigation receivers ship with a
 # default baud rate of 115200.
-baud_rate: 115200
+baud_rate: 230400
 
 # TCP Settings
 
 # tcp_addr: the IP address of the receiver. By default, Swift Navigation
 # receivers have an IP address of 192.168.0.222.
-tcp_addr: 10.168.0.222 #192.168.0.222
+tcp_addr: 192.168.0.222
 
 # tcp_port: the port number of the TCP server. By default, Swift Navigation
 # receivers publish SBP data on TCP port 55555.
