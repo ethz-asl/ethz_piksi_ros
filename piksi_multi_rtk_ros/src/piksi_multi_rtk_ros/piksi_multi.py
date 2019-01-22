@@ -130,7 +130,7 @@ class PiksiMulti:
         self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
         self.var_spp_sbas = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
-        self.var_deadreckoning = rospy.get_param('~var_dr_fix', [1.0, 1.0, 1.0])
+        self.var_dr_fix = rospy.get_param('~var_dr_fix', [1.0, 1.0, 1.0])
         self.navsatfix_frame_id = rospy.get_param('~navsatfix_frame_id', 'gps')
 
         # Local ENU frame settings.
