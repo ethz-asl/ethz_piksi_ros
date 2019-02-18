@@ -19,7 +19,7 @@
 #include <ros/ros.h>
 
 // messages
-#include <piksi_rtk_msgs/ReceiverState_V2_3_15.h>
+#include <piksi_rtk_msgs/ReceiverState.h>
 #include <piksi_rtk_msgs/BaselineNed.h>
 #include <piksi_rtk_msgs/InfoWifiCorrections.h>
 #include <piksi_rtk_msgs/UtcTimeMulti.h>
@@ -93,7 +93,7 @@ Q_OBJECT
   ros::Subscriber piksiHeartbeatSub_;
   ros::Subscriber piksiAgeOfCorrectionsSub_;
 
-  void piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3_15& msg);
+  void piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState& msg);
   void piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg);
   void piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections& msg);
   void piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg);

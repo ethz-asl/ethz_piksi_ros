@@ -152,7 +152,7 @@ void GpsRtkPlugin::timerCallback(const ros::TimerEvent& e) {
   }
 }
 
-void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3_15& msg) {
+void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState& msg) {
   // Type of fix
   const QString fix_mode = QString::fromStdString(msg.fix_mode);
   QString color_fix_mode("");
