@@ -13,11 +13,10 @@ import numpy as np
 import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
-import piksi_rtk_msgs
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
-                                DeviceMonitor, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
-                                InfoWifiCorrections, Log, MagRaw, Observation, PosEcef, PosLlhMulti,
-                                ReceiverState, UartState, UtcTimeMulti, VelEcef, VelNed)
+                                DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
+                                InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhMulti,
+                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -234,7 +233,7 @@ class PiksiMulti:
                            SBP_MSG_BASELINE_HEADING, MsgBaselineHeading, 'tow', 'heading', 'n_sats', 'flags')
         self.init_callback('age_of_corrections', AgeOfCorrections,
                            SBP_MSG_AGE_CORRECTIONS, MsgAgeCorrections, 'tow', 'age')
-        self.init_callback('device_monitor', DeviceMonitor,
+        self.init_callback('device_monitor', DeviceMonitor_V2_3_15,
                            SBP_MSG_DEVICE_MONITOR, MsgDeviceMonitor, 'dev_vin', 'cpu_vint', 'cpu_vaux',
                            'cpu_temperature', 'fe_temperature')
 
@@ -272,7 +271,7 @@ class PiksiMulti:
         return num_wifi_corrections
 
     def init_receiver_state_msg(self):
-        receiver_state_msg = ReceiverState()
+        receiver_state_msg = ReceiverState_V2_4_1()
         receiver_state_msg.num_sat = 0  # Unknown.
         receiver_state_msg.rtk_mode_fix = False  # Unknown.
         receiver_state_msg.sat = []  # Unknown.
@@ -287,7 +286,7 @@ class PiksiMulti:
         receiver_state_msg.cn0_sbas = []  # Unknown.
         receiver_state_msg.num_glonass_sat = 0  # Unknown.
         receiver_state_msg.cn0_glonass = []  # Unknown.
-        receiver_state_msg.fix_mode = ReceiverState.STR_FIX_MODE_UNKNOWN
+        receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_UNKNOWN
 
         return receiver_state_msg
 
@@ -307,9 +306,9 @@ class PiksiMulti:
         publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
                                                   Heartbeat, queue_size=10)
         publishers['measurement_state'] = rospy.Publisher(rospy.get_name() + '/measurement_state',
-                                                       piksi_rtk_msgs.msg.MeasurementState, queue_size=10)
+                                                       piksi_rtk_msgs.msg.MeasurementState_V2_4_1, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
-                                                       ReceiverState, queue_size=10)
+                                                       ReceiverState_V2_4_1, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
@@ -318,9 +317,9 @@ class PiksiMulti:
         publishers['log'] = rospy.Publisher(rospy.get_name() + '/log',
                                             Log, queue_size=10)
         publishers['uart_state'] = rospy.Publisher(rospy.get_name() + '/uart_state',
-                                                   UartState, queue_size=10)
+                                                   UartState_V2_3_15, queue_size=10)
         publishers['device_monitor'] = rospy.Publisher(rospy.get_name() + '/device_monitor',
-                                                       DeviceMonitor, queue_size=10)
+                                                       DeviceMonitor_V2_3_15, queue_size=10)
         # Points in ENU frame.
         publishers['enu_pose_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_fix',
                                                      PoseWithCovarianceStamped, queue_size=10)
@@ -566,7 +565,7 @@ class PiksiMulti:
 
     def cb_sbp_uart_state(self, msg_raw, **metadata):
         msg = MsgUartState(msg_raw)
-        uart_state_msg = UartState()
+        uart_state_msg = UartState_V2_3_15()
 
         uart_state_msg.latency_avg = msg.latency.avg
         uart_state_msg.latency_lmin = msg.latency.lmin
@@ -663,21 +662,21 @@ class PiksiMulti:
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
 
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
-            self.receiver_state_msg.fix_mode = ReceiverState.STR_FIX_MODE_INVALID
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_INVALID
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
-            self.receiver_state_msg.fix_mode = ReceiverState.STR_FIX_MODE_SPP
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SPP
         elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
-            self.receiver_state_msg.fix_mode = ReceiverState.STR_FIX_MODE_DGNSS
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_DGNSS
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
-            self.receiver_state_msg.fix_mode = ReceiverState.STR_FIX_MODE_FLOAT_RTK
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FLOAT_RTK
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
-            self.receiver_state_msg.fix_mode = ReceiverState.STR_FIX_MODE_FIXED_RTK
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FIXED_RTK
         elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
-            self.receiver_state_msg.fix_mode = ReceiverState.FIX_MODE_DEAD_RECKONING
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.FIX_MODE_DEAD_RECKONING
         elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
-            self.receiver_state_msg.fix_mode = ReceiverState.STR_FIX_MODE_SBAS
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SBAS
         else:
-            self.receiver_state_msg.fix_mode = ReceiverState.STR_FIX_MODE_UNKNOWN
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_UNKNOWN
 
         self.publish_receiver_state_msg()
 
@@ -782,7 +781,7 @@ class PiksiMulti:
     def cb_sbp_measurement_state(self, msg_raw, **metadata):
         msg = MsgMeasurementState(msg_raw)
 
-        measurement_state_msg = piksi_rtk_msgs.msg.MeasurementState()
+        measurement_state_msg = piksi_rtk_msgs.msg.MeasurementState_V2_4_1()
         measurement_state_msg.header.stamp = rospy.Time.now()
         measurement_state_msg.sat = []
         measurement_state_msg.code = []
@@ -811,29 +810,29 @@ class PiksiMulti:
 
                 # Receiver state fields.
                 code = single_measurement_state.mesid.code
-                if code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L1CA or \
-                   code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L2CM or \
-                   code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L1P or \
-                   code == piksi_rtk_msgs.msg.MeasurementState.CODE_GPS_L2P:
+                if code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GPS_L1CA or \
+                   code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GPS_L2CM or \
+                   code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GPS_L1P or \
+                   code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GPS_L2P:
                     num_gps_sat += 1
                     cn0_gps.append(single_measurement_state.cn0)
 
-                elif code == piksi_rtk_msgs.msg.MeasurementState.CODE_SBAS_L1CA:
+                elif code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_SBAS_L1CA:
                     num_sbas_sat += 1
                     cn0_sbas.append(single_measurement_state.cn0)
 
-                elif code == piksi_rtk_msgs.msg.MeasurementState.CODE_GLO_L1CA or \
-                     code == piksi_rtk_msgs.msg.MeasurementState.CODE_GLO_L2CA:
+                elif code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GLO_L1CA or \
+                     code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GLO_L2CA:
                     num_glonass_sat += 1
                     cn0_glonass.append(single_measurement_state.cn0)
 
-                elif code == piksi_rtk_msgs.msg.MeasurementState.CODE_BDS2_B1 or \
-                     code == piksi_rtk_msgs.msg.MeasurementState.CODE_BDS2_B2:
+                elif code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_BDS2_B1 or \
+                     code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_BDS2_B2:
                     num_bds_sat += 1
                     cn0_bds.append(single_measurement_state.cn0)
 
-                elif code == piksi_rtk_msgs.msg.MeasurementState.CODE_GAL_E1B or \
-                     code == piksi_rtk_msgs.msg.MeasurementState.CODE_GAL_E7I:
+                elif code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GAL_E1B or \
+                     code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GAL_E7I:
                     num_gal_sat += 1
                     cn0_gal.append(single_measurement_state.cn0)
 

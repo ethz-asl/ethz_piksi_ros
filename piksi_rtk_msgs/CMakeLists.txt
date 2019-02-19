@@ -24,7 +24,7 @@ add_message_files(
     BaselineNed.msg
     BasePosEcef.msg
     BasePosLlh.msg
-    DeviceMonitor.msg
+    DeviceMonitor_V2_3_15.msg
     Dops.msg
     DopsMulti.msg
     GpsTime.msg
@@ -35,13 +35,17 @@ add_message_files(
     InfoWifiCorrections.msg
     Log.msg
     MagRaw.msg
-    MeasurementState.msg
+    MeasurementState_V2_4_1.msg
     Observation.msg
     PosEcef.msg
     PosLlh.msg
     PosLlhMulti.msg
-    ReceiverState.msg
-    UartState.msg
+    ReceiverState_V2_2_15.msg
+    ReceiverState_V2_3_15.msg
+    ReceiverState_V2_4_1.msg
+    TrackingState_V2_2_15.msg
+    TrackingState_V2_3_15.msg
+    UartState_V2_3_15.msg
     UtcTimeMulti.msg
     VelEcef.msg
     VelNed.msg
