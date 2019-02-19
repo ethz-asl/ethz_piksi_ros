@@ -13,6 +13,7 @@ import numpy as np
 import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
+import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
                                 InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhMulti,
