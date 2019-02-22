@@ -7,7 +7,7 @@ The piksi_multi_rtk_ros package has been tested under ROS Indigo and Ubuntu 14.0
 
 **WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200').
 This means you have to set your Piksi Multi baud rate correctly by following [these settings instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi-Multi#settings).
-  
+
 ## Installation and Configuration
 **WARNING: install __ONLY ONE__ version of SBP library, depending of which Hardware version you are using. This page contains the driver for [Piksi Multi](https://www.swiftnav.com/piksi-multi).
 If you are using [Piksi V2](http://docs.swiftnav.com/pdfs/piksi_datasheet_v2.3.1.pdf) please check its driver version: [piksi_rtk_gps](https://github.com/ethz-asl/mav_rtk_gps/tree/master/piksi_rtk_gps)** (it is not supported anymore).
@@ -22,8 +22,9 @@ source install/install_piksi_multi.sh
 ### Firmware and SBP Lib Version
 Please check [here](https://support.swiftnav.com/customer/en/portal/articles/2492810-swift-binary-protocol) which Piksi Multi firmware version based on the current SBP Lib version.
 
-Currently the `install_piksi_multi.sh` will install **SBP Lib 2.3.15** (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)).
-This means you are supposed to install **Firmware 1.5.12** from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
+Currently the `install_piksi_multi.sh` will install **SBP Lib 2.4.1** (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)).
+This means you are supposed to install **Firmware 2.1.14** from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
+**WARNING: If upgrading from a firmware below v2.0.0 to a firmware greater than v2.0.0, you must upgrade to v2.0.0 first.**
 
 ## Usage
 **Make sure** you configured your Piksi(s) by following [these instructions](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Installing-and-Configuring-Your-Piksi).
@@ -35,7 +36,7 @@ If you have already configured Piksi Multi to act as a base station and sampled 
 roslaunch piksi_multi_rtk_ros piksi_multi_base_station.launch
 ```
 If you have already configured Piksi Multi to act as a base station (and did **NOT** sample its position), then launch the following file.
-Once the survey is over, the sampled position will be automatically written in Piksi flash memory. 
+Once the survey is over, the sampled position will be automatically written in Piksi flash memory.
 ```
 roslaunch piksi_multi_rtk_ros geodetic_survey.launch
 ```
@@ -66,7 +67,7 @@ The most interesting advertised topics are:
    this message contains ENU (East-North-Up) coordinate of the receiver in case of SPP fix. Orientation is set to identity quaternion (w=1);
  - `/piksi/enu_pose_best_fix` ([geometry_msgs/PointStamped](http://docs.ros.org/api/geometry_msgs/html/msg/PointStamped.html))
    this message contains ENU (East-North-Up) coordinate of the receiver with best available fix at the moment (either RTK or SPP). Orientation is set to identity quaternion (w=1);
-   
+
 For a complete list of advertised topics please check function [`advertise_topics`](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/src/piksi_multi.py#L264).
 
 ### Raw IMU and Magnetometer Measurements
@@ -80,7 +81,7 @@ In the former case the following private parameters must be set:
  - `latitude0_deg`: latitude where the origin of ENU frame is located, in degrees;
  - `longitude0_deg`: longitude where the origin of ENU frame is located, in degrees;
  - `altitude0`: altitude where the origin of ENU frame is located, in meters;
- 
+
 see also configuration file [enu_origin_example.yaml](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/cfg/enu_origin_example.yaml).
 
 ## Corrections Over Wifi
