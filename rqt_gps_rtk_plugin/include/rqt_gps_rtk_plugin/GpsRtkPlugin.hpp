@@ -19,7 +19,7 @@
 #include <ros/ros.h>
 
 // messages
-#include <piksi_rtk_msgs/ReceiverState_V2_3_15.h>
+#include <piksi_rtk_msgs/ReceiverState_V2_4_1.h>
 #include <piksi_rtk_msgs/BaselineNed.h>
 #include <piksi_rtk_msgs/InfoWifiCorrections.h>
 #include <piksi_rtk_msgs/UtcTimeMulti.h>
@@ -75,10 +75,14 @@ Q_OBJECT
     *pString += "]";
   }
 
-  template<typename T>
-  std::vector<T> scaleSignalStrength(const std::vector<T> &vec_signal_strength) {
+  template <typename T>
+  std::vector<T> scaleSignalStrength(
+      const std::vector<T>& vec_signal_strength) {
     auto scaled_signal_strength = vec_signal_strength;
-    for_each(scaled_signal_strength.begin(), scaled_signal_strength.end(), [](T &signal_strength) {signal_strength /= kSignalStrengthScalingFactor;});
+    for_each(scaled_signal_strength.begin(), scaled_signal_strength.end(),
+             [](T& signal_strength) {
+               signal_strength /= kSignalStrengthScalingFactor;
+             });
 
     return scaled_signal_strength;
   }
@@ -93,7 +97,7 @@ Q_OBJECT
   ros::Subscriber piksiHeartbeatSub_;
   ros::Subscriber piksiAgeOfCorrectionsSub_;
 
-  void piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3_15& msg);
+  void piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4_1& msg);
   void piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg);
   void piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections& msg);
   void piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg);

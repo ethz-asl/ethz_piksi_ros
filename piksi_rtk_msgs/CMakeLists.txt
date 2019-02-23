@@ -35,6 +35,7 @@ add_message_files(
     InfoWifiCorrections.msg
     Log.msg
     MagRaw.msg
+    MeasurementState_V2_4_1.msg
     Observation.msg
     PosEcef.msg
     PosLlh.msg
@@ -42,6 +43,7 @@ add_message_files(
     ReceiverState.msg
     ReceiverState_V2_2_15.msg
     ReceiverState_V2_3_15.msg
+    ReceiverState_V2_4_1.msg
     TrackingState.msg
     TrackingState_V2_2_15.msg
     TrackingState_V2_3_15.msg

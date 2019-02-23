@@ -103,6 +103,10 @@ void GpsRtkPlugin::initLabels() {
   ui_.label_sbasStrength->setText("N/A");
   ui_.label_glonassSatellites->setText("N/A");
   ui_.label_glonassStrength->setText("N/A");
+  ui_.label_beidouSatellites->setText("N/A");
+  ui_.label_beidouStrength->setText("N/A");
+  ui_.label_galileoSatellites->setText("N/A");
+  ui_.label_galileoStrength->setText("N/A");
   ui_.label_ageOfCorrections->setText("N/A");
 }
 
@@ -136,6 +140,14 @@ void GpsRtkPlugin::timerCallback(const ros::TimerEvent& e) {
     QMetaObject::invokeMethod(ui_.label_glonassSatellites, "setText", Q_ARG(QString, na));
     // GLONASS signal strength
     QMetaObject::invokeMethod(ui_.label_glonassStrength, "setText", Q_ARG(QString, na));
+    // BEIDOU number of satellites
+    QMetaObject::invokeMethod(ui_.label_beidouSatellites, "setText", Q_ARG(QString, na));
+    // BEIDOU signal strength
+    QMetaObject::invokeMethod(ui_.label_beidouStrength, "setText", Q_ARG(QString, na));
+    // GALILEO number of satellites
+    QMetaObject::invokeMethod(ui_.label_galileoSatellites, "setText", Q_ARG(QString, na));
+    // GALILEO signal strength
+    QMetaObject::invokeMethod(ui_.label_galileoStrength, "setText", Q_ARG(QString, na));
   }
   if (currentStamp - lastMsgStamps_.baselineNedStamp_ > maxTimeout_) {
     QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator, "setText", Q_ARG(QString, na));
@@ -152,7 +164,7 @@ void GpsRtkPlugin::timerCallback(const ros::TimerEvent& e) {
   }
 }
 
-void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3_15& msg) {
+void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4_1& msg) {
   // Type of fix
   const QString fix_mode = QString::fromStdString(msg.fix_mode);
   QString color_fix_mode("");
@@ -168,6 +180,8 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3
     color_fix_mode = "QLabel {background-color: rgb(255, 138, 138); color: rgb(191, 0, 191);}";
   } else if (msg.fix_mode == msg.STR_FIX_MODE_FIXED_RTK) {
     color_fix_mode = "QLabel {background-color: lime; color: rgb(255, 166, 2);}";
+  } else if (msg.fix_mode == msg.STR_FIX_MODE_DEAD_RECKONING) {
+    color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(51, 0, 102);}";
   } else if (msg.fix_mode == msg.STR_FIX_MODE_SBAS) {
     color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(43, 255, 223);}";
   }
@@ -211,6 +225,16 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_3
   // GLONASS signal strength
   vectorToString(scaleSignalStrength(msg.cn0_glonass), &signal_strength);
   QMetaObject::invokeMethod(ui_.label_glonassStrength, "setText", Q_ARG(QString, signal_strength));
+  // BEIDOU number of satellites
+  QMetaObject::invokeMethod(ui_.label_beidouSatellites, "setText", Q_ARG(QString, QString::number(msg.num_bds_sat)));
+  // BEIDOU signal strength
+  vectorToString(scaleSignalStrength(msg.cn0_bds), &signal_strength);
+  QMetaObject::invokeMethod(ui_.label_beidouStrength, "setText", Q_ARG(QString, signal_strength));
+  // GALILEO number of satellites
+  QMetaObject::invokeMethod(ui_.label_galileoSatellites, "setText", Q_ARG(QString, QString::number(msg.num_gal_sat)));
+  // GALILEO signal strength
+  vectorToString(scaleSignalStrength(msg.cn0_gal), &signal_strength);
+  QMetaObject::invokeMethod(ui_.label_galileoStrength, "setText", Q_ARG(QString, signal_strength));
 
   //update last msg stamp
   lastMsgStamps_.receiverStateStamp_ = msg.header.stamp.toSec();

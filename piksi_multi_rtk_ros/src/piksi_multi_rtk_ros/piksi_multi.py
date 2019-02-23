@@ -13,11 +13,11 @@ import numpy as np
 import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
+import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
-                                InfoWifiCorrections, Log, MagRaw, Observation, PosEcef, PosLlhMulti,
-                                ReceiverState_V2_3_15, TrackingState_V2_3_15,
-                                UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
+                                InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhMulti,
+                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -51,7 +51,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.3.15'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.4.1'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137
@@ -202,7 +202,7 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_sbp_obs, msg_type=SBP_MSG_OBS)
         self.handler.add_callback(self.cb_sbp_settings_read_by_index_resp, msg_type=SBP_MSG_SETTINGS_READ_BY_INDEX_RESP)
         self.handler.add_callback(self.cb_settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
-        self.handler.add_callback(self.cb_sbp_tracking_state, msg_type=SBP_MSG_TRACKING_STATE)
+        self.handler.add_callback(self.cb_sbp_measurement_state, msg_type=SBP_MSG_MEASUREMENT_STATE)
         self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
 
         # Callbacks generated "automatically".
@@ -272,7 +272,7 @@ class PiksiMulti:
         return num_wifi_corrections
 
     def init_receiver_state_msg(self):
-        receiver_state_msg = ReceiverState_V2_3_15()
+        receiver_state_msg = ReceiverState_V2_4_1()
         receiver_state_msg.num_sat = 0  # Unknown.
         receiver_state_msg.rtk_mode_fix = False  # Unknown.
         receiver_state_msg.sat = []  # Unknown.
@@ -287,7 +287,7 @@ class PiksiMulti:
         receiver_state_msg.cn0_sbas = []  # Unknown.
         receiver_state_msg.num_glonass_sat = 0  # Unknown.
         receiver_state_msg.cn0_glonass = []  # Unknown.
-        receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_UNKNOWN
+        receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_UNKNOWN
 
         return receiver_state_msg
 
@@ -306,10 +306,10 @@ class PiksiMulti:
                                                  NavSatFix, queue_size=10)
         publishers['heartbeat'] = rospy.Publisher(rospy.get_name() + '/heartbeat',
                                                   Heartbeat, queue_size=10)
-        publishers['tracking_state'] = rospy.Publisher(rospy.get_name() + '/tracking_state',
-                                                       TrackingState_V2_3_15, queue_size=10)
+        publishers['measurement_state'] = rospy.Publisher(rospy.get_name() + '/measurement_state',
+                                                       piksi_rtk_msgs.msg.MeasurementState_V2_4_1, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
-                                                       ReceiverState_V2_3_15, queue_size=10)
+                                                       ReceiverState_V2_4_1, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
@@ -663,21 +663,21 @@ class PiksiMulti:
         self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
 
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_INVALID
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_INVALID
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_SPP
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SPP
         elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_DGNSS
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_DGNSS
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_FLOAT_RTK
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FLOAT_RTK
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_FIXED_RTK
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FIXED_RTK
         elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.FIX_MODE_DEAD_RECKONING
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.FIX_MODE_DEAD_RECKONING
         elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_SBAS
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SBAS
         else:
-            self.receiver_state_msg.fix_mode = ReceiverState_V2_3_15.STR_FIX_MODE_UNKNOWN
+            self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_UNKNOWN
 
         self.publish_receiver_state_msg()
 
@@ -779,21 +779,14 @@ class PiksiMulti:
         if self.base_station_mode:
             self.multicaster.sendSbpPacket(msg_raw)
 
-    def cb_sbp_tracking_state(self, msg_raw, **metadata):
-        msg = MsgTrackingState(msg_raw)
+    def cb_sbp_measurement_state(self, msg_raw, **metadata):
+        msg = MsgMeasurementState(msg_raw)
 
-        # print "\n\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-        #
-        # for single_tracking_state in msg.states:
-        #     print single_tracking_state
-        #     print "--------------------\n"
-
-        tracking_state_msg = TrackingState_V2_3_15()
-        tracking_state_msg.header.stamp = rospy.Time.now()
-        tracking_state_msg.sat = []
-        tracking_state_msg.code = []
-        tracking_state_msg.fcn = []
-        tracking_state_msg.cn0 = []
+        measurement_state_msg = piksi_rtk_msgs.msg.MeasurementState_V2_4_1()
+        measurement_state_msg.header.stamp = rospy.Time.now()
+        measurement_state_msg.sat = []
+        measurement_state_msg.code = []
+        measurement_state_msg.cn0 = []
 
         # Temporary variables for receiver state message.
         num_gps_sat = 0
@@ -802,52 +795,71 @@ class PiksiMulti:
         cn0_sbas = []
         num_glonass_sat = 0
         cn0_glonass = []
+        num_bds_sat = 0
+        cn0_bds = []
+        num_gal_sat = 0
+        cn0_gal = []
 
-        for single_tracking_state in msg.states:
+        for single_measurement_state in msg.states:
 
             # Use satellites with valid cn0.
-            if single_tracking_state.cn0 > 0.0:
+            if single_measurement_state.cn0 > 0.0:
 
-                tracking_state_msg.sat.append(single_tracking_state.sid.sat)
-                tracking_state_msg.code.append(single_tracking_state.sid.code)
-                tracking_state_msg.fcn.append(single_tracking_state.fcn)
-                tracking_state_msg.cn0.append(single_tracking_state.cn0)
+                measurement_state_msg.sat.append(single_measurement_state.mesid.sat)
+                measurement_state_msg.code.append(single_measurement_state.mesid.code)
+                measurement_state_msg.cn0.append(single_measurement_state.cn0)
 
                 # Receiver state fields.
-                code = single_tracking_state.sid.code
-                if code == TrackingState_V2_3_15.CODE_GPS_L1CA or \
-                                code == TrackingState_V2_3_15.CODE_GPS_L2CM or \
-                                code == TrackingState_V2_3_15.CODE_GPS_L1P or \
-                                code == TrackingState_V2_3_15.CODE_GPS_L2P:
+                code = single_measurement_state.mesid.code
+                if code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GPS_L1CA or \
+                   code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GPS_L2CM or \
+                   code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GPS_L1P or \
+                   code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GPS_L2P:
                     num_gps_sat += 1
-                    cn0_gps.append(single_tracking_state.cn0)
+                    cn0_gps.append(single_measurement_state.cn0)
 
-                if code == TrackingState_V2_3_15.CODE_SBAS_L1CA:
+                elif code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_SBAS_L1CA:
                     num_sbas_sat += 1
-                    cn0_sbas.append(single_tracking_state.cn0)
+                    cn0_sbas.append(single_measurement_state.cn0)
 
-                if code == TrackingState_V2_3_15.CODE_GLO_L1CA or \
-                                code == TrackingState_V2_3_15.CODE_GLO_L1CA:
+                elif code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GLO_L1CA or \
+                     code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GLO_L2CA:
                     num_glonass_sat += 1
-                    cn0_glonass.append(single_tracking_state.cn0)
+                    cn0_glonass.append(single_measurement_state.cn0)
+
+                elif code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_BDS2_B1 or \
+                     code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_BDS2_B2:
+                    num_bds_sat += 1
+                    cn0_bds.append(single_measurement_state.cn0)
+
+                elif code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GAL_E1B or \
+                     code == piksi_rtk_msgs.msg.MeasurementState_V2_4_1.CODE_GAL_E7I:
+                    num_gal_sat += 1
+                    cn0_gal.append(single_measurement_state.cn0)
+
+                else:
+                    rospy.logwarn("[cb_sbp_measurement_state]: Unknown satellite code %d.", code)
 
         # Publish if there's at least one element in each array.
-        if len(tracking_state_msg.sat) \
-                and len(tracking_state_msg.code) \
-                and len(tracking_state_msg.fcn) \
-                and len(tracking_state_msg.cn0):
-            self.publishers['tracking_state'].publish(tracking_state_msg)
+        if len(measurement_state_msg.sat) \
+                and len(measurement_state_msg.code) \
+                and len(measurement_state_msg.cn0):
+            self.publishers['measurement_state'].publish(measurement_state_msg)
 
             # Update debug msg and publish.
-            self.receiver_state_msg.num_sat = num_gps_sat + num_sbas_sat + num_glonass_sat
-            self.receiver_state_msg.sat = tracking_state_msg.sat
-            self.receiver_state_msg.cn0 = tracking_state_msg.cn0
+            self.receiver_state_msg.num_sat = num_gps_sat + num_sbas_sat + num_glonass_sat + num_bds_sat + num_gal_sat
+            self.receiver_state_msg.sat = measurement_state_msg.sat
+            self.receiver_state_msg.cn0 = measurement_state_msg.cn0
             self.receiver_state_msg.num_gps_sat = num_gps_sat
             self.receiver_state_msg.cn0_gps = cn0_gps
             self.receiver_state_msg.num_sbas_sat = num_sbas_sat
             self.receiver_state_msg.cn0_sbas = cn0_sbas
             self.receiver_state_msg.num_glonass_sat = num_glonass_sat
             self.receiver_state_msg.cn0_glonass = cn0_glonass
+            self.receiver_state_msg.num_bds_sat = num_bds_sat
+            self.receiver_state_msg.cn0_bds = cn0_bds
+            self.receiver_state_msg.num_gal_sat = num_gal_sat
+            self.receiver_state_msg.cn0_gal = cn0_gal
 
             self.publish_receiver_state_msg()
 
