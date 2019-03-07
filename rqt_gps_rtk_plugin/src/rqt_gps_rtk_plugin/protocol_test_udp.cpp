@@ -1,6 +1,6 @@
 #include <iostream>
 #include <set>
-#include <rqt_gps_rtk_plugin/CorrectionDecoder.hpp>
+#include <rqt_gps_rtk_plugin/SBPDecoder.hpp>
 #include <unistd.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,8 +12,6 @@
 #include <netdb.h>
 
 int main() {
-
-  CorrectionDecoder c;
   struct addrinfo hints, *res;
   int sockfd;
 
@@ -37,7 +35,7 @@ int main() {
     if ((received_length = recvfrom(sockfd, buffer.data(), buffer.size(), 0, (sockaddr *) &addr, &fromlen))) {
       SBP_MSG_OBS msg;
 
-      if (c.decodeSBPObs(buffer, &msg)) {
+      if (SBPDecoder::decode<SBP_MSG_OBS>(buffer, &msg)) {
         std::cout << "msg found!" << std::endl;
         std::cout << "Part " << msg.header.n_obs.index + 1 << " of " << msg.header.n_obs.total_n << std::endl;
         std::cout << msg.header.tow << " " << (uint) (msg.header.n_obs.total_n) << std::endl;

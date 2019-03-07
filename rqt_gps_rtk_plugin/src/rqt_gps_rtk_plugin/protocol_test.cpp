@@ -1,7 +1,8 @@
 #include <iostream>
 #include <set>
-#include <rqt_gps_rtk_plugin/CorrectionDecoder.hpp>
+#include <rqt_gps_rtk_plugin/SBPDecoder.hpp>
 #include <unistd.h>
+
 
 int main() {
 
@@ -22,8 +23,6 @@ int main() {
   ReceiverState state = ReceiverState::Ready;
 
   size_t buffer_ptr = 0;
-
-  CorrectionDecoder c;
   SBP_MSG_HEADER header;
   size_t total_length = 0;
 
@@ -42,12 +41,12 @@ int main() {
 
     // READY => SYNC
     if (state == ReceiverState::Ready
-        && c.is_sync(buffer[buffer_ptr])) {
+        && SBPDecoder::isSync(buffer[buffer_ptr])) {
       std::cout << "." << std::endl;
       state = ReceiverState::Synced;
     } else if (state == ReceiverState::Synced && buffer_ptr >= sizeof(SBP_MSG_HEADER)) {
 
-      if (c.checkSBPHeader(buffer, &header, valid_types)) {
+      if (SBPDecoder::validHeader(buffer, &header, valid_types)) {
         state = ReceiverState::HeaderFound;
         total_length = header.length + sizeof(SBP_MSG_HEADER) + 2;
       } else {
@@ -62,9 +61,9 @@ int main() {
       // read rest of message
       if (buffer_ptr >= total_length) {
         SBP_MSG_OBS msg;
-        if (c.decodeSBPObs(buffer, &msg)) {
+        if (SBPDecoder::decode<SBP_MSG_OBS>(buffer, &msg)) {
           std::cout << "msg found!" << std::endl;
-          std::cout << "Part " << msg.header.n_obs.index+1 << " of "<< msg.header.n_obs.total_n << std::endl;
+          std::cout << "Part " << msg.header.n_obs.index + 1 << " of " << msg.header.n_obs.total_n << std::endl;
           std::cout << msg.header.tow << " " << (uint) (msg.header.n_obs.total_n) << std::endl;
           std::cout << msg.header.wn << std::endl;
           std::cout << msg.header.ns_residual << std::endl;
@@ -102,7 +101,7 @@ int main() {
     buffer_ptr++;
 
     usleep(1000);
-  } while (1 == 1);
+  } while (1 );
 
   std::cout << "hello" << std::endl;
   return 0;
