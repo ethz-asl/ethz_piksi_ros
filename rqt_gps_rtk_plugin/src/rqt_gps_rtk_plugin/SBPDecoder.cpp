@@ -40,57 +40,9 @@ const uint16_t SBPDecoder::crc16tab[256] = {
     0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
 };
 
-template<typename T>
-bool SBPDecoder::decode(const std::vector<uint8_t> &buffer, T *message) {
-  std::cout << "DECODE A" << std::endl;
-  SBP_MSG_HEADER header;
-  if (!checkMessage(buffer, &header)) {
-    return false;
-  }
 
-  if (header.message_type != SBPDecoder::MessageTypes.at(std::type_index(typeid(T)))) {
-    return false;
-  }
-
-  if (buffer.size() < (sizeof(SBP_MSG_HEADER) + sizeof(T) + 2)) {
-    return false;
-  }
-
-  memcpy(message, buffer.data() + sizeof(SBP_MSG_HEADER), sizeof(T));
-  return true;
-}
-
-// override specialization for variable length observations
-// template attribute necessary, otherwise not considered overwrite
-// (also nicer alternative to regular template specialization in this case)
-template<>
-bool SBPDecoder::decode<>(const std::vector<uint8_t> &buffer, SBP_MSG_OBS *message) {
-
-  std::cout << "DECODE B" << std::endl;
-  SBP_MSG_HEADER header;
-  if (!checkMessage(buffer, &header)) {
-    return false;
-  }
-
-  if (header.message_type != SBP_MSG_TYPE::MSG_OBS) {
-    return false;
-  }
-
-  //get Observation header
-  memcpy(&message->header, buffer.data() + sizeof(SBP_MSG_HEADER), sizeof(SBP_MSG_OBS_HEADER));
-
-  // we use the calculated number of observations, not n_obs. N_OBS can be split amongst multiple messages and
-  // contains indexing info (see datasheet).
-  size_t n_obs_calc = (header.length - 11) / 17;
-  message->obs.resize(n_obs_calc);
-
-  for (size_t i = 0; i < n_obs_calc; i++) {
-    const uint8_t *position = buffer.data() + sizeof(SBP_MSG_HEADER) +
-        sizeof(SBP_MSG_OBS_HEADER) + i * sizeof(SBP_MSG_OBS_OBSERVATION);
-
-    memcpy(&message->obs[i], position, sizeof(SBP_MSG_OBS_OBSERVATION));
-  }
-  return true;
+size_t SBPDecoder::getMessageSize(const SBP_MSG_HEADER &header) {
+  return header.length + sizeof(SBP_MSG_HEADER) + 2;
 }
 
 // helper method for synching
@@ -128,6 +80,12 @@ bool SBPDecoder::validHeader(const std::vector<uint8_t> &buffer,
 
 // check full message
 bool SBPDecoder::checkMessage(const std::vector<uint8_t> &buffer, SBP_MSG_HEADER *header) {
+  // in case we dont need header output
+  SBP_MSG_HEADER temp_header;
+  if (header == nullptr) {
+    header = &temp_header;
+  }
+
   if (!validHeader(buffer, header)) {
     return false;
   }

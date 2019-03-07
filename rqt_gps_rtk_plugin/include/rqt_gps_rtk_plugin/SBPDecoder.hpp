@@ -12,6 +12,7 @@
 
 // only contains currently parseable messages
 enum class SBP_MSG_TYPE : uint16_t {
+  INVALID = 0xFFFF,
   MSG_OBS = 0x004A,
   MSG_BASELINE_ECEF = 0x0202
 };
@@ -86,9 +87,26 @@ class SBPDecoder {
 
   static const std::unordered_map<std::type_index, SBP_MSG_TYPE> MessageTypes;
 
-  // default for static length messages
-  template<typename T>
-  static bool decode(const std::vector<uint8_t> &buffer, T *message);
+  // default for static length messages - templated implementation in header file (important)
+  template<class T>
+  static bool decode(const std::vector<uint8_t> &buffer, T *message) {
+    std::cout << "DECODE A" << std::endl;
+    SBP_MSG_HEADER header;
+    if (!checkMessage(buffer, &header)) {
+      return false;
+    }
+
+    if (header.message_type != SBPDecoder::MessageTypes.at(std::type_index(typeid(T)))) {
+      return false;
+    }
+
+    if (buffer.size() < (sizeof(SBP_MSG_HEADER) + sizeof(T) + 2)) {
+      return false;
+    }
+
+    memcpy(message, buffer.data() + sizeof(SBP_MSG_HEADER), sizeof(T));
+    return true;
+  }
 
   // helper method for synching
   static bool isSync(const uint8_t value);
@@ -98,16 +116,52 @@ class SBPDecoder {
                           SBP_MSG_HEADER *header,
                           const std::set<SBP_MSG_TYPE> &valid_types = {});
 
+  static size_t getMessageSize(const SBP_MSG_HEADER &header);
+
+  static bool checkMessage(const std::vector<uint8_t> &buffer, SBP_MSG_HEADER *header = nullptr);
  private:
 
   // check full message
-  static bool checkMessage(const std::vector<uint8_t> &buffer, SBP_MSG_HEADER *header);
+
   // checksum IRCC
   static uint16_t calculateChecksum(const std::vector<uint8_t> &buffer, const uint16_t offset, const uint16_t length);
 
 /* CRC16 implementation acording to CCITT standards */
   static const uint16_t crc16tab[256];
-
 };
+
+
+// has to be outside of class (important)
+// override specialization for variable length observations
+// template attribute necessary, otherwise not considered overwrite
+// (also nicer alternative to regular template specialization in this case)
+template<>
+inline bool SBPDecoder::decode(const std::vector<uint8_t> &buffer, SBP_MSG_OBS *message) {
+  std::cout << "DECODE B" << std::endl;
+  SBP_MSG_HEADER header;
+  if (!checkMessage(buffer, &header)) {
+    return false;
+  }
+
+  if (header.message_type != SBP_MSG_TYPE::MSG_OBS) {
+    return false;
+  }
+
+  //get Observation header
+  memcpy(&message->header, buffer.data() + sizeof(SBP_MSG_HEADER), sizeof(SBP_MSG_OBS_HEADER));
+
+  // we use the calculated number of observations, not n_obs. N_OBS can be split amongst multiple messages and
+  // contains indexing info (see datasheet).
+  size_t n_obs_calc = (header.length - 11) / 17;
+  message->obs.resize(n_obs_calc);
+
+  for (size_t i = 0; i < n_obs_calc; i++) {
+    const uint8_t *position = buffer.data() + sizeof(SBP_MSG_HEADER) +
+        sizeof(SBP_MSG_OBS_HEADER) + i * sizeof(SBP_MSG_OBS_OBSERVATION);
+
+    memcpy(&message->obs[i], position, sizeof(SBP_MSG_OBS_OBSERVATION));
+  }
+  return true;
+}
 
 #endif //CORRECTIONDECODER_H
