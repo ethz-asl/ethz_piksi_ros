@@ -1,6 +1,7 @@
 #include <rqt_gps_rtk_plugin/SBPStreamDecoder.hpp>
 
-SBPStreamDecoder::SBPStreamDecoder(const size_t buffer_size, const std::set<SBP_MSG_TYPE> &active_types) :
+SBPStreamDecoder::SBPStreamDecoder(const size_t buffer_size,
+                                   const std::set<SBP_MSG_TYPE> &active_types) :
     active_types_(active_types),
     buffer_(buffer_size),
     buffer_ptr_(0),
@@ -19,7 +20,6 @@ SBP_MSG_TYPE SBPStreamDecoder::addToBuffer(uint8_t &data) {
     return current_header_.message_type;
   }
 }
-
 
 // State machine transitions from state Ready.
 SBPStreamDecoder::ReceiverState SBPStreamDecoder::transitionFromReady() {

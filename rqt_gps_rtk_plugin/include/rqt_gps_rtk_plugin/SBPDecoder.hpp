@@ -99,7 +99,8 @@ class SBP_MSG_OBS {
     };
 
     std::stringstream sstream;
-    sstream << "Correction Part " << header.n_obs.index + 1 << " of " << header.n_obs.total_n << std::endl;
+    sstream << "Correction Part " << header.n_obs.index + 1 << " of "
+            << header.n_obs.total_n << std::endl;
     sstream << "GPS Week:\t\t " << header.wn << std::endl;
     sstream << "Time of week:\t\t" << header.tow << " [ms]" << std::endl;
     sstream << "Observations:\t\t" << observations.size() << std::endl;
@@ -158,7 +159,8 @@ class SBPDecoder {
 
   static const std::unordered_map<std::type_index, SBP_MSG_TYPE> MessageTypes;
 
-  // default for static length messages - templated implementation in header file (important)
+  // default for static length messages -
+  // templated implementation in header file (important)
   template<class T>
   static bool decode(const std::vector<uint8_t> &buffer, T *message) {
     std::cout << "DECODE A" << std::endl;
@@ -167,7 +169,8 @@ class SBPDecoder {
       return false;
     }
 
-    if (header.message_type != SBPDecoder::MessageTypes.at(std::type_index(typeid(T)))) {
+    if (header.message_type
+        != SBPDecoder::MessageTypes.at(std::type_index(typeid(T)))) {
       return false;
     }
 
@@ -189,13 +192,16 @@ class SBPDecoder {
 
   static size_t getMessageSize(const SBP_MSG_HEADER &header);
 
-  static bool checkMessage(const std::vector<uint8_t> &buffer, SBP_MSG_HEADER *header = nullptr);
+  static bool checkMessage(const std::vector<uint8_t> &buffer,
+                           SBP_MSG_HEADER *header = nullptr);
  private:
 
   // check full message
 
   // checksum IRCC
-  static uint16_t calculateChecksum(const std::vector<uint8_t> &buffer, const uint16_t offset, const uint16_t length);
+  static uint16_t calculateChecksum(const std::vector<uint8_t> &buffer,
+                                    const uint16_t offset,
+                                    const uint16_t length);
 
 /* CRC16 implementation acording to CCITT standards */
   static const uint16_t crc16tab[256];
@@ -204,9 +210,9 @@ class SBPDecoder {
 // has to be outside of class (important)
 // override specialization for variable length observations
 // template attribute necessary, otherwise not considered overwrite
-// (also nicer alternative to regular template specialization in this case)
 template<>
-inline bool SBPDecoder::decode(const std::vector<uint8_t> &buffer, SBP_MSG_OBS *message) {
+inline bool SBPDecoder::decode(const std::vector<uint8_t> &buffer,
+                               SBP_MSG_OBS *message) {
   SBP_MSG_HEADER header;
   if (!checkMessage(buffer, &header)) {
     return false;
@@ -217,10 +223,11 @@ inline bool SBPDecoder::decode(const std::vector<uint8_t> &buffer, SBP_MSG_OBS *
   }
 
   //get Observation header
-  memcpy(&message->header, buffer.data() + sizeof(SBP_MSG_HEADER), sizeof(SBP_MSG_OBS_HEADER));
+  memcpy(&message->header,
+         buffer.data() + sizeof(SBP_MSG_HEADER),
+         sizeof(SBP_MSG_OBS_HEADER));
 
-  // we use the calculated number of observations, not n_obs. N_OBS can be split amongst multiple messages and
-  // contains indexing info (see datasheet).
+  // we use the calculated number of observations, not n_obs.
   size_t n_obs_calc = (header.length - 11) / 17;
   message->observations.resize(n_obs_calc);
 
@@ -228,7 +235,9 @@ inline bool SBPDecoder::decode(const std::vector<uint8_t> &buffer, SBP_MSG_OBS *
     const uint8_t *position = buffer.data() + sizeof(SBP_MSG_HEADER) +
         sizeof(SBP_MSG_OBS_HEADER) + i * sizeof(SBP_MSG_OBS_OBSERVATION);
 
-    memcpy(&message->observations[i], position, sizeof(SBP_MSG_OBS_OBSERVATION));
+    memcpy(&message->observations[i],
+           position,
+           sizeof(SBP_MSG_OBS_OBSERVATION));
   }
   return true;
 }

@@ -1,8 +1,10 @@
 #include <rqt_gps_rtk_plugin/SBPDecoder.hpp>
 
-const std::unordered_map<std::type_index, SBP_MSG_TYPE> SBPDecoder::MessageTypes = {
+const std::unordered_map<std::type_index, SBP_MSG_TYPE>
+    SBPDecoder::MessageTypes = {
     {std::type_index(typeid(SBP_MSG_OBS)), SBP_MSG_TYPE::MSG_OBS},
-    {std::type_index(typeid(SBP_MSG_BASELINE_ECEF)), SBP_MSG_TYPE::MSG_BASELINE_ECEF}
+    {std::type_index(typeid(SBP_MSG_BASELINE_ECEF)),
+     SBP_MSG_TYPE::MSG_BASELINE_ECEF}
 };
 
 const uint16_t SBPDecoder::crc16tab[256] = {
@@ -40,7 +42,6 @@ const uint16_t SBPDecoder::crc16tab[256] = {
     0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
 };
 
-
 size_t SBPDecoder::getMessageSize(const SBP_MSG_HEADER &header) {
   return header.length + sizeof(SBP_MSG_HEADER) + 2;
 }
@@ -65,7 +66,8 @@ bool SBPDecoder::validHeader(const std::vector<uint8_t> &buffer,
     return false;
   }
 
-  const SBP_MSG_TYPE header_type = static_cast<SBP_MSG_TYPE >(*((uint16_t *) (buffer.data() + 1)));
+  const SBP_MSG_TYPE header_type =
+      static_cast<SBP_MSG_TYPE >(*((uint16_t *) (buffer.data() + 1)));
 
   // only look for valid types (to have a longer sync string than just 0x55).
   if (valid_types.size() > 0 && valid_types.count(header_type) == 0) {
@@ -79,7 +81,8 @@ bool SBPDecoder::validHeader(const std::vector<uint8_t> &buffer,
 }
 
 // check full message
-bool SBPDecoder::checkMessage(const std::vector<uint8_t> &buffer, SBP_MSG_HEADER *header) {
+bool SBPDecoder::checkMessage(const std::vector<uint8_t> &buffer,
+                              SBP_MSG_HEADER *header) {
   // in case we dont need header output
   SBP_MSG_HEADER temp_header;
   if (header == nullptr) {
@@ -91,14 +94,18 @@ bool SBPDecoder::checkMessage(const std::vector<uint8_t> &buffer, SBP_MSG_HEADER
   }
 
   // check length of buffer
-  if (buffer.size() < sizeof(SBP_MSG_HEADER) + header->length + 2) {//incl header and checksum
+  if (buffer.size()
+      < sizeof(SBP_MSG_HEADER) + header->length + 2) {//incl header and checksum
     return false;
   }
 
   //check CRC
   uint16_t checksum_msg;
-  memcpy(&checksum_msg, buffer.data() + sizeof(SBP_MSG_HEADER) + header->length, sizeof(uint16_t));
-  uint16_t checksum_calc = calculateChecksum(buffer, 1, header->length + sizeof(SBP_MSG_HEADER) - 1);
+  memcpy(&checksum_msg,
+         buffer.data() + sizeof(SBP_MSG_HEADER) + header->length,
+         sizeof(uint16_t));
+  uint16_t checksum_calc =
+      calculateChecksum(buffer, 1, header->length + sizeof(SBP_MSG_HEADER) - 1);
 
   return checksum_calc == checksum_msg;
 }
@@ -109,7 +116,8 @@ uint16_t SBPDecoder::calculateChecksum(const std::vector<uint8_t> &buffer,
                                        const uint16_t length) {
   uint16_t crc = 0x0000;
   for (uint32_t i = 0; i < length; i++)
-    crc = (crc << 8) ^ SBPDecoder::crc16tab[((crc >> 8) ^ buffer[offset + i]) & 0x00FF];
+    crc = (crc << 8)
+        ^ SBPDecoder::crc16tab[((crc >> 8) ^ buffer[offset + i]) & 0x00FF];
   return crc;
 }
 

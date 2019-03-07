@@ -15,7 +15,6 @@
 #include <sstream>
 
 // udp
-
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -23,7 +22,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
 
 // Thread to read corrections from UDP
 
@@ -70,7 +68,12 @@ class UDPThread : public QThread {
       // receive data.
       do {
         size_t received_length;
-        if ((received_length = recvfrom(fd_socket_, buffer.data(), buffer.size(), 0, (sockaddr *) &addr, &fromlen))) {
+        if ((received_length = recvfrom(fd_socket_,
+                                        buffer.data(),
+                                        buffer.size(),
+                                        0,
+                                        (sockaddr *) &addr,
+                                        &fromlen))) {
           // get message
           SBP_MSG_OBS msg;
           if (SBPDecoder::decode<SBP_MSG_OBS>(buffer, &msg)) {
@@ -103,7 +106,8 @@ class UARTThread : public QThread {
   UARTThread() : QThread(), stop_thread_(true),
                  port_("/dev/ttyUSB0") {}
 
-  // Important: Baudrate is not set as e.g. 115200, but as the constant (B115200)!!
+  // Important: Baudrate is not set as e.g. 115200,
+  // but as the constant (B115200)!!
   void setPort(const std::string &portname, const uint baudrate) {
     port_ = portname;
     baudrate_ = baudrate;
@@ -124,12 +128,14 @@ class UARTThread : public QThread {
     fd_serial_port_ = open(port_.c_str(), O_RDWR);
     if (fd_serial_port_ != 1) {
       fcntl(fd_serial_port_, F_SETFL, 0);
-      struct termios port_settings;      // structure to store the port settings in
+      struct termios
+          port_settings;      // structure to store the port settings in
 
       cfsetispeed(&port_settings, baudrate_);    // set baud rates
       cfsetospeed(&port_settings, baudrate_);
 
-      port_settings.c_cflag &= ~PARENB;    // set no parity, stop bits, data bits
+      port_settings.c_cflag &=
+          ~PARENB;    // set no parity, stop bits, data bits
       port_settings.c_cflag &= ~CSTOPB;
       port_settings.c_cflag &= ~CSIZE;
       port_settings.c_cflag |= CS8;
