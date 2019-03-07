@@ -7,12 +7,95 @@
 #include <QThread>
 #include <rqt_gps_rtk_plugin/SBPStreamDecoder.hpp>
 #include <atomic>
+
 //serial port
 #include <unistd.h> // UNIX standard function definitions
 #include <fcntl.h> // File control definitions
 #include <termios.h> // POSIX terminal control definitions
 #include <sstream>
 
+// udp
+
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
+
+// Thread to read corrections from UDP
+
+class UDPThread : public QThread {
+ Q_OBJECT
+
+ public:
+  UDPThread() : QThread(),
+                fd_socket_(0),
+                stop_thread_(true),
+                udp_port_(26078) {}
+
+  void stop() {
+    stop_thread_ = true;
+  }
+
+ private:
+  int fd_socket_;
+  std::atomic_bool stop_thread_;
+  uint udp_port_;
+
+  void run() override {
+    stop_thread_ = false;
+
+    // adress information
+    struct addrinfo hints, *res;
+    socklen_t fromlen;
+    struct sockaddr_storage addr;
+
+    // set port
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
+    hints.ai_socktype = SOCK_DGRAM; // get full datagramm without IP header.
+    hints.ai_flags = AI_PASSIVE;
+    getaddrinfo(NULL, std::to_string(udp_port_).c_str(), &hints, &res);
+
+    // get socket & bind
+    fd_socket_ = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (bind(fd_socket_, res->ai_addr, res->ai_addrlen) == 0) {
+
+      std::vector<uint8_t> buffer;
+      buffer.resize(1600); // larger than largest udp packets usually are.
+
+      // receive data.
+      do {
+        size_t received_length;
+        if ((received_length = recvfrom(fd_socket_, buffer.data(), buffer.size(), 0, (sockaddr *) &addr, &fromlen))) {
+          // get message
+          SBP_MSG_OBS msg;
+          if (SBPDecoder::decode<SBP_MSG_OBS>(buffer, &msg)) {
+            resultReady(msg.str().c_str());
+          }
+        }
+
+      } while (!stop_thread_);
+
+      close(fd_socket_);
+
+    } else {
+      resultReady("Socket error");
+      exit(1);
+      return;
+    }
+
+  }
+
+ signals:
+  void resultReady(const QString &s);
+
+};
+
+// Thread to read corrections from UART
 class UARTThread : public QThread {
  Q_OBJECT
 
@@ -35,74 +118,6 @@ class UARTThread : public QThread {
   std::atomic_bool stop_thread_;
   std::string port_;
   uint baudrate_;
-
-  void createString(const SBP_MSG_OBS &msg, std::string *out) {
-    std::map<uint8_t, std::string> code_map = {
-        {0, "GPS L1CA"},
-        {1, "GPS L2CM"},
-        {2, "SBAS L1CA"},
-        {3, "GLO L1CA"},
-        {4, "GLO L2CA"},
-        {5, "GPS L1P"},
-        {6, "GPS L2P"},
-        {12, "BDS2 B1"},
-        {13, "BDS2 B2"},
-        {14, "GAL E1B"},
-        {20, "GAL E7I"}
-
-    };
-
-    std::stringstream sstream;
-    sstream << "Correction Part " << msg.header.n_obs.index + 1 << " of " << msg.header.n_obs.total_n << std::endl;
-    sstream << "GPS Week:\t\t " << msg.header.wn << std::endl;
-    sstream << "Time of week:\t\t" << msg.header.tow << " [ms]" << std::endl;
-    sstream << "Observations:\t\t" << msg.obs.size() << std::endl;
-    sstream << "------------------------------------------\t\t" << std::endl;
-
-    for (const SBP_MSG_OBS_OBSERVATION &obs : msg.obs) {
-      if (code_map.count(obs.sid_code)) {
-        sstream << code_map[obs.sid_code] << " / " << (int) obs.sid_sat << "\t";
-      } else {
-        sstream << "???? / " << (int) obs.sid_sat << "\t";
-      }
-
-      //add carrier noise density
-      sstream << ((float) obs.cn0) / 4.0 << " dB Hz\t\t";
-
-      if (obs.flags.RAIM_excl) {
-        sstream << "!EXCLUDED! ";
-      } else {
-        sstream << "           ";
-      }
-
-      if (obs.flags.pseodorange_valid) {
-        sstream << "PSDO ";
-      } else {
-        sstream << "     ";
-      }
-
-      if (obs.flags.carrier_phase_valid) {
-        sstream << "CARR ";
-      } else {
-        sstream << "     ";
-      }
-
-      if (obs.flags.half_cycle_amb_resolv) {
-        sstream << "CYCL ";
-      } else {
-        sstream << "     ";
-      }
-
-      if (obs.flags.doppler_valid) {
-        sstream << "DPLR ";
-      } else {
-        sstream << "     ";
-      }
-
-      sstream << std::endl;
-    }
-    *out = sstream.str();
-  }
 
   void run() override {
     stop_thread_ = false;
@@ -141,14 +156,13 @@ class UARTThread : public QThread {
             // unpack message
             SBP_MSG_OBS msgObs;
             if (d.getCurrentMessage(&msgObs)) {
-              std::string message;
-              createString(msgObs, &message);
-              emit resultReady(message.c_str());
+              emit resultReady(msgObs.str().c_str());
             }
           }
         }
 
       } while (!stop_thread_);
+      close(fd_serial_port_);
     } else {
       emit resultReady("Could not open port.");
       exit(1);

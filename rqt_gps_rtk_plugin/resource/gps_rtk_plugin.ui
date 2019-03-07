@@ -132,7 +132,7 @@
         <enum>Qt::LeftToRight</enum>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="status">
         <attribute name="title">
@@ -1474,19 +1474,16 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_20">
              <item>
-              <widget class="QLineEdit" name="lineEdit"/>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton">
+              <widget class="QPushButton" name="btn_udp_start">
                <property name="text">
-                <string>PushButton</string>
+                <string>Start</string>
                </property>
               </widget>
              </item>
             </layout>
            </item>
            <item>
-            <widget class="QPlainTextEdit" name="plainTextEdit"/>
+            <widget class="QPlainTextEdit" name="txt_udp_data"/>
            </item>
           </layout>
          </item>

@@ -1,6 +1,6 @@
 
 #include <rqt_gps_rtk_plugin/GpsRtkPlugin.hpp>
-#include <rqt_gps_rtk_plugin/GpsRtkPluginThreads.h>
+#include <rqt_gps_rtk_plugin/GpsRtkPluginThreads.hpp>
 
 // Qt
 #include <QStringList>
@@ -131,6 +131,9 @@ void GpsRtkPlugin::initLabels() {
 
   connect(ui_.btn_uart_start, SIGNAL(clicked()), this, SLOT(clickStartUARTButton()));
 
+  // Tab UDP Sniffer
+  ui_.txt_udp_data->setPlainText("N/A");
+  connect(ui_.btn_udp_start, SIGNAL(clicked()), this, SLOT(clickStartUDPButton()));
 }
 
 void GpsRtkPlugin::initSubscribers() {
@@ -380,6 +383,21 @@ void GpsRtkPlugin::clickStartUARTButton() {
   }
 }
 
+void GpsRtkPlugin::clickStartUDPButton() {
+  if (!udp_thread_) {
+    udp_thread_.reset(new UDPThread()); // no make_unique in this c++ ver.
+    connect(udp_thread_.get(), &UDPThread::resultReady, this, &GpsRtkPlugin::udpResultsHandler);
+  }
+
+  if (udp_thread_->isRunning()) {
+    udp_thread_->stop();
+    ui_.btn_udp_start->setText("Start");
+  } else {
+    udp_thread_->start();
+    ui_.btn_udp_start->setText("Stop");
+  }
+}
+
 void GpsRtkPlugin::uartResultsHandler(const QString &data) {
   ui_.txt_uart_data->setText(data);
 
@@ -387,6 +405,15 @@ void GpsRtkPlugin::uartResultsHandler(const QString &data) {
   if (!uart_thread_->isRunning()) {
     ui_.btn_uart_start->setText("Start");
   }
+}
+
+void GpsRtkPlugin::udpResultsHandler(const QString &data) {
+  ui_.txt_udp_data->setPlainText(data);
+
+  if (!udp_thread_->isRunning()) {
+    ui_.btn_udp_start->setText("Start");
+  }
+
 }
 
 /*bool hasConfiguration() const

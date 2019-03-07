@@ -6,6 +6,8 @@
 #include <set>
 #include <cstring>
 #include <typeindex>
+#include <map>
+#include <sstream>
 #include <unordered_map>
 
 #include <typeinfo>
@@ -76,10 +78,79 @@ typedef struct __attribute__((packed)) {
 } SBP_MSG_BASELINE_ECEF;
 
 // non packed message, as it is not used for deserialization.
-typedef struct {
+class SBP_MSG_OBS {
+ public:
   SBP_MSG_OBS_HEADER header;
-  std::vector<SBP_MSG_OBS_OBSERVATION> obs;
-} SBP_MSG_OBS;
+  std::vector<SBP_MSG_OBS_OBSERVATION> observations;
+
+  std::string str() {
+    std::map<uint8_t, std::string> code_map = {
+        {0, "GPS L1CA"},
+        {1, "GPS L2CM"},
+        {2, "SBAS L1CA"},
+        {3, "GLO L1CA"},
+        {4, "GLO L2CA"},
+        {5, "GPS L1P"},
+        {6, "GPS L2P"},
+        {12, "BDS2 B1"},
+        {13, "BDS2 B2"},
+        {14, "GAL E1B"},
+        {20, "GAL E7I"}
+    };
+
+    std::stringstream sstream;
+    sstream << "Correction Part " << header.n_obs.index + 1 << " of " << header.n_obs.total_n << std::endl;
+    sstream << "GPS Week:\t\t " << header.wn << std::endl;
+    sstream << "Time of week:\t\t" << header.tow << " [ms]" << std::endl;
+    sstream << "Observations:\t\t" << observations.size() << std::endl;
+    sstream << "------------------------------------------\t\t" << std::endl;
+
+    for (const SBP_MSG_OBS_OBSERVATION &obs : observations) {
+      if (code_map.count(obs.sid_code)) {
+        sstream << code_map[obs.sid_code] << " / " << (int) obs.sid_sat << "\t";
+      } else {
+        sstream << "???? / " << (int) obs.sid_sat << "\t";
+      }
+
+      //add carrier noise density
+      sstream << ((float) obs.cn0) / 4.0 << " dB Hz\t\t";
+
+      if (obs.flags.RAIM_excl) {
+        sstream << "!EXCLUDED! ";
+      } else {
+        sstream << "           ";
+      }
+
+      if (obs.flags.pseodorange_valid) {
+        sstream << "PSDO ";
+      } else {
+        sstream << "     ";
+      }
+
+      if (obs.flags.carrier_phase_valid) {
+        sstream << "CARR ";
+      } else {
+        sstream << "     ";
+      }
+
+      if (obs.flags.half_cycle_amb_resolv) {
+        sstream << "CYCL ";
+      } else {
+        sstream << "     ";
+      }
+
+      if (obs.flags.doppler_valid) {
+        sstream << "DPLR ";
+      } else {
+        sstream << "     ";
+      }
+
+      sstream << std::endl;
+    }
+    return sstream.str();
+  }
+
+};
 
 class SBPDecoder {
 
@@ -130,7 +201,6 @@ class SBPDecoder {
   static const uint16_t crc16tab[256];
 };
 
-
 // has to be outside of class (important)
 // override specialization for variable length observations
 // template attribute necessary, otherwise not considered overwrite
@@ -152,13 +222,13 @@ inline bool SBPDecoder::decode(const std::vector<uint8_t> &buffer, SBP_MSG_OBS *
   // we use the calculated number of observations, not n_obs. N_OBS can be split amongst multiple messages and
   // contains indexing info (see datasheet).
   size_t n_obs_calc = (header.length - 11) / 17;
-  message->obs.resize(n_obs_calc);
+  message->observations.resize(n_obs_calc);
 
   for (size_t i = 0; i < n_obs_calc; i++) {
     const uint8_t *position = buffer.data() + sizeof(SBP_MSG_HEADER) +
         sizeof(SBP_MSG_OBS_HEADER) + i * sizeof(SBP_MSG_OBS_OBSERVATION);
 
-    memcpy(&message->obs[i], position, sizeof(SBP_MSG_OBS_OBSERVATION));
+    memcpy(&message->observations[i], position, sizeof(SBP_MSG_OBS_OBSERVATION));
   }
   return true;
 }

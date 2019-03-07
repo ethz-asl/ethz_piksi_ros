@@ -9,7 +9,7 @@
 
 // ui
 #include <rqt_gps_rtk_plugin/ui_gps_rtk_plugin.h>
-#include <rqt_gps_rtk_plugin/GpsRtkPluginThreads.h>
+#include <rqt_gps_rtk_plugin/GpsRtkPluginThreads.hpp>
 
 // std
 #include <algorithm>
@@ -26,7 +26,6 @@
 #include <piksi_rtk_msgs/UtcTimeMulti.h>
 #include <piksi_rtk_msgs/AgeOfCorrections.h>
 #include <sensor_msgs/NavSatFix.h>
-
 
 constexpr double kSignalStrengthScalingFactor = 4.0;
 
@@ -123,12 +122,15 @@ class GpsRtkPlugin : public rqt_gui_cpp::Plugin {
   double maxTimeout_;
 
   std::unique_ptr<UARTThread> uart_thread_;
+  std::unique_ptr<UDPThread> udp_thread_;
 
  private slots:
   void clickStartUARTButton();
+  void clickStartUDPButton();
+
   void uartResultsHandler(const QString &);
+  void udpResultsHandler(const QString &);
 
 };
-
 
 #endif // GPSRTKPLUGIN_H
