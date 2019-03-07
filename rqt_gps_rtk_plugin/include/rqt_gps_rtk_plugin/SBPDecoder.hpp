@@ -30,12 +30,12 @@ typedef struct __attribute__ ((packed)) {
 
 // struct for measurement status flags
 typedef struct __attribute__ ((packed)) {
-  uint RAIM_excl:1;
-  uint reserved:3;
-  uint doppler_valid:1;
-  uint half_cycle_amb_resolv:1;
-  uint carrier_phase_valid:1;
   uint pseodorange_valid:1;
+  uint carrier_phase_valid:1;
+  uint half_cycle_amb_resolv:1;
+  uint doppler_valid:1;
+  uint reserved:3;
+  uint RAIM_excl:1;
 } SBP_MSG_OBS_OBSERVATION_FLAGS;
 
 // struct for n_obs
@@ -137,7 +137,6 @@ class SBPDecoder {
 // (also nicer alternative to regular template specialization in this case)
 template<>
 inline bool SBPDecoder::decode(const std::vector<uint8_t> &buffer, SBP_MSG_OBS *message) {
-  std::cout << "DECODE B" << std::endl;
   SBP_MSG_HEADER header;
   if (!checkMessage(buffer, &header)) {
     return false;

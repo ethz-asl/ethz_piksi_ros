@@ -1,5 +1,6 @@
 
 #include <rqt_gps_rtk_plugin/GpsRtkPlugin.hpp>
+#include <rqt_gps_rtk_plugin/GpsRtkPluginThreads.h>
 
 // Qt
 #include <QStringList>
@@ -8,6 +9,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <functional>
+#include <memory>
 
 GpsRtkPlugin::GpsRtkPlugin()
     : rqt_gui_cpp::Plugin(),
@@ -22,7 +24,7 @@ GpsRtkPlugin::GpsRtkPlugin()
   setObjectName("GpsRtkPlugin");
 }
 
-void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
+void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext &context) {
   // access standalone command line arguments
   QStringList argv = context.argv();
   // create QWidget
@@ -55,10 +57,11 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
 void GpsRtkPlugin::shutdownPlugin() {
 }
 
-void GpsRtkPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const {
+void GpsRtkPlugin::saveSettings(qt_gui_cpp::Settings &plugin_settings, qt_gui_cpp::Settings &instance_settings) const {
 }
 
-void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings) {
+void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings &plugin_settings,
+                                   const qt_gui_cpp::Settings &instance_settings) {
 }
 
 void GpsRtkPlugin::readParameters() {
@@ -68,16 +71,22 @@ void GpsRtkPlugin::readParameters() {
   getNodeHandle().param<std::string>("piksiBaselineNedTopic", piksiBaselineNedTopic_, "piksi/baseline_ned");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiBaselineNedTopic: " << piksiBaselineNedTopic_);
 
-  getNodeHandle().param<std::string>("piksiWifiCorrectionsTopic", piksiWifiCorrectionsTopic_, "piksi/debug/wifi_corrections");
+  getNodeHandle().param<std::string>("piksiWifiCorrectionsTopic",
+                                     piksiWifiCorrectionsTopic_,
+                                     "piksi/debug/wifi_corrections");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiWifiCorrectionsTopic: " << piksiWifiCorrectionsTopic_);
 
-  getNodeHandle().param<std::string>("piksiNavsatfixRtkFixTopic", piksiNavsatfixRtkFixTopic_, "piksi/navsatfix_rtk_fix");
+  getNodeHandle().param<std::string>("piksiNavsatfixRtkFixTopic",
+                                     piksiNavsatfixRtkFixTopic_,
+                                     "piksi/navsatfix_rtk_fix");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiNavsatfixRtkFixTopic: " << piksiNavsatfixRtkFixTopic_);
 
   getNodeHandle().param<std::string>("piksiTimeTopic", piksiTimeTopic_, "piksi/utc_time");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiTimeTopic: " << piksiTimeTopic_);
 
-  getNodeHandle().param<std::string>("piksiAgeOfCorrectionsTopic", piksiAgeOfCorrectionsTopic_, "piksi/age_of_corrections");
+  getNodeHandle().param<std::string>("piksiAgeOfCorrectionsTopic",
+                                     piksiAgeOfCorrectionsTopic_,
+                                     "piksi/age_of_corrections");
   ROS_INFO_STREAM("[GpsRtkPlugin] piksiAgeOfCorrectionsTopic: " << piksiAgeOfCorrectionsTopic_);
 }
 
@@ -108,18 +117,36 @@ void GpsRtkPlugin::initLabels() {
   ui_.label_galileoSatellites->setText("N/A");
   ui_.label_galileoStrength->setText("N/A");
   ui_.label_ageOfCorrections->setText("N/A");
+
+  // Tab UART sniffer
+  ui_.txt_uart->setText("/dev/ttyUSB0");
+  ui_.txt_uart_data->setText("N/A");
+  ui_.cmb_uart_rate->addItem("115200", B115200);
+  ui_.cmb_uart_rate->addItem("230400", B230400);
+  ui_.cmb_uart_rate->addItem("921600", B921600);
+  ui_.cmb_uart_rate->addItem("1000000", B1000000);
+  ui_.cmb_uart_rate->addItem("57600", B57600);
+  ui_.cmb_uart_rate->addItem("38400", B38400);
+  ui_.cmb_uart_rate->addItem("9600", B9600);
+
+  connect(ui_.btn_uart_start, SIGNAL(clicked()), this, SLOT(clickStartUARTButton()));
+
 }
 
 void GpsRtkPlugin::initSubscribers() {
-  piksiReceiverStateSub_ = getNodeHandle().subscribe(piksiReceiverStateTopic_, 10, &GpsRtkPlugin::piksiReceiverStateCb, this);
+  piksiReceiverStateSub_ =
+      getNodeHandle().subscribe(piksiReceiverStateTopic_, 10, &GpsRtkPlugin::piksiReceiverStateCb, this);
   piksiBaselineNedSub_ = getNodeHandle().subscribe(piksiBaselineNedTopic_, 10, &GpsRtkPlugin::piksiBaselineNedCb, this);
-  piksiWifiCorrectionsSub_ = getNodeHandle().subscribe(piksiWifiCorrectionsTopic_, 10, &GpsRtkPlugin::piksiWifiCorrectionsCb, this);
-  piksiNavsatfixRtkFixSub_ = getNodeHandle().subscribe(piksiNavsatfixRtkFixTopic_, 10, &GpsRtkPlugin::piksiNavsatfixRtkFixCb, this);
+  piksiWifiCorrectionsSub_ =
+      getNodeHandle().subscribe(piksiWifiCorrectionsTopic_, 10, &GpsRtkPlugin::piksiWifiCorrectionsCb, this);
+  piksiNavsatfixRtkFixSub_ =
+      getNodeHandle().subscribe(piksiNavsatfixRtkFixTopic_, 10, &GpsRtkPlugin::piksiNavsatfixRtkFixCb, this);
   piksiHeartbeatSub_ = getNodeHandle().subscribe(piksiTimeTopic_, 10, &GpsRtkPlugin::piksiTimeCb, this);
-  piksiAgeOfCorrectionsSub_ = getNodeHandle().subscribe(piksiAgeOfCorrectionsTopic_, 10, &GpsRtkPlugin::piksiAgeOfCorrectionsCb, this);
+  piksiAgeOfCorrectionsSub_ =
+      getNodeHandle().subscribe(piksiAgeOfCorrectionsTopic_, 10, &GpsRtkPlugin::piksiAgeOfCorrectionsCb, this);
 }
 
-void GpsRtkPlugin::timerCallback(const ros::TimerEvent& e) {
+void GpsRtkPlugin::timerCallback(const ros::TimerEvent &e) {
   double currentStamp = ros::Time::now().toSec();
   QString na = QString::fromStdString("N/A");
   QString color = QString::fromStdString("QLabel {background-color: rgb(152, 152, 152); color: rgb(92, 92, 92);}");
@@ -164,7 +191,7 @@ void GpsRtkPlugin::timerCallback(const ros::TimerEvent& e) {
   }
 }
 
-void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4_1& msg) {
+void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4_1 &msg) {
   // Type of fix
   const QString fix_mode = QString::fromStdString(msg.fix_mode);
   QString color_fix_mode("");
@@ -184,8 +211,7 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4
     color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(51, 0, 102);}";
   } else if (msg.fix_mode == msg.STR_FIX_MODE_SBAS) {
     color_fix_mode = "QLabel {background-color: rgb(255, 255, 255); color: rgb(43, 255, 223);}";
-  }
-  else {
+  } else {
     // Unknown
     color_fix_mode = "QLabel {background-color: rgb(152, 152, 152); color: rgb(92, 92, 92);}";
   }
@@ -221,7 +247,9 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4
   vectorToString(scaleSignalStrength(msg.cn0_sbas), &signal_strength);
   QMetaObject::invokeMethod(ui_.label_sbasStrength, "setText", Q_ARG(QString, signal_strength));
   // GLONASS number of satellites
-  QMetaObject::invokeMethod(ui_.label_glonassSatellites, "setText", Q_ARG(QString, QString::number(msg.num_glonass_sat)));
+  QMetaObject::invokeMethod(ui_.label_glonassSatellites,
+                            "setText",
+                            Q_ARG(QString, QString::number(msg.num_glonass_sat)));
   // GLONASS signal strength
   vectorToString(scaleSignalStrength(msg.cn0_glonass), &signal_strength);
   QMetaObject::invokeMethod(ui_.label_glonassStrength, "setText", Q_ARG(QString, signal_strength));
@@ -240,7 +268,7 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4
   lastMsgStamps_.receiverStateStamp_ = msg.header.stamp.toSec();
 }
 
-void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {
+void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed &msg) {
   // Number of satellites used for RTK
   QMetaObject::invokeMethod(ui_.label_numRtkSatellites, "setText", Q_ARG(QString, QString::number(msg.n_sats)));
 
@@ -256,14 +284,19 @@ void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {
     strStyle = "QLabel {background-color: rgb(78, 154, 6);}";
     strText = "good";
   }
-  QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator, "setText", Q_ARG(QString, QString::fromStdString(strText)));
-  QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator, "setStyleSheet", Q_ARG(QString, QString::fromStdString(strStyle)));
+  QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator,
+                            "setText",
+                            Q_ARG(QString, QString::fromStdString(strText)));
+  QMetaObject::invokeMethod(ui_.label_numRtkSatellites_indicator,
+                            "setStyleSheet",
+                            Q_ARG(QString, QString::fromStdString(strStyle)));
 
   // Baseline NED status
   double n = msg.n / 1e3;
   double e = msg.e / 1e3;
   double d = msg.d / 1e3;
-  QString baseline;  // = "[" + QString::fromStdString(std::to_string(roundf(n*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(e*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(d*100)/100)) + "]";
+  QString
+      baseline;  // = "[" + QString::fromStdString(std::to_string(roundf(n*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(e*100)/100)) + ", " + QString::fromStdString(std::to_string(roundf(d*100)/100)) + "]";
   baseline.sprintf("[%.2f, %.2f, %.2f]", roundf(n * 100) / 100, roundf(e * 100) / 100, roundf(d * 100) / 100);
   QMetaObject::invokeMethod(ui_.label_baseline, "setText", Q_ARG(QString, baseline));
 
@@ -271,16 +304,20 @@ void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {
   lastMsgStamps_.baselineNedStamp_ = msg.header.stamp.toSec();
 }
 
-void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections& msg) {
+void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections &msg) {
   // Number of received corrections
-  QMetaObject::invokeMethod(ui_.label_numWifiCorrections, "setText", Q_ARG(QString, QString::number(msg.received_corrections)));
+  QMetaObject::invokeMethod(ui_.label_numWifiCorrections,
+                            "setText",
+                            Q_ARG(QString, QString::number(msg.received_corrections)));
 
   // Compute rate corrections
   double widthTimeWindow = ros::Time::now().sec - timeFirstSampleMovingWindow_;
   if (widthTimeWindow >= wifiCorrectionsAvgHz_) {
     int samplesInTimeWindow = msg.received_corrections - numCorrectionsFirstSampleMovingWindow_;
     double avgCorrectionsHz = samplesInTimeWindow / widthTimeWindow;
-    QMetaObject::invokeMethod(ui_.label_rateWifiCorrections, "setText", Q_ARG(QString, QString::number(std::round(avgCorrectionsHz), 'g', 2)));
+    QMetaObject::invokeMethod(ui_.label_rateWifiCorrections,
+                              "setText",
+                              Q_ARG(QString, QString::number(std::round(avgCorrectionsHz), 'g', 2)));
 
     // reset and start anew
     numCorrectionsFirstSampleMovingWindow_ = msg.received_corrections;
@@ -288,13 +325,15 @@ void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrecti
   }
 
   // Ping base station
-  QMetaObject::invokeMethod(ui_.label_pingBaseStation, "setText", Q_ARG(QString, QString::number(std::round(msg.latency), 'g', 2)));
+  QMetaObject::invokeMethod(ui_.label_pingBaseStation,
+                            "setText",
+                            Q_ARG(QString, QString::number(std::round(msg.latency), 'g', 2)));
 
   //update last msg stamp
   lastMsgStamps_.wifiCorrectionsStamp_ = msg.header.stamp.toSec();
 }
 
-void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg) {
+void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix &msg) {
   altitudes_.push_back(msg.altitude);
   double altitudeAvg = 0;
   for (std::vector<double>::iterator it = altitudes_.begin(); it != altitudes_.end(); it++) {
@@ -309,7 +348,7 @@ void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg) {
   lastMsgStamps_.navsatfixRtkFixStamp_ = msg.header.stamp.toSec();
 }
 
-void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg) {
+void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti &msg) {
   //std::string time;
   QString time;
   time.sprintf("%02d:%02d:%02d", msg.hours, msg.minutes, msg.seconds);
@@ -323,6 +362,33 @@ void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrection
   text.sprintf("%.1f", age_of_corrections);
   QMetaObject::invokeMethod(ui_.label_ageOfCorrections, "setText", Q_ARG(QString, text));
 }
+
+void GpsRtkPlugin::clickStartUARTButton() {
+  if (!uart_thread_) {
+    uart_thread_.reset(new UARTThread()); // no make_unique in this c++ ver.
+    connect(uart_thread_.get(), &UARTThread::resultReady, this, &GpsRtkPlugin::uartResultsHandler);
+  }
+
+  if (uart_thread_->isRunning()) {
+    uart_thread_->stop();
+    ui_.btn_uart_start->setText("Start");
+  } else {
+    uart_thread_->setPort(ui_.txt_uart->displayText().toUtf8().constData(),
+                          ui_.cmb_uart_rate->currentData().toUInt());
+    uart_thread_->start();
+    ui_.btn_uart_start->setText("Stop");
+  }
+}
+
+void GpsRtkPlugin::uartResultsHandler(const QString &data) {
+  ui_.txt_uart_data->setText(data);
+
+  // in case an error happens.
+  if (!uart_thread_->isRunning()) {
+    ui_.btn_uart_start->setText("Start");
+  }
+}
+
 /*bool hasConfiguration() const
  {
  return true;
@@ -335,3 +401,4 @@ void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrection
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(GpsRtkPlugin, rqt_gui_cpp::Plugin)
+
