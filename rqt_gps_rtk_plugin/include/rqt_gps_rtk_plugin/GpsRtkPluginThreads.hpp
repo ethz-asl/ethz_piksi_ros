@@ -56,7 +56,7 @@ class UDPThread : public QThread {
     hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
     hints.ai_socktype = SOCK_DGRAM; // get full datagramm without IP header.
     hints.ai_flags = AI_PASSIVE;
-    getaddrinfo(NULL, std::to_string(udp_port_).c_str(), &hints, &res);
+    getaddrinfo(nullptr, std::to_string(udp_port_).c_str(), &hints, &res);
 
     // get socket & bind
     fd_socket_ = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -67,7 +67,7 @@ class UDPThread : public QThread {
 
       // receive data.
       do {
-        size_t received_length;
+        ssize_t received_length;
         if ((received_length = recvfrom(fd_socket_,
                                         buffer.data(),
                                         buffer.size(),
@@ -103,8 +103,11 @@ class UARTThread : public QThread {
  Q_OBJECT
 
  public:
-  UARTThread() : QThread(), stop_thread_(true),
-                 port_("/dev/ttyUSB0") {}
+  UARTThread() : QThread(),
+                 fd_serial_port_(-1),
+                 stop_thread_(true),
+                 port_("/dev/ttyUSB0"),
+                 baudrate_(B115200) {}
 
   // Important: Baudrate is not set as e.g. 115200,
   // but as the constant (B115200)!!
@@ -128,8 +131,7 @@ class UARTThread : public QThread {
     fd_serial_port_ = open(port_.c_str(), O_RDWR);
     if (fd_serial_port_ != 1) {
       fcntl(fd_serial_port_, F_SETFL, 0);
-      struct termios
-          port_settings;      // structure to store the port settings in
+      struct termios port_settings;
 
       cfsetispeed(&port_settings, baudrate_);    // set baud rates
       cfsetospeed(&port_settings, baudrate_);
@@ -154,7 +156,7 @@ class UARTThread : public QThread {
 
       do {
         uint8_t buf;
-        size_t n = read(fd_serial_port_, &buf, 1);
+        ssize_t n = read(fd_serial_port_, &buf, 1);
 
         if (n == 1) {
           if (d.addToBuffer(buf) == SBP_MSG_TYPE::MSG_OBS) {
