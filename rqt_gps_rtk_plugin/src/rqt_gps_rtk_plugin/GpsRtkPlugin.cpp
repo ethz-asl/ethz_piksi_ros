@@ -24,7 +24,7 @@ GpsRtkPlugin::GpsRtkPlugin()
   setObjectName("GpsRtkPlugin");
 }
 
-void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext &context) {
+void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   // access standalone command line arguments
   QStringList argv = context.argv();
   // create QWidget
@@ -60,12 +60,12 @@ void GpsRtkPlugin::initPlugin(qt_gui_cpp::PluginContext &context) {
 void GpsRtkPlugin::shutdownPlugin() {
 }
 
-void GpsRtkPlugin::saveSettings(qt_gui_cpp::Settings &plugin_settings,
-                                qt_gui_cpp::Settings &instance_settings) const {
+void GpsRtkPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings,
+                                qt_gui_cpp::Settings& instance_settings) const {
 }
 
-void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings &plugin_settings,
-                                   const qt_gui_cpp::Settings &instance_settings) {
+void GpsRtkPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings,
+                                   const qt_gui_cpp::Settings& instance_settings) {
 }
 
 void GpsRtkPlugin::readParameters() {
@@ -188,7 +188,7 @@ void GpsRtkPlugin::initSubscribers() {
                                 this);
 }
 
-void GpsRtkPlugin::timerCallback(const ros::TimerEvent &e) {
+void GpsRtkPlugin::timerCallback(const ros::TimerEvent& e) {
   double currentStamp = ros::Time::now().toSec();
   QString na = QString::fromStdString("N/A");
   QString color = QString::fromStdString(
@@ -272,7 +272,7 @@ void GpsRtkPlugin::timerCallback(const ros::TimerEvent &e) {
   }
 }
 
-void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4_1 &msg) {
+void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4_1& msg) {
   // Type of fix
   const QString fix_mode = QString::fromStdString(msg.fix_mode);
   QString color_fix_mode("");
@@ -382,7 +382,7 @@ void GpsRtkPlugin::piksiReceiverStateCb(const piksi_rtk_msgs::ReceiverState_V2_4
   lastMsgStamps_.receiverStateStamp_ = msg.header.stamp.toSec();
 }
 
-void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed &msg) {
+void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed& msg) {
   // Number of satellites used for RTK
   QMetaObject::invokeMethod(ui_.label_numRtkSatellites,
                             "setText",
@@ -425,7 +425,7 @@ void GpsRtkPlugin::piksiBaselineNedCb(const piksi_rtk_msgs::BaselineNed &msg) {
   lastMsgStamps_.baselineNedStamp_ = msg.header.stamp.toSec();
 }
 
-void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections &msg) {
+void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrections& msg) {
   // Number of received corrections
   QMetaObject::invokeMethod(ui_.label_numWifiCorrections,
                             "setText",
@@ -462,7 +462,7 @@ void GpsRtkPlugin::piksiWifiCorrectionsCb(const piksi_rtk_msgs::InfoWifiCorrecti
   lastMsgStamps_.wifiCorrectionsStamp_ = msg.header.stamp.toSec();
 }
 
-void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix &msg) {
+void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix& msg) {
   altitudes_.push_back(msg.altitude);
   double altitudeAvg = 0;
   for (std::vector<double>::iterator it = altitudes_.begin();
@@ -480,7 +480,7 @@ void GpsRtkPlugin::piksiNavsatfixRtkFixCb(const sensor_msgs::NavSatFix &msg) {
   lastMsgStamps_.navsatfixRtkFixStamp_ = msg.header.stamp.toSec();
 }
 
-void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti &msg) {
+void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti& msg) {
   //std::string time;
   QString time;
   time.sprintf("%02d:%02d:%02d", msg.hours, msg.minutes, msg.seconds);
@@ -490,7 +490,7 @@ void GpsRtkPlugin::piksiTimeCb(const piksi_rtk_msgs::UtcTimeMulti &msg) {
                             Q_ARG(QString, time));
 }
 
-void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrections &msg) {
+void GpsRtkPlugin::piksiAgeOfCorrectionsCb(const piksi_rtk_msgs::AgeOfCorrections& msg) {
   double age_of_corrections = msg.age / 10.0;
   QString text;
   text.sprintf("%.1f", age_of_corrections);
@@ -537,7 +537,7 @@ void GpsRtkPlugin::clickStartUDPButton() {
   }
 }
 
-void GpsRtkPlugin::uartResultsHandler(const QString &data) {
+void GpsRtkPlugin::uartResultsHandler(const QString& data) {
   ui_.txt_uart_data->setText(data);
 
   // in case an error happens.
@@ -546,7 +546,7 @@ void GpsRtkPlugin::uartResultsHandler(const QString &data) {
   }
 }
 
-void GpsRtkPlugin::udpResultsHandler(const QString &data) {
+void GpsRtkPlugin::udpResultsHandler(const QString& data) {
   ui_.txt_udp_data->setPlainText(data);
 
   if (!udp_thread_->isRunning()) {

@@ -47,7 +47,7 @@ class UDPThread : public QThread {
     stop_thread_ = false;
 
     // adress information
-    struct addrinfo hints, *res;
+    struct addrinfo hints, * res;
     socklen_t fromlen;
     struct sockaddr_storage addr;
 
@@ -72,7 +72,7 @@ class UDPThread : public QThread {
                                         buffer.data(),
                                         buffer.size(),
                                         0,
-                                        (sockaddr *) &addr,
+                                        (sockaddr*) &addr,
                                         &fromlen))) {
           // get message
           SBP_MSG_OBS msg;
@@ -94,7 +94,7 @@ class UDPThread : public QThread {
   }
 
  signals:
-  void resultReady(const QString &s);
+  void resultReady(const QString& s);
 
 };
 
@@ -108,7 +108,7 @@ class UARTThread : public QThread {
 
   // Important: Baudrate is not set as e.g. 115200,
   // but as the constant (B115200)!!
-  void setPort(const std::string &portname, const uint baudrate) {
+  void setPort(const std::string& portname, const uint baudrate) {
     port_ = portname;
     baudrate_ = baudrate;
   }
@@ -179,7 +179,7 @@ class UARTThread : public QThread {
   }
 
  signals:
-  void resultReady(const QString &s);
+  void resultReady(const QString& s);
 
 };
 #endif //RQT_GPS_RTK_PLUGIN_GPSRTKPLUGINTHREADS_H

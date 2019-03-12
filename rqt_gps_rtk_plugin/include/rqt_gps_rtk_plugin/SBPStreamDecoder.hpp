@@ -18,15 +18,15 @@ class SBPStreamDecoder {
  public:
 
   SBPStreamDecoder(const size_t buffer_size,
-                   const std::set<SBP_MSG_TYPE> &active_types);
+                   const std::set<SBP_MSG_TYPE>& active_types);
 
   // add a single byte and check if a valid message is in the buffer
-  SBP_MSG_TYPE addToBuffer(uint8_t &data);
+  SBP_MSG_TYPE addToBuffer(uint8_t& data);
 
   // get current valid message
   // function defined in header due to templating implementation
   template<typename T>
-  bool getCurrentMessage(T *out) {
+  bool getCurrentMessage(T* out) {
     if (state_ != ReceiverState::Received) {
       return false;
     }

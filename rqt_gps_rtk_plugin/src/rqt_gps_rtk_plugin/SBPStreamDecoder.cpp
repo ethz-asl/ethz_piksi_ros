@@ -1,7 +1,7 @@
 #include <rqt_gps_rtk_plugin/SBPStreamDecoder.hpp>
 
 SBPStreamDecoder::SBPStreamDecoder(const size_t buffer_size,
-                                   const std::set<SBP_MSG_TYPE> &active_types) :
+                                   const std::set<SBP_MSG_TYPE>& active_types) :
     active_types_(active_types),
     buffer_(buffer_size),
     buffer_ptr_(0),
@@ -9,7 +9,7 @@ SBPStreamDecoder::SBPStreamDecoder(const size_t buffer_size,
 }
 
 // add a single byte and check if a valid message is in the buffer
-SBP_MSG_TYPE SBPStreamDecoder::addToBuffer(uint8_t &data) {
+SBP_MSG_TYPE SBPStreamDecoder::addToBuffer(uint8_t& data) {
   buffer_[buffer_ptr_] = data;
   checkStateTransitions();
   advanceBuffer();

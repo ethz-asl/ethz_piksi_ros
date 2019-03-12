@@ -42,7 +42,7 @@ const uint16_t SBPDecoder::crc16tab[256] = {
     0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
 };
 
-size_t SBPDecoder::getMessageSize(const SBP_MSG_HEADER &header) {
+size_t SBPDecoder::getMessageSize(const SBP_MSG_HEADER& header) {
   return header.length + sizeof(SBP_MSG_HEADER) + 2;
 }
 
@@ -52,9 +52,9 @@ bool SBPDecoder::isSync(const uint8_t value) {
 }
 
 // Check partial message (to get length for buffer)
-bool SBPDecoder::validHeader(const std::vector<uint8_t> &buffer,
-                             SBP_MSG_HEADER *header,
-                             const std::set<SBP_MSG_TYPE> &valid_types) {
+bool SBPDecoder::validHeader(const std::vector<uint8_t>& buffer,
+                             SBP_MSG_HEADER* header,
+                             const std::set<SBP_MSG_TYPE>& valid_types) {
 
   // check preamble.
   if (buffer[0] != 0x55) {
@@ -67,7 +67,7 @@ bool SBPDecoder::validHeader(const std::vector<uint8_t> &buffer,
   }
 
   const SBP_MSG_TYPE header_type =
-      static_cast<SBP_MSG_TYPE >(*((uint16_t *) (buffer.data() + 1)));
+      static_cast<SBP_MSG_TYPE >(*((uint16_t*) (buffer.data() + 1)));
 
   // only look for valid types (to have a longer sync string than just 0x55).
   if (valid_types.size() > 0 && valid_types.count(header_type) == 0) {
@@ -81,8 +81,8 @@ bool SBPDecoder::validHeader(const std::vector<uint8_t> &buffer,
 }
 
 // check full message
-bool SBPDecoder::checkMessage(const std::vector<uint8_t> &buffer,
-                              SBP_MSG_HEADER *header) {
+bool SBPDecoder::checkMessage(const std::vector<uint8_t>& buffer,
+                              SBP_MSG_HEADER* header) {
   // in case we dont need header output
   SBP_MSG_HEADER temp_header;
   if (header == nullptr) {
@@ -111,7 +111,7 @@ bool SBPDecoder::checkMessage(const std::vector<uint8_t> &buffer,
 }
 
 // checksum IRCC
-uint16_t SBPDecoder::calculateChecksum(const std::vector<uint8_t> &buffer,
+uint16_t SBPDecoder::calculateChecksum(const std::vector<uint8_t>& buffer,
                                        const uint16_t offset,
                                        const uint16_t length) {
   uint16_t crc = 0x0000;
