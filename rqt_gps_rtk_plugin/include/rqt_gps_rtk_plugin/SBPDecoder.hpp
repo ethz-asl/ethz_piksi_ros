@@ -22,7 +22,11 @@ enum class SBP_MSG_TYPE : uint16_t {
 
 // note: packed attribute mandatory for low-level parsing.
 //       Otherwise the compiler might align variables with padding etc.
+//
+// Definition source: SBP Manual v2.4.7
+// Available here: https://support.swiftnav.com/customer/en/portal/articles/2492810-swift-binary-protocol
 
+// Header as defined in chapter "2 Message Framing Structure".
 typedef struct __attribute__ ((packed)) {
   uint8_t preamble;
   SBP_MSG_TYPE message_type;
@@ -30,7 +34,8 @@ typedef struct __attribute__ ((packed)) {
   uint8_t length;
 } SBP_MSG_HEADER;
 
-// struct for measurement status flags
+// Struct for measurement status flags as defined in field
+// definition 6.6.1 / Chapter 6.6
 typedef struct __attribute__ ((packed)) {
   uint pseodorange_valid:1;
   uint carrier_phase_valid:1;
@@ -40,12 +45,14 @@ typedef struct __attribute__ ((packed)) {
   uint RAIM_excl:1;
 } SBP_MSG_OBS_OBSERVATION_FLAGS;
 
-// struct for n_obs
+// Struct for number of observations as defined in Chapter 6.6
+// (field n_obs in table)
 typedef struct __attribute__ ((packed)) {
   uint index:4;
   uint total_n:4;     // upper and lower nibble (:4)
 } SBP_MSG_OBS_OBSERVATION_NOBS;
 
+// Struct for observation header as defined in Chapter 6.6 (Table 6.6.1).
 typedef struct __attribute__ ((packed)) {
   uint32_t tow;
   int32_t ns_residual;
@@ -53,6 +60,7 @@ typedef struct __attribute__ ((packed)) {
   SBP_MSG_OBS_OBSERVATION_NOBS n_obs;
 } SBP_MSG_OBS_HEADER;
 
+// Struct for observation header as defined in Chapter 6.6 (Table 6.6.1)
 typedef struct __attribute__ ((packed)) {
   uint32_t P;   // pseudoragne
   int32_t L_i;  // carrier phase integer cycles
@@ -82,7 +90,7 @@ class SBP_MSG_OBS {
  public:
   SBP_MSG_OBS_HEADER header;
   std::vector<SBP_MSG_OBS_OBSERVATION> observations;
-
+  
   std::string str() {
     std::map<uint8_t, std::string> code_map = {
         {0, "GPS L1CA"},
