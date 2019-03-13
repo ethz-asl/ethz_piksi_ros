@@ -9,6 +9,7 @@
 
 // ui
 #include <rqt_gps_rtk_plugin/ui_gps_rtk_plugin.h>
+#include <rqt_gps_rtk_plugin/GpsRtkPluginThreads.hpp>
 
 // std
 #include <algorithm>
@@ -42,15 +43,16 @@ struct TimeStamps {
   }
 };
 
-class GpsRtkPlugin : public rqt_gui_cpp::Plugin
-{
-Q_OBJECT
+class GpsRtkPlugin : public rqt_gui_cpp::Plugin {
+ Q_OBJECT
  public:
   GpsRtkPlugin();
   virtual void initPlugin(qt_gui_cpp::PluginContext& context);
   virtual void shutdownPlugin();
-  virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const;
-  virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings);
+  virtual void saveSettings(qt_gui_cpp::Settings& plugin_settings,
+                            qt_gui_cpp::Settings& instance_settings) const;
+  virtual void restoreSettings(const qt_gui_cpp::Settings& plugin_settings,
+                               const qt_gui_cpp::Settings& instance_settings);
 
   // Comment in to signal that the plugin has a way to configure it
   //bool hasConfiguration() const;
@@ -64,7 +66,7 @@ Q_OBJECT
   void initSubscribers();
 
   template<typename T>
-  void vectorToString(const std::vector<T> &vec, QString *pString) {
+  void vectorToString(const std::vector<T>& vec, QString* pString) {
     *pString = "[";
     for (auto i = vec.begin(); i != vec.end(); ++i) {
       if (i != vec.begin()) {
@@ -75,7 +77,7 @@ Q_OBJECT
     *pString += "]";
   }
 
-  template <typename T>
+  template<typename T>
   std::vector<T> scaleSignalStrength(
       const std::vector<T>& vec_signal_strength) {
     auto scaled_signal_strength = vec_signal_strength;
@@ -119,6 +121,17 @@ Q_OBJECT
   TimeStamps lastMsgStamps_;
   // The max allowed timeout [s] before GUI information is updated with "N/A"
   double maxTimeout_;
+
+  std::unique_ptr<UARTThread> uart_thread_;
+  std::unique_ptr<UDPThread> udp_thread_;
+
+ private slots:
+  void clickStartUARTButton();
+  void clickStartUDPButton();
+
+  void uartResultsHandler(const QString&);
+  void udpResultsHandler(const QString&);
+
 };
 
 #endif // GPSRTKPLUGIN_H
