@@ -14,7 +14,7 @@ import datetime, time, leapseconds
 from collections import deque
 import std_srvs.srv
 # Import message types
-from sensor_msgs.msg import NavSatFix, NavSatStatus
+from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu
 import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
@@ -197,6 +197,11 @@ class PiksiMulti:
         self.utc_times = {}
         self.tow = deque()
 
+        # Publish IMU
+        self.acc_scale = 8 * 9.81 / 32768
+        self.gyro_scale = 125 * np.pi / 180.0 / 32768
+        self.has_imu_scale = False
+
         # Spin.
         rospy.spin()
 
@@ -363,6 +368,8 @@ class PiksiMulti:
                                                     ImuRawMulti, queue_size=10)
             publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
                                                     MagRaw, queue_size=10)
+            publishers['imu'] = rospy.Publisher(rospy.get_name() + '/imu',
+                                                    Imu, queue_size=10)
 
         # Topics published only if in "debug mode".
         if self.debug_mode:
@@ -1195,24 +1202,53 @@ class PiksiMulti:
     def cb_sbp_imu_raw(self, msg_raw, **metadata):
         msg = MsgImuRaw(msg_raw)
 
+        if not self.has_imu_scale:
+            rospay.logwarn("IMU scale unknown.")
+            return
+
         if msg.tow & (1 << (32 - 1)):
             rospy.logwarn("IMU time unknown.")
             return
 
-        stamp = rospy.Time.now()
+        imu_msg = Imu()
+        imu_msg.header.stamp = rospy.Time.now()
         if (self.use_gps_time):
-            stamp = self.tow_f_to_utc(msg.tow, msg.tow_f)
+            imu_msg.header.stamp = self.tow_f_to_utc(msg.tow, msg.tow_f)
 
+        imu_msg.header.frame_id = 'piksi_imu'
+        imu_msg.orientation.w = 1.0
 
+        imu_msg.angular_velocity.x = msg.gyr_x * self.gyro_scale
+        imu_msg.angular_velocity.y = msg.gyr_y * self.gyro_scale
+        imu_msg.angular_velocity.z = msg.gyr_z * self.gyro_scale
+
+        imu_msg.linear_acceleration.x = msg.acc_x * self.acc_scale
+        imu_msg.linear_acceleration.y = msg.acc_y * self.acc_scale
+        imu_msg.linear_acceleration.z = msg.acc_z * self.acc_scale
+
+        self.publishers['imu'].publish(imu_msg)
 
     def cb_sbp_imu_aux(self, msg_raw, **metadata):
         msg = MsgImuAux(msg_raw)
 
-        acc_conf = msg.imu_conf & 0b1111
-        gyro_conf = msg.imu_conf >> 4
+        if msg.imu_type != 0:
+            rospy.logwarn("Unkown IMU type.")
+            self.has_imu_scale = False
+            return
 
-        print acc_conf
-        print gyro_conf
+        # Scale accelerometer.
+        acc_conf = msg.imu_conf & 0b1111
+        acc_range = 2**(acc_conf+1) # 2 to 16 g
+        self.acc_scale = acc_range * 9.81 / 32768
+
+        # Scale gyroscope.
+        gyro_conf = msg.imu_conf >> 4
+        gyro_range = 2000 / (2**gyro_conf) # 125 to 2000 dps
+        self.gyro_scale = gyro_range * np.pi / 180.0 / 32768
+
+        print acc_range
+        print gyro_range
+        self.has_imu_scale = True
 
     def clear_last_setting_read(self):
         self.last_section_setting_read = []
