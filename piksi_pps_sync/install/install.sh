@@ -35,4 +35,4 @@ sudo apt install chrony -y
 sudo sh -c "echo '' >> /etc/chrony/chrony.conf"
 sudo sh -c "echo '# GPS + PPS' >> /etc/chrony/chrony.conf"
 sudo sh -c "echo 'refclock PPS /dev/pps0 lock NMEA' >> /etc/chrony/chrony.conf"
-sudo sh -c "echo 'refclock SHM 0 refid NMEA' >> /etc/chrony/chrony.conf"
+sudo sh -c "echo 'refclock SHM 0 offset 0.02 delay 0.2 refid NMEA' >> /etc/chrony/chrony.conf"
