@@ -587,10 +587,11 @@ class PiksiMulti:
     def cb_sbp_utc_time(self, msg_raw, **metadata):
         msg = MsgUtcTime(msg_raw)
         t = datetime.datetime(msg.year, msg.month, msg.day, msg.hours, msg.minutes, msg.seconds)
-        secs = time.mktime(t.timetuple())
-        self.utc_times[msg.tow] = rospy.Time(secs, msg.ns)
+        secs = (t - datetime.datetime(1970,1,1)).total_seconds()
+        self.utc_times[msg.tow] = rospy.Time(int(secs), msg.ns)
         print "Added new time:"
         print self.utc_times[msg.tow]
+        print secs
         print rospy.Time(secs, msg.ns)
 
     def multicast_callback(self, msg, **metadata):
