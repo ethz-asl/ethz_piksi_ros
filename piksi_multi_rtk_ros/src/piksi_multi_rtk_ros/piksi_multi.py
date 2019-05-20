@@ -590,9 +590,11 @@ class PiksiMulti:
         secs = (t - datetime.datetime(1970,1,1)).total_seconds()
         self.utc_times[msg.tow] = rospy.Time(int(secs), msg.ns)
         print "Added new time:"
+        print msg.tow
         print self.utc_times[msg.tow]
+        print rospy.Time().now()
         print secs
-        print rospy.Time(secs, msg.ns)
+        print msg.ns
 
     def multicast_callback(self, msg, **metadata):
         if self.framer:
