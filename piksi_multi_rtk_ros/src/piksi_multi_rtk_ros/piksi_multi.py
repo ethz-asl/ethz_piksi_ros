@@ -193,6 +193,7 @@ class PiksiMulti:
             rospy.Timer(rospy.Duration(30), self.cb_watchdog, True)
 
         # Buffer UTC times. key: tow, value: UTC
+        self.use_gps_time = rospy.get_param('~use_gps_time', False)
         self.utc_times = {}
         self.tow = deque()
 
@@ -507,9 +508,10 @@ class PiksiMulti:
             msg = MsgObs(msg_raw)
 
             obs_msg = Observation()
-            obs_msg.header.stamp = rospy.Time.now()
 
-            obs_msg.header.stamp = self.gps_time_to_utc(msg.header.t.wn, msg.header.t.tow, msg.header.t.ns_residual)
+            obs_msg.header.stamp = rospy.Time.now()
+            if (self.use_gps_time):
+                obs_msg.header.stamp = self.gps_time_to_utc(msg.header.t.wn, msg.header.t.tow, msg.header.t.ns_residual)
 
             obs_msg.tow = msg.header.t.tow
             obs_msg.ns_residual = msg.header.t.ns_residual
@@ -645,21 +647,28 @@ class PiksiMulti:
 
         secs_utc = int((t_utc - datetime.datetime(1970,1,1)).total_seconds())
         nsecs_utc = (t_utc - datetime.datetime(1970,1,1)).microseconds * 10**3
+
         return rospy.Time(secs_utc, nsecs_utc)
+
+    def tow_to_utc(self, tow):
+        epoch = datetime.date(1980, 1, 6)
+        today = datetime.date.today()
+
+        epoch_sunday = epoch - datetime.timedelta((epoch.weekday() + 1) % 7)
+        today_sunday = today - datetime.timedelta((today.weekday() + 1) % 7)
+
+        wn = (today_sunday - epoch_sunday).days / 7
+        return self.gps_time_to_utc(wn, tow, 0)
 
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
-        stamp = self.utc_times.get(msg.tow, None)
-        if stamp is None:
-            rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
-            epoch = datetime.date(1980, 1, 6)
-            today = datetime.date.today()
 
-            epoch_sunday = epoch - datetime.timedelta((epoch.weekday() + 1) % 7)
-            today_sunday = today - datetime.timedelta((today.weekday() + 1) % 7)
-
-            wn = (today_sunday - epoch_sunday).days / 7
-            stamp = self.gps_time_to_utc(wn, msg.tow, 0)
+        stamp = rospy.Time.now()
+        if self.use_gps_time:
+            stamp = self.utc_times.get(msg.tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
+                stamp = self.(tow_to_utc, msg.tow)
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:

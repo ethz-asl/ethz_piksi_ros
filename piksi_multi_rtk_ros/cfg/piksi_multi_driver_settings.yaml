@@ -64,3 +64,8 @@ tcp_addr: 192.168.0.222
 # tcp_port: the port number of the TCP server. By default, Swift Navigation
 # receivers publish SBP data on TCP port 55555.
 tcp_port: 55555
+
+# Time settings.
+# use_gps_time: If true, it timestamps the position information with GPS time.
+# Otherwise uses rospy.Time.now()
+use_gps_time: false
