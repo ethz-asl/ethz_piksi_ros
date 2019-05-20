@@ -509,7 +509,7 @@ class PiksiMulti:
             obs_msg = Observation()
             obs_msg.header.stamp = rospy.Time.now()
 
-            stamp = self.utc_times.get(msg.t.tow, None)
+            stamp = self.utc_times.get(msg.header.t.tow, None)
             if stamp is None:
                 rospy.logwarn("Cannot find GPS time stamp. Using rospy.Time.now().")
                 stamp = rospy.Time.now()
@@ -517,7 +517,7 @@ class PiksiMulti:
             print "stamp readout:"
             print stamp
             print "stamp converted:"
-            print self.gps_time_to_utc(msg.t.wn, msg.t.tow, msg.t.ns_residual)
+            print self.gps_time_to_utc(msg.header.t.wn, msg.header.t.tow, msg.header.t.ns_residual)
 
             obs_msg.tow = msg.header.t.tow
             obs_msg.ns_residual = msg.header.t.ns_residual
