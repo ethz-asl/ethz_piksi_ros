@@ -91,7 +91,7 @@ static int pps_gpio_add(void) {
   }
 
   /* Register IRQ interrupt handler */
-  ret = request_irq(in_data.irq, pps_gpio_irq_handler, get_irqf_trigger_flags(),
+  ret = request_threaded_irq(in_data.irq, pps_gpio_irq_handler, NULL, get_irqf_trigger_flags(),
                     in_data.info.name, &in_data);
   if (ret) {
     pr_err("Failed to register aquire IRQ %d\n", in_data.irq);
