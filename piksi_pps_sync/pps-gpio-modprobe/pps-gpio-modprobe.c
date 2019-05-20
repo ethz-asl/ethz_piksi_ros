@@ -81,7 +81,8 @@ static int pps_gpio_add(void) {
   snprintf(in_data.info.name, PPS_MAX_NAME_LEN - 1, "pps-gpio-modprobe.0");
   in_data.info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT | PPS_ECHOASSERT |
                       PPS_CANWAIT | PPS_TSFMT_TSPEC;
-  in_data.info.owner = THIS_MODULE, in_data.info.dev = NULL;
+  in_data.info.owner = THIS_MODULE;
+  in_data.info.dev = NULL;
   pps_default_params = PPS_CAPTUREASSERT | PPS_OFFSETASSERT;
   in_data.pps = pps_register_source(&in_data.info, pps_default_params);
   if (in_data.pps == NULL) {
