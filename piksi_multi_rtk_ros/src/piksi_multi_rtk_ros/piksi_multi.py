@@ -11,6 +11,7 @@ import rospy
 import math
 import numpy as np
 import datetime, time
+from collections import deque
 import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
@@ -193,6 +194,7 @@ class PiksiMulti:
 
         # Buffer UTC times. key: tow, value: UTC
         self.utc_times = {}
+        self.tow = deque()
 
         # Spin.
         rospy.spin()
@@ -589,6 +591,11 @@ class PiksiMulti:
         t = datetime.datetime(msg.year, msg.month, msg.day, msg.hours, msg.minutes, msg.seconds)
         secs = (t - datetime.datetime(1970,1,1)).total_seconds()
         self.utc_times[msg.tow] = rospy.Time(int(secs), msg.ns)
+        self.tow.append(msg.tow)
+
+        if len(self.tow) > 100:
+            print "Start removing samples"
+            self.utc_times.pop(self.tow.popleft())
         print "Added new time:"
         print msg.tow
         print self.utc_times[msg.tow]
