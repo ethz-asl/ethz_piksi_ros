@@ -163,6 +163,11 @@ class PiksiMulti:
 
         # Other parameters.
         self.publish_raw_imu_and_mag = rospy.get_param('~publish_raw_imu_and_mag', False)
+        # Publish IMU
+        self.acc_scale = 8 * 9.81 / 32768
+        self.gyro_scale = 125 * np.pi / 180.0 / 32768
+        self.has_imu_scale = False
+
 
         # Advertise topics and services.
         self.publishers = self.advertise_topics()
@@ -196,11 +201,6 @@ class PiksiMulti:
         self.use_gps_time = rospy.get_param('~use_gps_time', False)
         self.utc_times = {}
         self.tow = deque()
-
-        # Publish IMU
-        self.acc_scale = 8 * 9.81 / 32768
-        self.gyro_scale = 125 * np.pi / 180.0 / 32768
-        self.has_imu_scale = False
 
         # Spin.
         rospy.spin()
@@ -1203,7 +1203,7 @@ class PiksiMulti:
         msg = MsgImuRaw(msg_raw)
 
         if not self.has_imu_scale:
-            rospay.logwarn("IMU scale unknown.")
+            rospy.logwarn_throttle(10, "IMU scale unknown.")
             return
 
         if msg.tow & (1 << (32 - 1)):
@@ -1246,9 +1246,8 @@ class PiksiMulti:
         gyro_range = 2000 / (2**gyro_conf) # 125 to 2000 dps
         self.gyro_scale = gyro_range * np.pi / 180.0 / 32768
 
-        print acc_range
-        print gyro_range
         self.has_imu_scale = True
+        rospy.loginfo_once("Received IMU scale.")
 
     def clear_last_setting_read(self):
         self.last_section_setting_read = []
