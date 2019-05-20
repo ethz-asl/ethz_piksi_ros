@@ -251,6 +251,8 @@ class PiksiMulti:
             self.init_callback('imu_raw', ImuRawMulti,
                                SBP_MSG_IMU_RAW, MsgImuRaw,
                                'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
+            self.handler.add_callback(self.cb_sbp_imu_raw, msg_type=SBP_MSG_IMU_RAW)
+            self.handler.add_callback(self.cb_sbp_imu_aux, msg_type=SBP_MSG_IMU_AUX)
             self.init_callback('mag_raw', MagRaw,
                                SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
 
@@ -650,7 +652,7 @@ class PiksiMulti:
 
         return rospy.Time(secs_utc, nsecs_utc)
 
-    def tow_to_utc(self, tow):
+    def tow_f_to_utc(self, tow, tow_f):
         epoch = datetime.date(1980, 1, 6)
         today = datetime.date.today()
 
@@ -658,7 +660,13 @@ class PiksiMulti:
         today_sunday = today - datetime.timedelta((today.weekday() + 1) % 7)
 
         wn = (today_sunday - epoch_sunday).days / 7
-        return self.gps_time_to_utc(wn, tow, 0)
+
+        nsec = tow_f / 256.0 * 10**6
+        return self.gps_time_to_utc(wn, tow, nsec)
+
+
+    def tow_to_utc(self, tow):
+        return self.tow_f_to_utc(tow, 0)
 
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
@@ -1183,6 +1191,28 @@ class PiksiMulti:
         self.last_section_setting_read = setting_string[0]
         self.last_setting_read = setting_string[1]
         self.last_value_read = setting_string[2]
+
+    def cb_sbp_imu_raw(self, msg_raw, **metadata):
+        msg = MsgImuRaw(msg_raw)
+
+        if msg.tow & (1 << (32 - 1)):
+            rospy.logwarn("IMU time unknown.")
+            return
+
+        stamp = rospy.Time.now()
+        if (self.use_gps_time):
+            stamp = self.tow_f_to_utc(msg.tow, msg.tow_f)
+
+
+
+    def cb_sbp_imu_aux(self, msg_raw, **metadata):
+        msg = MsgImuAux(msg_raw)
+
+        acc_conf = msg.imu_conf & 0b1111
+        gyro_conf = msg.imu_conf >> 4
+
+        print acc_conf
+        print gyro_conf
 
     def clear_last_setting_read(self):
         self.last_section_setting_read = []
