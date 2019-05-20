@@ -87,6 +87,7 @@ static int pps_gpio_add(void) {
   in_data.pps = pps_register_source(&in_data.info, pps_default_params);
   if (in_data.pps == NULL) {
     pr_err("Failed to register GPIO PPS source\n");
+    free_irq(in_data.irq, &in_data);
     gpio_free(in_data.gpio);
     return -EINVAL;
   }
@@ -102,7 +103,7 @@ static int pps_gpio_add(void) {
     return -EINVAL;
   }
 
-  pr_info("Registered GPIO %d as PPS source\n", in_data.gpio);
+  pr_info("Registered GPIO %d as PPS source with IRQ %d\n", in_data.gpio, in_data.irq);
   return 0;
 }
 
