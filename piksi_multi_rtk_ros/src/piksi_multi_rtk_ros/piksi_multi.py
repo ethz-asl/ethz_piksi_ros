@@ -704,14 +704,14 @@ class PiksiMulti:
         self.publish_receiver_state_msg()
 
     def publish_spp(self, latitude, longitude, height, stamp, variance, navsatstatus_fix):
-        self.publish_wgs84_point(latitude, longitude, height, variance, navsatstatus_fix,
+        self.publish_wgs84_point(latitude, longitude, height, stamp, variance, navsatstatus_fix,
                                  self.publishers['spp'],
                                  self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
                                  self.publishers['enu_transform_spp'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
 
     def publish_rtk_float(self, latitude, longitude, height, stamp):
-        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
+        self.publish_wgs84_point(latitude, longitude, height, stamp, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
                                  self.publishers['rtk_float'],
                                  self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
                                  self.publishers['enu_transform_float'], self.publishers['best_fix'],
