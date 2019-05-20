@@ -517,7 +517,7 @@ class PiksiMulti:
             print "stamp readout:"
             print stamp
             print "stamp converted:"
-            print self.gps_time_to_utc(msg.wn, msg.tow, msg.ns_residual)
+            print self.gps_time_to_utc(msg.t.wn, msg.t.tow, msg.t.ns_residual)
 
             obs_msg.tow = msg.header.t.tow
             obs_msg.ns_residual = msg.header.t.ns_residual
