@@ -10,6 +10,7 @@
 import rospy
 import math
 import numpy as np
+import datetime, time
 import std_srvs.srv
 # Import message types
 from sensor_msgs.msg import NavSatFix, NavSatStatus
@@ -190,6 +191,9 @@ class PiksiMulti:
             # Things have 30 seconds to start or we will kill node
             rospy.Timer(rospy.Duration(30), self.cb_watchdog, True)
 
+        # Buffer UTC times. key: tow, value: UTC
+        self.utc_times = {}
+
         # Spin.
         rospy.spin()
 
@@ -204,6 +208,7 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
         self.handler.add_callback(self.cb_sbp_measurement_state, msg_type=SBP_MSG_MEASUREMENT_STATE)
         self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
+        self.handler.add_callback(self.cb_sbp_utc_time, msg_type=SBP_MSG_UTC_TIME)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -578,6 +583,15 @@ class PiksiMulti:
         uart_state_msg.obs_period_current = msg.obs_period.current
 
         self.publishers['uart_state'].publish(uart_state_msg)
+
+    def cb_sbp_utc_time(self, msg_raw, **metadata):
+        msg = MsgUtcTime(msg_raw)
+        t = datetime.datetime(msg.year, msg.month, msg.day, msg.hours, msg.minutes, msg.seconds)
+        secs = time.mktime(t.timetuple())
+        self.utc_times[msg.tow] = rospy.Time(secs, msg.ns)
+        print "Added new time:"
+        print self.utc_times[msg.tow]
+        print rospy.Time(secs, msg.ns)
 
     def multicast_callback(self, msg, **metadata):
         if self.framer:
