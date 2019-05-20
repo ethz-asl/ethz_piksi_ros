@@ -14,7 +14,7 @@ import datetime, time, leapseconds
 from collections import deque
 import std_srvs.srv
 # Import message types
-from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu
+from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu, MagneticField
 import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
@@ -260,6 +260,7 @@ class PiksiMulti:
             self.handler.add_callback(self.cb_sbp_imu_aux, msg_type=SBP_MSG_IMU_AUX)
             self.init_callback('mag_raw', MagRaw,
                                SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
+            self.handler.add_callback(self.cb_sbp_mag_raw, msg_type=SBP_MSG_MAG_RAW)
 
         # Only if debug mode
         if self.debug_mode:
@@ -370,6 +371,8 @@ class PiksiMulti:
                                                     MagRaw, queue_size=10)
             publishers['imu'] = rospy.Publisher(rospy.get_name() + '/imu',
                                                     Imu, queue_size=10)
+            publishers['mag'] = rospy.Publisher(rospy.get_name() + '/mag',
+                                                    MagneticField, queue_size=10)
 
         # Topics published only if in "debug mode".
         if self.debug_mode:
@@ -1237,17 +1240,37 @@ class PiksiMulti:
             return
 
         # Scale accelerometer.
-        acc_conf = msg.imu_conf & 0b1111
+        acc_conf = msg.imu_conf & 0b1111 # Lower 4 bits.
         acc_range = 2**(acc_conf+1) # 2 to 16 g
         self.acc_scale = acc_range * 9.81 / 32768
 
         # Scale gyroscope.
-        gyro_conf = msg.imu_conf >> 4
+        gyro_conf = msg.imu_conf >> 4 # Upper 4 bits.
         gyro_range = 2000 / (2**gyro_conf) # 125 to 2000 dps
         self.gyro_scale = gyro_range * np.pi / 180.0 / 32768
 
         self.has_imu_scale = True
         rospy.loginfo_once("Received IMU scale.")
+
+    def cb_sbp_mag_raw(self, msg_raw, **metadata):
+        msg = MsgMagRaw(msg_raw)
+
+        if msg.tow & (1 << (32 - 1)):
+            rospy.logwarn("MAG time unknown.")
+            return
+
+        mag_msg = MagneticField()
+        mag_msg.header.stamp = rospy.Time.now()
+        if (self.use_gps_time):
+            mag_msg.header.stamp = self.tow_f_to_utc(msg.tow, msg.tow_f)
+
+        mag_msg.header.frame_id = 'piksi_imu'
+
+        mag_msg.magnetic_field.x = msg.mag_x / 10**6
+        mag_msg.magnetic_field.y = msg.mag_y / 10**6
+        mag_msg.magnetic_field.z = msg.mag_z / 10**6
+
+        self.publishers['mag'].publish(mag_msg)
 
     def clear_last_setting_read(self):
         self.last_section_setting_read = []
