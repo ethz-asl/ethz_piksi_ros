@@ -21,7 +21,7 @@ struct pps_gpio_data {
 
 struct pps_gpio_data in_data;
 
-static int gpio;
+static int gpio = -1;
 module_param(gpio, int, S_IRUSR);
 
 /*
@@ -91,8 +91,9 @@ static int pps_gpio_add(void) {
   }
 
   /* Register IRQ interrupt handler */
-  ret = request_threaded_irq(in_data.irq, pps_gpio_irq_handler, NULL, get_irqf_trigger_flags(),
-                    in_data.info.name, &in_data);
+  ret = request_threaded_irq(in_data.irq, pps_gpio_irq_handler, NULL,
+                             get_irqf_trigger_flags(), in_data.info.name,
+                             &in_data);
   if (ret) {
     pr_err("Failed to register aquire IRQ %d\n", in_data.irq);
     pps_unregister_source(in_data.pps);
