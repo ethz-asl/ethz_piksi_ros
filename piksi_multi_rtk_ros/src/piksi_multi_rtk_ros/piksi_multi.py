@@ -10,7 +10,7 @@
 import rospy
 import math
 import numpy as np
-import datetime, time
+import datetime, time, leapseconds
 from collections import deque
 import std_srvs.srv
 # Import message types
@@ -509,6 +509,16 @@ class PiksiMulti:
             obs_msg = Observation()
             obs_msg.header.stamp = rospy.Time.now()
 
+            stamp = self.utc_times.get(msg.tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Using rospy.Time.now().")
+                stamp = rospy.Time.now()
+
+            print "stamp readout:"
+            print stamp
+            print "stamp converted:"
+            print self.gps_time_to_utc(msg.wn, msg.tow, msg.ns_residual)
+
             obs_msg.tow = msg.header.t.tow
             obs_msg.ns_residual = msg.header.t.ns_residual
             obs_msg.wn = msg.header.t.wn
@@ -633,6 +643,13 @@ class PiksiMulti:
 
             if self.base_station_mode:
                 rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
+
+    def gps_time_to_utc(self, wn, tow, ns_residual):
+        epoch = datetime.datetime(1980,01,06)
+        secs, msecs = divmod(tow, 1000)
+        usec = ns_residual / 1000.0 # TODO(rikba): Handle nanoseconds.
+        elapsed = datetime.timedelta(seconds=secs, microseconds=usec, milliseconds=msecs, wn)
+        return leapseconds.gps_to_utc(epoch + elapsed)
 
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
