@@ -649,7 +649,11 @@ class PiksiMulti:
         secs, msecs = divmod(tow, 1000)
         usec = ns_residual / 1000.0 # TODO(rikba): Handle nanoseconds.
         elapsed = datetime.timedelta(seconds=secs, microseconds=usec, milliseconds=msecs, weeks=wn)
-        return leapseconds.gps_to_utc(epoch + elapsed)
+        t_utc = leapseconds.gps_to_utc(epoch + elapsed)
+
+        secs_utc = int((t_utc - datetime.datetime(1970,1,1)).total_seconds())
+        nsecs_utc = (t_utc - datetime.datetime(1970,1,1)).microseconds * 10**3
+        return rospy.Time(secs_utc, nsecs_utc)
 
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
