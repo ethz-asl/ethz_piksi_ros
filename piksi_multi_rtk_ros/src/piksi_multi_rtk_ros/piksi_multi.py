@@ -648,7 +648,7 @@ class PiksiMulti:
         epoch = datetime.datetime(1980,01,06)
         secs, msecs = divmod(tow, 1000)
         usec = ns_residual / 1000.0 # TODO(rikba): Handle nanoseconds.
-        elapsed = datetime.timedelta(seconds=secs, microseconds=usec, milliseconds=msecs, wn)
+        elapsed = datetime.timedelta(seconds=secs, microseconds=usec, milliseconds=msecs, weeks=wn)
         return leapseconds.gps_to_utc(epoch + elapsed)
 
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
