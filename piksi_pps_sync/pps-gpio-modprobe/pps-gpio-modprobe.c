@@ -106,8 +106,9 @@ static int pps_gpio_add(void) {
 }
 
 static int pps_gpio_remove(void) {
-  gpio_free(in_data.gpio);
+  free_irq(in_data.irq, &in_data);
   pps_unregister_source(in_data.pps);
+  gpio_free(in_data.gpio);
   pr_info("Removed GPIO %d as PPS source\n", in_data.gpio);
   return 0;
 }
