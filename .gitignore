@@ -20,3 +20,10 @@ geodetic_survey_bags/*.bag
 # KML files.
 /kml/*
 
+# Kernel modules
+*.ko*
+*.mod*
+*.o*
+*.symvers
+*.order
+
