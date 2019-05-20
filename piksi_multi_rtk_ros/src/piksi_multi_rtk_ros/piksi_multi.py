@@ -668,7 +668,7 @@ class PiksiMulti:
             stamp = self.utc_times.get(msg.tow, None)
             if stamp is None:
                 rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
-                stamp = self.(tow_to_utc, msg.tow)
+                stamp = self.tow_to_utc(msg.tow)
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
