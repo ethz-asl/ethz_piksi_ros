@@ -166,6 +166,8 @@ class PiksiMulti:
         # Publish IMU
         self.acc_scale = 8 * 9.81 / 32768
         self.gyro_scale = 125 * np.pi / 180.0 / 32768
+        self.mag_scale_xy = 1300.0 / 10**6 / 32768
+        self.mag_scale_z = 2500.0 / 10**6 / 32768
         self.has_imu_scale = False
 
 
@@ -1266,9 +1268,9 @@ class PiksiMulti:
 
         mag_msg.header.frame_id = 'piksi_imu'
 
-        mag_msg.magnetic_field.x = msg.mag_x / 10**6
-        mag_msg.magnetic_field.y = msg.mag_y / 10**6
-        mag_msg.magnetic_field.z = msg.mag_z / 10**6
+        mag_msg.magnetic_field.x = msg.mag_x * self.mag_scale_xy
+        mag_msg.magnetic_field.y = msg.mag_y * self.mag_scale_xy
+        mag_msg.magnetic_field.z = msg.mag_z * self.mag_scale_z
 
         self.publishers['mag'].publish(mag_msg)
 
