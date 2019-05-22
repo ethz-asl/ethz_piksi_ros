@@ -4,6 +4,7 @@ import pandas as pd
 import rosbag
 import numpy as np
 from sensor_msgs.msg import Imu
+#from cuckoo_time_translator import DeviceTimestamp
 import matplotlib.pyplot as plt
 
 def getSamplingPeriod(rng):
@@ -16,9 +17,10 @@ def getEquallySpacedTimeSeries(rng1, rng2):
     t_max = min(rng1.max(), rng2.max())
     return pd.DatetimeIndex(start=t_min, end=t_max, freq=dt), dt
 
-file = "/home/rik/data/2019_05_21_piksi_adis/2019-05-21-16-26-30.bag"
+file = "/home/rik/data/2019_05_21_piksi_adis/2019-05-22-08-33-42.bag"
 piksi_topic = "/moa/piksi/imu"
 adis_topic = "/moa/imu/data"
+device_time_topic = "/moa/device_time"
 
 # Read postprocessed ENU positions.
 bag = rosbag.Bag(file)
@@ -29,10 +31,14 @@ times_piksi = np.zeros(len(omega_piksi))
 omega_adis = np.zeros(bag.get_message_count(adis_topic))
 times_adis = np.zeros(len(omega_adis))
 
+adis_device_time = {}
+
 idx_piksi = 0
 idx_adis = 0
-for topic, msg, t in bag.read_messages(topics=[piksi_topic, adis_topic]):
-    omega = np.linalg.norm([msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z])
+for topic, msg, t in bag.read_messages(topics=[piksi_topic, adis_topic, device_time_topic]):
+    omega = 0.0
+    if msg._type == 'sensor_msgs/Imu':
+        omega = np.linalg.norm([msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z])
     if topic == piksi_topic:
         omega_piksi[idx_piksi] = omega
         times_piksi[idx_piksi] = msg.header.stamp.to_sec()
@@ -41,6 +47,8 @@ for topic, msg, t in bag.read_messages(topics=[piksi_topic, adis_topic]):
         omega_adis[idx_adis] = omega
         times_adis[idx_adis] = msg.header.stamp.to_sec()
         idx_adis += 1
+    elif topic == device_time_topic:
+        adis_device_time[msg.header.stamp.to_sec() - 0.024] = msg.event_stamp
 
 print("Loaded %u messages from %s" %(len(omega_piksi), piksi_topic))
 print("Loaded %u messages from %s" %(len(omega_adis), adis_topic))
@@ -81,5 +89,17 @@ ax2.plot(times_adis_aligned, omega_adis, color='g', label='Adis')
 ax2.set_title('Correlated Angular Velocity (t_off=%.3f)' % (t_off))
 ax2.set_ylabel('Angular Velocity [rad/s]')
 ax2.set_xlabel('Time [s]')
+
+## Plot with device time
+#adis_device_time_new = { time_adis: adis_device_time[time_adis] for time_adis in times_adis }
+#adis_device_time = adis_device_time_new.values()
+#adis_device_time.sort()
+#
+#fig, (ax) = plt.subplots(1, 1)
+#ax.plot(adis_device_time, omega_adis, color='r', label='Adis')
+#ax.set_ylabel('Angular Velocity [rad/s]')
+#ax.set_xlabel('Device Time [us]')
+#ax.legend()
+#ax.grid()
 
 plt.show()
