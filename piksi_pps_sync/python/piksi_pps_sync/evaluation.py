@@ -17,7 +17,7 @@ def getEquallySpacedTimeSeries(rng1, rng2):
     t_max = min(rng1.max(), rng2.max())
     return pd.DatetimeIndex(start=t_min, end=t_max, freq=dt), dt
 
-file = "/home/rik/data/2019_05_21_piksi_adis/2019-05-22-08-33-42.bag"
+file = "/home/rik/data/2019_05_21_piksi_adis/2019-05-22-13-09-35.bag"
 piksi_topic = "/moa/piksi/imu"
 adis_topic = "/moa/imu/data"
 device_time_topic = "/moa/device_time"
@@ -77,16 +77,16 @@ print("Time offset from piksi to adis t_adis_aligned = t_adis - t_off: %f" % t_o
 
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
 
-ax1.plot(times_piksi, omega_piksi, color='r', label='Piksi')
+ax1.plot(times_piksi, omega_piksi, 'ro', label='Piksi', )
 ax1.plot(times_adis, omega_adis, color='g', label='Adis')
 ax1.set_ylabel('Angular Velocity [rad/s]')
 ax1.set_title('Uncorrelated Angular Velocity')
 ax1.legend()
 
 times_adis_aligned = times_adis - t_off
-ax2.plot(times_piksi, omega_piksi, color='r', label='Piksi')
+ax2.plot(times_piksi, omega_piksi, 'ro', label='Piksi')
 ax2.plot(times_adis_aligned, omega_adis, color='g', label='Adis')
-ax2.set_title('Correlated Angular Velocity (t_off=%.3f)' % (t_off))
+ax2.set_title('Correlated Angular Velocity (t_off=%.3fs)' % (t_off))
 ax2.set_ylabel('Angular Velocity [rad/s]')
 ax2.set_xlabel('Time [s]')
 
