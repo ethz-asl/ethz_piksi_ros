@@ -12,6 +12,5 @@
   <buildtool_depend>catkin_simple</buildtool_depend>
 
   <depend>rospy</depend>
-  <depend>cuckoo_time_translator</depend>
   <depend>sensor_msgs</depend>
 </package>
