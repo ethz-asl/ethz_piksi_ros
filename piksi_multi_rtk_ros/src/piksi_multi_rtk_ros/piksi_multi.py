@@ -605,7 +605,14 @@ class PiksiMulti:
         self.publishers['uart_state'].publish(uart_state_msg)
 
     def cb_sbp_utc_time(self, msg_raw, **metadata):
+        if not self.use_gps_time:
+            return
         msg = MsgUtcTime(msg_raw)
+
+        if msg.flags == 0:
+            rospy.logwarn("GPS time invalid.")
+            return
+
         t = datetime.datetime(msg.year, msg.month, msg.day, msg.hours, msg.minutes, msg.seconds)
         secs = (t - datetime.datetime(1970,1,1)).total_seconds()
         self.utc_times[msg.tow] = rospy.Time(int(secs), msg.ns)
@@ -1211,7 +1218,7 @@ class PiksiMulti:
             rospy.logwarn_throttle(10, "IMU scale unknown.")
             return
 
-        if msg.tow & (1 << (32 - 1)):
+        if msg.tow & (1 << (32 - 1)) and self.use_gps_time:
             rospy.logwarn("IMU time unknown.")
             return
 
@@ -1257,7 +1264,7 @@ class PiksiMulti:
     def cb_sbp_mag_raw(self, msg_raw, **metadata):
         msg = MsgMagRaw(msg_raw)
 
-        if msg.tow & (1 << (32 - 1)):
+        if msg.tow & (1 << (32 - 1)) and self.use_gps_time:
             rospy.logwarn("MAG time unknown.")
             return
 
