@@ -9,14 +9,14 @@ interface: 'serial'
 base_station_mode: false
 
 # if true, output every topic read by this driver.
-debug_mode: true
+debug_mode: false
 
 # if true the driver is verbose.
 driver_verbose: true
 
 # if true, raw imu and magnetometer are published
 # (messages are available only if enabled with the swiftnav console).
-publish_raw_imu_and_mag: true
+publish_raw_imu_and_mag: false
 
 # broadcast_addr: ip address to use for broadcasting corrections
 # whenever possible, use network broadcast, not global ip broadcast
