@@ -17,7 +17,7 @@ cd ..
 
 # Install NMEA GPS
 sudo apt install gpsd -y
-sudo cp cfg/gpsd /etc/defaults/
+sudo cp cfg/gpsd /etc/default/gpsd
 sudo dpkg-reconfigure gpsd
 
 sudo sh -c "echo '#!/bin/bash' >> /etc/rc.local"
