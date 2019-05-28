@@ -29,6 +29,8 @@ sudo sh -c "echo 'service gpsd start' >> /etc/rc.local"
 sudo sh -c "echo '' >> /etc/rc.local"
 sudo sh -c "echo 'exit 0' >> /etc/rc.local"
 
+sudo chmod +x /etc/rc.local
+
 # Install chrony.
 sudo apt install chrony -y
 
