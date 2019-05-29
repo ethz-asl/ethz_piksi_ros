@@ -68,4 +68,4 @@ tcp_port: 55555
 # Time settings.
 # use_gps_time: If true, it timestamps the position information with GPS time.
 # Otherwise uses rospy.Time.now()
-use_gps_time: true
+use_gps_time: false
