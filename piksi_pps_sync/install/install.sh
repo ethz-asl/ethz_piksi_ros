@@ -17,7 +17,7 @@ cd ..
 
 # Install NMEA GPS
 sudo apt install gpsd -y
-sudo cp cfg/gpsd /etc/defaults/
+sudo cp cfg/gpsd /etc/default/gpsd
 sudo dpkg-reconfigure gpsd
 
 sudo sh -c "echo '#!/bin/bash' >> /etc/rc.local"
@@ -29,6 +29,8 @@ sudo sh -c "echo 'service gpsd start' >> /etc/rc.local"
 sudo sh -c "echo '' >> /etc/rc.local"
 sudo sh -c "echo 'exit 0' >> /etc/rc.local"
 
+sudo chmod +x /etc/rc.local
+
 # Install chrony.
 sudo apt install chrony -y
 
@@ -36,3 +38,6 @@ sudo sh -c "echo '' >> /etc/chrony/chrony.conf"
 sudo sh -c "echo '# GPS + PPS' >> /etc/chrony/chrony.conf"
 sudo sh -c "echo 'refclock PPS /dev/pps0 lock NMEA' >> /etc/chrony/chrony.conf"
 sudo sh -c "echo 'refclock SHM 0 offset 0.02 delay 0.2 refid NMEA' >> /etc/chrony/chrony.conf"
+
+# Install PPS debug tools.
+sudo apt install pps-tools gpsd-clients -y
