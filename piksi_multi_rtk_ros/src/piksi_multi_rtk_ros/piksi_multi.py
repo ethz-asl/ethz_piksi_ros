@@ -10,9 +10,11 @@
 import rospy
 import math
 import numpy as np
+import datetime, time, leapseconds
+from collections import deque
 import std_srvs.srv
 # Import message types
-from sensor_msgs.msg import NavSatFix, NavSatStatus
+from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu, MagneticField
 import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
@@ -59,6 +61,17 @@ class PiksiMulti:
     kFirstEccentricitySquared = 6.69437999014 * 0.001
     kSecondEccentricitySquared = 6.73949674228 * 0.001
     kFlattening = 1 / 298.257223563
+
+    # IMU scaling constants.
+    kSensorSensitivity = 1 / np.iinfo(np.int16).max
+    kGravity = 9.81
+    kDegToRad = np.pi / 180.0
+    kToMicro = 1 / 10**6
+
+    kAccPrescale = kGravity * kSensorSensitivity
+    kGyroPrescale = kDegToRad * kSensorSensitivity
+    kMagScaleXY = 1300.0 * kToMicro * kSensorSensitivity
+    kMagScaleZ = 2500.0 * kToMicro * kSensorSensitivity
 
     def __init__(self):
 
@@ -161,6 +174,11 @@ class PiksiMulti:
 
         # Other parameters.
         self.publish_raw_imu_and_mag = rospy.get_param('~publish_raw_imu_and_mag', False)
+        # Publish IMU
+        self.acc_scale = 8 * kAccPrescale
+        self.gyro_scale = 125 * kGyroPrescale
+        self.has_imu_scale = False
+
 
         # Advertise topics and services.
         self.publishers = self.advertise_topics()
@@ -190,6 +208,11 @@ class PiksiMulti:
             # Things have 30 seconds to start or we will kill node
             rospy.Timer(rospy.Duration(30), self.cb_watchdog, True)
 
+        # Buffer UTC times. key: tow, value: UTC
+        self.use_gps_time = rospy.get_param('~use_gps_time', False)
+        self.utc_times = {}
+        self.tow = deque()
+
         # Spin.
         rospy.spin()
 
@@ -204,6 +227,7 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_settings_read_resp, msg_type=SBP_MSG_SETTINGS_READ_RESP)
         self.handler.add_callback(self.cb_sbp_measurement_state, msg_type=SBP_MSG_MEASUREMENT_STATE)
         self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
+        self.handler.add_callback(self.cb_sbp_utc_time, msg_type=SBP_MSG_UTC_TIME)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -243,8 +267,11 @@ class PiksiMulti:
             self.init_callback('imu_raw', ImuRawMulti,
                                SBP_MSG_IMU_RAW, MsgImuRaw,
                                'tow', 'tow_f', 'acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z')
+            self.handler.add_callback(self.cb_sbp_imu_raw, msg_type=SBP_MSG_IMU_RAW)
+            self.handler.add_callback(self.cb_sbp_imu_aux, msg_type=SBP_MSG_IMU_AUX)
             self.init_callback('mag_raw', MagRaw,
                                SBP_MSG_MAG_RAW, MsgMagRaw, 'tow', 'tow_f', 'mag_x', 'mag_y', 'mag_z')
+            self.handler.add_callback(self.cb_sbp_mag_raw, msg_type=SBP_MSG_MAG_RAW)
 
         # Only if debug mode
         if self.debug_mode:
@@ -353,6 +380,10 @@ class PiksiMulti:
                                                     ImuRawMulti, queue_size=10)
             publishers['mag_raw'] = rospy.Publisher(rospy.get_name() + '/mag_raw',
                                                     MagRaw, queue_size=10)
+            publishers['imu'] = rospy.Publisher(rospy.get_name() + '/imu',
+                                                    Imu, queue_size=10)
+            publishers['mag'] = rospy.Publisher(rospy.get_name() + '/mag',
+                                                    MagneticField, queue_size=10)
 
         # Topics published only if in "debug mode".
         if self.debug_mode:
@@ -500,7 +531,10 @@ class PiksiMulti:
             msg = MsgObs(msg_raw)
 
             obs_msg = Observation()
+
             obs_msg.header.stamp = rospy.Time.now()
+            if (self.use_gps_time):
+                obs_msg.header.stamp = self.gps_time_to_utc(msg.header.t.wn, msg.header.t.tow, msg.header.t.ns_residual)
 
             obs_msg.tow = msg.header.t.tow
             obs_msg.ns_residual = msg.header.t.ns_residual
@@ -579,6 +613,24 @@ class PiksiMulti:
 
         self.publishers['uart_state'].publish(uart_state_msg)
 
+    def cb_sbp_utc_time(self, msg_raw, **metadata):
+        if not self.use_gps_time:
+            return
+        msg = MsgUtcTime(msg_raw)
+
+        if msg.flags == 0:
+            rospy.logwarn("GPS time invalid.")
+            return
+
+        t = datetime.datetime(msg.year, msg.month, msg.day, msg.hours, msg.minutes, msg.seconds)
+        secs = (t - datetime.datetime(1970,1,1)).total_seconds()
+        self.utc_times[msg.tow] = rospy.Time(int(secs), msg.ns)
+        self.tow.append(msg.tow)
+
+        if len(self.tow) > 100:
+            # Start removing samples
+            self.utc_times.pop(self.tow.popleft())
+
     def multicast_callback(self, msg, **metadata):
         if self.framer:
 
@@ -616,15 +668,50 @@ class PiksiMulti:
             if self.base_station_mode:
                 rospy.signal_shutdown("Watchdog triggered, was gps disconnected?")
 
+    def gps_time_to_utc(self, wn, tow, ns_residual):
+        epoch = datetime.datetime(1980,01,06)
+        secs, msecs = divmod(tow, 1000)
+        usec = ns_residual / 1000.0 # TODO(rikba): Handle nanoseconds.
+        elapsed = datetime.timedelta(seconds=secs, microseconds=usec, milliseconds=msecs, weeks=wn)
+        t_utc = leapseconds.gps_to_utc(epoch + elapsed)
+
+        secs_utc = int((t_utc - datetime.datetime(1970,1,1)).total_seconds())
+        nsecs_utc = (t_utc - datetime.datetime(1970,1,1)).microseconds * 10**3
+
+        return rospy.Time(secs_utc, nsecs_utc)
+
+    def tow_f_to_utc(self, tow, tow_f):
+        epoch = datetime.date(1980, 1, 6)
+        today = datetime.date.today()
+
+        epoch_sunday = epoch - datetime.timedelta((epoch.weekday() + 1) % 7)
+        today_sunday = today - datetime.timedelta((today.weekday() + 1) % 7)
+
+        wn = (today_sunday - epoch_sunday).days / 7
+
+        nsec = tow_f / 256.0 * 10**6
+        return self.gps_time_to_utc(wn, tow, nsec)
+
+
+    def tow_to_utc(self, tow):
+        return self.tow_f_to_utc(tow, 0)
+
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
+
+        stamp = rospy.Time.now()
+        if self.use_gps_time:
+            stamp = self.utc_times.get(msg.tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
+                stamp = self.tow_to_utc(msg.tow)
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
             return
         # SPP GPS messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
-            self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp, NavSatStatus.STATUS_FIX)
+            self.publish_spp(msg.lat, msg.lon, msg.height, stamp, self.var_spp, NavSatStatus.STATUS_FIX)
         # Differential GNSS (DGNSS)
         elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
             rospy.logwarn(
@@ -636,13 +723,13 @@ class PiksiMulti:
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
             # For now publish RTK float only in debug mode.
             if self.debug_mode:
-                self.publish_rtk_float(msg.lat, msg.lon, msg.height)
+                self.publish_rtk_float(msg.lat, msg.lon, msg.height, stamp)
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
 
-            self.publish_rtk_fix(msg.lat, msg.lon, msg.height)
+            self.publish_rtk_fix(msg.lat, msg.lon, msg.height, stamp)
         # Dead reckoning
         elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             rospy.logwarn(
@@ -651,7 +738,7 @@ class PiksiMulti:
             return
         # SBAS Position
         elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
-            self.publish_spp(msg.lat, msg.lon, msg.height, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
+            self.publish_spp(msg.lat, msg.lon, msg.height, stamp, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
         else:
             rospy.logerr(
                 "[cb_sbp_pos_llh]: Unknown case, you found a bug!" +
@@ -681,32 +768,32 @@ class PiksiMulti:
 
         self.publish_receiver_state_msg()
 
-    def publish_spp(self, latitude, longitude, height, variance, navsatstatus_fix):
-        self.publish_wgs84_point(latitude, longitude, height, variance, navsatstatus_fix,
+    def publish_spp(self, latitude, longitude, height, stamp, variance, navsatstatus_fix):
+        self.publish_wgs84_point(latitude, longitude, height, stamp, variance, navsatstatus_fix,
                                  self.publishers['spp'],
                                  self.publishers['enu_pose_spp'], self.publishers['enu_point_spp'],
                                  self.publishers['enu_transform_spp'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
 
-    def publish_rtk_float(self, latitude, longitude, height):
-        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
+    def publish_rtk_float(self, latitude, longitude, height, stamp):
+        self.publish_wgs84_point(latitude, longitude, height, stamp, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
                                  self.publishers['rtk_float'],
                                  self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
                                  self.publishers['enu_transform_float'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
 
-    def publish_rtk_fix(self, latitude, longitude, height):
-        self.publish_wgs84_point(latitude, longitude, height, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
+    def publish_rtk_fix(self, latitude, longitude, height, stamp):
+        self.publish_wgs84_point(latitude, longitude, height, stamp, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
                                  self.publishers['rtk_fix'],
                                  self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
                                  self.publishers['enu_transform_fix'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
 
-    def publish_wgs84_point(self, latitude, longitude, height, variance, navsat_status, pub_navsatfix, pub_pose,
+    def publish_wgs84_point(self, latitude, longitude, height, stamp, variance, navsat_status, pub_navsatfix, pub_pose,
                             pub_point, pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
         # Navsatfix message.
         navsatfix_msg = NavSatFix()
-        navsatfix_msg.header.stamp = rospy.Time.now()
+        navsatfix_msg.header.stamp = stamp
         navsatfix_msg.header.frame_id = self.navsatfix_frame_id
         navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
         navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
@@ -1132,6 +1219,76 @@ class PiksiMulti:
         self.last_section_setting_read = setting_string[0]
         self.last_setting_read = setting_string[1]
         self.last_value_read = setting_string[2]
+
+    def cb_sbp_imu_raw(self, msg_raw, **metadata):
+        msg = MsgImuRaw(msg_raw)
+
+        if not self.has_imu_scale:
+            rospy.logwarn_throttle(10, "IMU scale unknown.")
+            return
+
+        if msg.tow & (1 << (32 - 1)) and self.use_gps_time:
+            rospy.logwarn("IMU time unknown.")
+            return
+
+        imu_msg = Imu()
+        imu_msg.header.stamp = rospy.Time.now()
+        if (self.use_gps_time):
+            imu_msg.header.stamp = self.tow_f_to_utc(msg.tow, msg.tow_f)
+
+        imu_msg.header.frame_id = 'piksi_imu'
+        imu_msg.orientation.w = 1.0
+
+        imu_msg.angular_velocity.x = msg.gyr_x * self.gyro_scale
+        imu_msg.angular_velocity.y = msg.gyr_y * self.gyro_scale
+        imu_msg.angular_velocity.z = msg.gyr_z * self.gyro_scale
+
+        imu_msg.linear_acceleration.x = msg.acc_x * self.acc_scale
+        imu_msg.linear_acceleration.y = msg.acc_y * self.acc_scale
+        imu_msg.linear_acceleration.z = msg.acc_z * self.acc_scale
+
+        self.publishers['imu'].publish(imu_msg)
+
+    def cb_sbp_imu_aux(self, msg_raw, **metadata):
+        msg = MsgImuAux(msg_raw)
+
+        if msg.imu_type != 0:
+            rospy.logwarn("Unkown IMU type.")
+            self.has_imu_scale = False
+            return
+
+        # Scale accelerometer.
+        acc_conf = msg.imu_conf & 0b1111 # Lower 4 bits.
+        acc_range = 2**(acc_conf+1) # 2 to 16 g
+        self.acc_scale = acc_range * kAccPrescale
+
+        # Scale gyroscope.
+        gyro_conf = msg.imu_conf >> 4 # Upper 4 bits.
+        gyro_range = 2000 / (2**gyro_conf) # 125 to 2000 dps
+        self.gyro_scale = gyro_range * kGyroPrescale
+
+        self.has_imu_scale = True
+        rospy.loginfo_once("Received IMU scale.")
+
+    def cb_sbp_mag_raw(self, msg_raw, **metadata):
+        msg = MsgMagRaw(msg_raw)
+
+        if msg.tow & (1 << (32 - 1)) and self.use_gps_time:
+            rospy.logwarn("MAG time unknown.")
+            return
+
+        mag_msg = MagneticField()
+        mag_msg.header.stamp = rospy.Time.now()
+        if (self.use_gps_time):
+            mag_msg.header.stamp = self.tow_f_to_utc(msg.tow, msg.tow_f)
+
+        mag_msg.header.frame_id = 'piksi_imu'
+
+        mag_msg.magnetic_field.x = msg.mag_x * kMagScaleXY
+        mag_msg.magnetic_field.y = msg.mag_y * kMagScaleXY
+        mag_msg.magnetic_field.z = msg.mag_z * kMagScaleZ
+
+        self.publishers['mag'].publish(mag_msg)
 
     def clear_last_setting_read(self):
         self.last_section_setting_read = []

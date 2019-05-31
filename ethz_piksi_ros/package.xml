@@ -13,6 +13,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <exec_depend>piksi_multi_rtk_ros</exec_depend>
+  <exec_depend>piksi_pps_sync</exec_depend>
   <exec_depend>piksi_rtk_kml</exec_depend>
   <exec_depend>piksi_rtk_msgs</exec_depend>
   <!--exec_depend>piksi_v2_rtk_ros</exec_depend-->
