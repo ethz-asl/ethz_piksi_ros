@@ -175,8 +175,8 @@ class PiksiMulti:
         # Other parameters.
         self.publish_raw_imu_and_mag = rospy.get_param('~publish_raw_imu_and_mag', False)
         # Publish IMU
-        self.acc_scale = 8 * kAccPrescale
-        self.gyro_scale = 125 * kGyroPrescale
+        self.acc_scale = 8 * PiksiMulti.kAccPrescale
+        self.gyro_scale = 125 * PiksiMulti.kGyroPrescale
         self.has_imu_scale = False
 
 
@@ -1260,12 +1260,12 @@ class PiksiMulti:
         # Scale accelerometer.
         acc_conf = msg.imu_conf & 0b1111 # Lower 4 bits.
         acc_range = 2**(acc_conf+1) # 2 to 16 g
-        self.acc_scale = acc_range * kAccPrescale
+        self.acc_scale = acc_range * PiksiMulti.kAccPrescale
 
         # Scale gyroscope.
         gyro_conf = msg.imu_conf >> 4 # Upper 4 bits.
         gyro_range = 2000 / (2**gyro_conf) # 125 to 2000 dps
-        self.gyro_scale = gyro_range * kGyroPrescale
+        self.gyro_scale = gyro_range * PiksiMulti.kGyroPrescale
 
         self.has_imu_scale = True
         rospy.loginfo_once("Received IMU scale.")
@@ -1284,9 +1284,9 @@ class PiksiMulti:
 
         mag_msg.header.frame_id = 'piksi_imu'
 
-        mag_msg.magnetic_field.x = msg.mag_x * kMagScaleXY
-        mag_msg.magnetic_field.y = msg.mag_y * kMagScaleXY
-        mag_msg.magnetic_field.z = msg.mag_z * kMagScaleZ
+        mag_msg.magnetic_field.x = msg.mag_x * PiksiMulti.kMagScaleXY
+        mag_msg.magnetic_field.y = msg.mag_y * PiksiMulti.kMagScaleXY
+        mag_msg.magnetic_field.z = msg.mag_z * PiksiMulti.kMagScaleZ
 
         self.publishers['mag'].publish(mag_msg)
 
