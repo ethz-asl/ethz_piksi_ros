@@ -196,8 +196,6 @@ class PiksiMulti:
             # Start new thread to periodically ping base station.
             threading.Thread(target=self.ping_base_station_over_wifi).start()
 
-        self.handler.start()
-
         # Handle firmware settings services
         self.last_section_setting_read = []
         self.last_setting_read = []
@@ -212,6 +210,8 @@ class PiksiMulti:
         self.use_gps_time = rospy.get_param('~use_gps_time', False)
         self.utc_times = {}
         self.tow = deque()
+
+        self.handler.start()
 
         # Spin.
         rospy.spin()
