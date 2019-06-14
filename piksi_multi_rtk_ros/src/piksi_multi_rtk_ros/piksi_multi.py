@@ -56,17 +56,17 @@ class PiksiMulti:
     LIB_SBP_VERSION_MULTI = '2.4.1'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
-    kSemimajorAxis = 6378137
+    kSemimajorAxis = 6378137.0
     kSemiminorAxis = 6356752.3142
     kFirstEccentricitySquared = 6.69437999014 * 0.001
     kSecondEccentricitySquared = 6.73949674228 * 0.001
     kFlattening = 1 / 298.257223563
 
     # IMU scaling constants.
-    kSensorSensitivity = 1 / np.iinfo(np.int16).max
+    kSensorSensitivity = 1.0 / np.iinfo(np.int16).max
     kGravity = 9.81
     kDegToRad = np.pi / 180.0
-    kToMicro = 1 / 10**6
+    kToMicro = 1.0 / 10**6
 
     kAccPrescale = kGravity * kSensorSensitivity
     kGyroPrescale = kDegToRad * kSensorSensitivity
