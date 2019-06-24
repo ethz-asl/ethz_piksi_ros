@@ -66,12 +66,12 @@ class PiksiMulti:
     kSensorSensitivity = 1.0 / np.iinfo(np.int16).max
     kGravity = 9.81
     kDegToRad = np.pi / 180.0
-    kToMicro = 1.0 / 10**6
+    kFromMicro = 1.0 / 10**6
 
     kAccPrescale = kGravity * kSensorSensitivity
     kGyroPrescale = kDegToRad * kSensorSensitivity
-    kMagScaleXY = 1300.0 * kToMicro * kSensorSensitivity
-    kMagScaleZ = 2500.0 * kToMicro * kSensorSensitivity
+    kMagScaleXY = 1300.0 * kFromMicro * kSensorSensitivity
+    kMagScaleZ = 2500.0 * kFromMicro * kSensorSensitivity
 
     def __init__(self):
 
