@@ -49,6 +49,8 @@ import subprocess
 import re
 import threading
 import sys
+import os
+import platform
 import collections
 
 
@@ -139,6 +141,14 @@ class PiksiMulti:
         self.multicaster = []
         self.multicast_recv = []
 
+        # Observation logging settings
+        # For everytime ROS is launched, a file is written.
+        self.log_observations = rospy.get_param("~log_observations", False)
+        self.log_directory  = os.path.expanduser(rospy.get_param("~log_directory", "~/piksi_observations"))
+        self.log_file_handle = []
+        if self.log_observations:
+            self.start_log()
+
         # Navsatfix settings.
         self.var_spp = rospy.get_param('~var_spp', [25.0, 25.0, 64.0])
         self.var_rtk_float = rospy.get_param('~var_rtk_float', [25.0, 25.0, 64.0])
@@ -216,6 +226,39 @@ class PiksiMulti:
         # Spin.
         rospy.spin()
 
+        # flush file on exit
+        self.close_log()
+
+    def start_log(self):
+        if not os.path.isdir(self.log_directory):
+            rospy.logwarn("Log Directory invalid")
+            return
+
+        # create new empty binary file
+        hostname = platform.uname()[1]
+        stamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        filename = "piksi_" + hostname + "_" + stamp + ".sbp"
+        filepath = os.path.join(self.log_directory, filename)
+
+        try:
+            self.log_file_handle = open(filepath, "w+")
+            rospy.loginfo("Logging Observations to file " + filepath)
+        except IOError:
+            rospy.logwarn("Could not open log file for observations " + filepath)
+            self.log_file_handle = []
+
+    def close_log(self):
+        if self.log_file_handle:
+            self.log_file_handle.flush()
+            self.log_file_handle.close()
+
+
+    def write_log(self, raw_sbp_msg):
+        if self.log_file_handle:
+            self.log_file_handle.write(raw_sbp_msg)
+            self.log_file_handle.flush()    # we always flush to avoid loosing data on crash...
+
+
     def create_topic_callbacks(self):
         # Callbacks from SBP messages (cb_sbp_*) implemented "manually".
         self.handler.add_callback(self.cb_sbp_glonass_biases, msg_type=SBP_MSG_GLO_BIASES)
@@ -228,6 +271,9 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_sbp_measurement_state, msg_type=SBP_MSG_MEASUREMENT_STATE)
         self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
         self.handler.add_callback(self.cb_sbp_utc_time, msg_type=SBP_MSG_UTC_TIME)
+        self.handler.add_callback(self.cb_sbp_ephemeris_gps, msg_type=SBP_MSG_EPHEMERIS_GPS)
+        self.handler.add_callback(self.cb_sbp_ephemeris_glonass, msg_type=SBP_MSG_EPHEMERIS_GLO)
+        self.handler.add_callback(self.cb_sbp_iono, msg_type=SBP_MSG_IONO)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -526,6 +572,19 @@ class PiksiMulti:
             callback_function = self.make_callback(callback_data_type, ros_message, pub, attrs)
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
 
+    def cb_sbp_ephemeris_gps(self, msg_raw, **metadata):
+        if self.log_observations:
+            self.write_log(msg_raw)
+
+    def cb_sbp_ephemeris_glonass(self, msg_raw, **metadata):
+        if self.log_observations:
+            self.write_log(msg_raw)
+
+    def cb_sbp_iono(self, msg_raw, **metadata):
+        if self.log_observations:
+            self.write_log(msg_raw)
+
+
     def cb_sbp_obs(self, msg_raw, **metadata):
         if self.debug_mode:
             msg = MsgObs(msg_raw)
@@ -569,6 +628,9 @@ class PiksiMulti:
         if self.base_station_mode:
             self.multicaster.sendSbpPacket(msg_raw)
 
+        if self.log_observations:
+            self.write_log(msg_raw)
+
     def cb_sbp_base_pos_llh(self, msg_raw, **metadata):
         if self.debug_mode:
             msg = MsgBasePosLLH(msg_raw)
@@ -597,6 +659,9 @@ class PiksiMulti:
 
         if self.base_station_mode:
             self.multicaster.sendSbpPacket(msg_raw)
+
+        if self.log_observations:
+            self.write_log(msg_raw)
 
     def cb_sbp_uart_state(self, msg_raw, **metadata):
         msg = MsgUartState(msg_raw)
@@ -660,6 +725,9 @@ class PiksiMulti:
     def cb_sbp_glonass_biases(self, msg_raw, **metadata):
         if self.base_station_mode:
             self.multicaster.sendSbpPacket(msg_raw)
+
+        if self.log_observations:
+            self.write_log(msg_raw)
 
     def cb_watchdog(self, event):
         if ((rospy.get_rostime() - self.watchdog_time).to_sec() > 10.0):
