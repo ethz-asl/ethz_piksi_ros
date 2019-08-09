@@ -47,6 +47,7 @@ add_message_files(
     TrackingState.msg
     TrackingState_V2_2_15.msg
     TrackingState_V2_3_15.msg
+    TrackingState_V2_6_3.msg
     UartState.msg
     UartState_V2_3_15.msg
     UtcTimeMulti.msg
