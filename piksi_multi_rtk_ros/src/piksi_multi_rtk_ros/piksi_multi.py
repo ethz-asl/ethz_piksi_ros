@@ -329,6 +329,7 @@ class PiksiMulti:
         """
         publishers = {}
 
+        publishers['llh'] = rospy.Publisher(rospy.get_name() + '/llh', NavSatFix, queue_size=10)
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
@@ -816,6 +817,8 @@ class PiksiMulti:
         navsatfix_msg.position_covariance = [msg.cov_n_n, msg.cov_n_e, msg.cov_n_d,
                                               msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
                                               msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
+
+        self.publishers['llh'].publish(navsatfix_msg)
 
     def publish_spp(self, latitude, longitude, height, stamp, variance, navsatstatus_fix):
         self.publish_wgs84_point(latitude, longitude, height, stamp, variance, navsatstatus_fix,
