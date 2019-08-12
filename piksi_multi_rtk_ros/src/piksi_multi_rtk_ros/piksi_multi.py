@@ -774,7 +774,7 @@ class PiksiMulti:
         self.publish_receiver_state_msg()
 
     def cb_sbp_pos_llh_cov(self, msg_raw, **metadata):
-        msg = MsgPosLlhCov(msg_raw)
+        msg = MsgPosLLHCov(msg_raw)
         if msg.flags == PosLlhCov.FIX_MODE_INVALID:
             rospy.logwarn("Invalid LLH message.")
             return
