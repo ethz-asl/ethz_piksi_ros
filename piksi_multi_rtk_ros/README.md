@@ -22,8 +22,8 @@ source install/install_piksi_multi.sh
 ### Firmware and SBP Lib Version
 Please check [here](https://support.swiftnav.com/customer/en/portal/articles/2492810-swift-binary-protocol) which Piksi Multi firmware version based on the current SBP Lib version.
 
-Currently the `install_piksi_multi.sh` will install **SBP Lib 2.4.1** (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)).
-This means you are supposed to install **Firmware 2.1.14** from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
+Currently the `install_piksi_multi.sh` will install **SBP Lib 2.6.3** (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)).
+This means you are supposed to install **Firmware 2.3.17** from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
 **WARNING: If upgrading from a firmware below v2.0.0 to a firmware greater than v2.0.0, you must upgrade to v2.0.0 first.**
 
 ## Usage
