@@ -41,10 +41,10 @@ cd ./python
 echo "Installing SBP dependencies."
 sudo apt-get install pandoc
 sudo apt-get install python-pip
-sudo pip install tox
-sudo pip install numba
-sudo pip install -r requirements.txt
-sudo pip install markupsafe
+pip install tox
+pip install numba
+pip install -r requirements.txt
+pip install markupsafe
 sudo python setup.py install
 # Build package.
 cd ..
