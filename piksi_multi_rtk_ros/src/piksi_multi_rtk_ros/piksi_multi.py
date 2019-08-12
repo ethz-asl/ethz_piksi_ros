@@ -18,8 +18,8 @@ from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu, MagneticField
 import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
-                                InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhMulti,
-                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
+                                InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhCov,
+                                PosLlhMulti, ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -211,6 +211,8 @@ class PiksiMulti:
         self.utc_times = {}
         self.tow = deque()
 
+        self.publish_covariances = rospy.get_param('~publish_covariances', False)
+
         self.handler.start()
 
         # Spin.
@@ -261,6 +263,9 @@ class PiksiMulti:
         self.init_callback('device_monitor', DeviceMonitor_V2_3_15,
                            SBP_MSG_DEVICE_MONITOR, MsgDeviceMonitor, 'dev_vin', 'cpu_vint', 'cpu_vaux',
                            'cpu_temperature', 'fe_temperature')
+
+        if self.publish_covariances:
+            self.handler.add_callback(self.cb_sbp_pos_llh_cov, msg_type=SBP_MSG_POS_LLH_COV)
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -723,13 +728,13 @@ class PiksiMulti:
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
             # For now publish RTK float only in debug mode.
             if self.debug_mode:
-                self.publish_rtk_float(msg.lat, msg.lon, msg.height, stamp)
+                self.publish_rtk_float(msg.lat, msg.lon, msg.height, stamp, self.var_rtk_float)
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
 
-            self.publish_rtk_fix(msg.lat, msg.lon, msg.height, stamp)
+            self.publish_rtk_fix(msg.lat, msg.lon, msg.height, stamp, self.var_rtk_fix)
         # Dead reckoning
         elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             rospy.logwarn(
@@ -768,6 +773,51 @@ class PiksiMulti:
 
         self.publish_receiver_state_msg()
 
+    def cb_sbp_pos_llh_cov(self, msg_raw, **metadata):
+        msg = MsgPosLlhCov(msg_raw)
+        if msg.flags == PosLlhCov.FIX_MODE_INVALID:
+            rospy.logwarn("Invalid LLH message.")
+            return
+
+        # Set time stamp.
+        stamp = rospy.Time.now()
+        if self.use_gps_time:
+            stamp = self.utc_times.get(msg.tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
+                stamp = self.tow_to_utc(msg.tow)
+
+        # Publish NavSatFix.
+        navsatfix_msg = NavSatFix()
+        navsatfix_msg.header.stamp = stamp
+        navsatfix_msg.header.frame_id = self.navsatfix_frame_id
+        navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_KNOWN
+        # WARNING: We do not distinguish between the different fix types.
+        if msg.flags == PosLlhCov.FIX_MODE_DEAD_RECKONING:
+            navsatfix_msg.status.status = NavSatStatus.STATUS_NO_FIX
+        elif msg.flags == PosLlhCov.FIX_MODE_SBAS:
+            navsatfix_msg.status.status = NavSatStatus.STATUS_SBAS_FIX
+        elif msg.flags == PosLlhCov.FIX_MODE_FLOAT_RTK or msg.flags == PosLlhCov.FIX_MODE_FIX_RTK:
+            navsatfix_msg.status.status = NavSatStatus.STATUS_GBAS_FIX
+        else:
+            navsatfix_msg.status.status = NavSatStatus.STATUS_FIX
+
+        navsatfix_msg.status.service = 0
+        if self.receiver_state_msg.num_gps_sat > 0:
+            navsatfix_msg.status.service = navsatfix_msg.status.service + NavSatStatus.SERVICE_GPS
+        if self.receiver_state_msg.num_glonass_sat > 0:
+            navsatfix_msg.status.service = navsatfix_msg.status.service + NavSatStatus.SERVICE_GLONASS
+        if self.receiver_state_msg.num_bds_sat > 0:
+            navsatfix_msg.status.service = navsatfix_msg.status.service + NavSatStatus.SERVICE_COMPASS
+        if self.receiver_state_msg.num_gal_sat > 0:
+            navsatfix_msg.status.service = navsatfix_msg.status.service + NavSatStatus.SERVICE_GALILEO
+        navsatfix_msg.latitude = msg.lat
+        navsatfix_msg.longitude = msg.lon
+        navsatfix_msg.altitude = msg.height
+        navsatfix_msg.position_covariance = [msg.cov_n_n, msg.cov_n_e, msg.cov_n_d,
+                                              msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
+                                              msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
+
     def publish_spp(self, latitude, longitude, height, stamp, variance, navsatstatus_fix):
         self.publish_wgs84_point(latitude, longitude, height, stamp, variance, navsatstatus_fix,
                                  self.publishers['spp'],
@@ -775,15 +825,15 @@ class PiksiMulti:
                                  self.publishers['enu_transform_spp'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
 
-    def publish_rtk_float(self, latitude, longitude, height, stamp):
-        self.publish_wgs84_point(latitude, longitude, height, stamp, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
+    def publish_rtk_float(self, latitude, longitude, height, stamp, variance):
+        self.publish_wgs84_point(latitude, longitude, height, stamp, variance, NavSatStatus.STATUS_GBAS_FIX,
                                  self.publishers['rtk_float'],
                                  self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
                                  self.publishers['enu_transform_float'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
 
-    def publish_rtk_fix(self, latitude, longitude, height, stamp):
-        self.publish_wgs84_point(latitude, longitude, height, stamp, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
+    def publish_rtk_fix(self, latitude, longitude, height, stamp, variance):
+        self.publish_wgs84_point(latitude, longitude, height, stamp, variance, NavSatStatus.STATUS_GBAS_FIX,
                                  self.publishers['rtk_fix'],
                                  self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
                                  self.publishers['enu_transform_fix'], self.publishers['best_fix'],

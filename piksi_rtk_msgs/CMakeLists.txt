@@ -39,6 +39,7 @@ add_message_files(
     Observation.msg
     PosEcef.msg
     PosLlh.msg
+    PosLlhCov.msg
     PosLlhMulti.msg
     ReceiverState.msg
     ReceiverState_V2_2_15.msg
