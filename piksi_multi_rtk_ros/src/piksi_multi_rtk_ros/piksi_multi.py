@@ -331,7 +331,7 @@ class PiksiMulti:
         publishers = {}
 
         publishers['llh'] = rospy.Publisher(rospy.get_name() + '/llh', NavSatFix, queue_size=10)
-        publishers['ecef'] = rospy.Publisher(rospy.get_name() + '/ecef', NavSatFix, queue_size=10)
+        publishers['ecef'] = rospy.Publisher(rospy.get_name() + '/ecef', PoseWithCovarianceStamped, queue_size=10)
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
