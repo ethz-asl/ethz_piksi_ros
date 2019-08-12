@@ -13,12 +13,12 @@ uint32 tow          # GPS Time of Week [ms].
 float64 lat         # Latitude [deg].
 float64 lon         # Longitude [deg].
 float64 height      # Height [deg].
-float32 cov_n_n       # Estimated variance of northing.
-float32 cov_n_e       # Covariance of northing and easting.
-float32 cov_n_d       # Covariance of northing and downward measurement.
-float32 cov_e_e       # Estimated variance of easting.
-float32 cov_e_d       # Covariance of easting and downward measurement.
-float32 cov_d_d       # Estimated variance of downward measurement.
+float32 cov_n_n     # Estimated variance of northing [m^2].
+float32 cov_n_e     # Covariance of northing and easting [m^2].
+float32 cov_n_d     # Covariance of northing and downward measurement [m^2].
+float32 cov_e_e     # Estimated variance of easting [m^2].
+float32 cov_e_d     # Covariance of easting and downward measurement [m^2].
+float32 cov_d_d     # Estimated variance of downward measurement [m^2].
 uint8 n_sats        # Number of satellites used in solution.
 uint8 flags         # Status flags, see MSG_POS_LLH message description in SBP documentation.
 

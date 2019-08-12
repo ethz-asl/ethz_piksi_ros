@@ -265,6 +265,7 @@ class PiksiMulti:
 
         if self.publish_covariances:
             self.handler.add_callback(self.cb_sbp_pos_llh_cov, msg_type=SBP_MSG_POS_LLH_COV)
+            self.handler.add_callback(self.cb_sbp_pos_ecef_cov, msg_type=SBP_MSG_POS_ECEF_COV)
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -330,6 +331,7 @@ class PiksiMulti:
         publishers = {}
 
         publishers['llh'] = rospy.Publisher(rospy.get_name() + '/llh', NavSatFix, queue_size=10)
+        publishers['ecef'] = rospy.Publisher(rospy.get_name() + '/ecef', NavSatFix, queue_size=10)
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
@@ -815,10 +817,44 @@ class PiksiMulti:
         navsatfix_msg.longitude = msg.lon
         navsatfix_msg.altitude = msg.height
         navsatfix_msg.position_covariance = [msg.cov_n_n, msg.cov_n_e, msg.cov_n_d,
-                                              msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
-                                              msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
+                                             msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
+                                             msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
 
         self.publishers['llh'].publish(navsatfix_msg)
+
+    def cb_sbp_pos_ecef_cov(self, msg_raw, **metadata):
+        msg = MsgPosECEFCov(msg_raw)
+        if msg.flags == PosLlhCov.FIX_MODE_INVALID:
+            rospy.logwarn("Invalid ECEF message.")
+            return
+
+        # Set time stamp.
+        stamp = rospy.Time.now()
+        if self.use_gps_time:
+            stamp = self.utc_times.get(msg.tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
+                stamp = self.tow_to_utc(msg.tow)
+
+        # Publish ecef.
+        ecef_msg = PoseWithCovarianceStamped()
+        ecef_msg.header.stamp = stamp
+        ecef_msg.header.frame_id = self.enu_frame_id
+
+        ecef_msg.pose.pose.position.x = msg.x
+        ecef_msg.pose.pose.position.y = msg.y
+        ecef_msg.pose.pose.position.z = msg.z
+
+        ecef_msg.pose.pose.orientation.x = 0.0
+        ecef_msg.pose.pose.orientation.y = 0.0
+        ecef_msg.pose.pose.orientation.z = 0.0
+        ecef_msg.pose.pose.orientation.w = -1.0
+
+        ecef_msg.pose.covariance = [msg.cov_x_x, msg.cov_x_y, msg.cov_x_z,
+                                    msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
+                                    msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
+
+        self.publishers['ecef'].publish(ecef_msg)
 
     def publish_spp(self, latitude, longitude, height, stamp, variance, navsatstatus_fix):
         self.publish_wgs84_point(latitude, longitude, height, stamp, variance, navsatstatus_fix,

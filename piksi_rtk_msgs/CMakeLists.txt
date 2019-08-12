@@ -38,6 +38,7 @@ add_message_files(
     MeasurementState_V2_4_1.msg
     Observation.msg
     PosEcef.msg
+    PosEcefCov.msg
     PosLlh.msg
     PosLlhCov.msg
     PosLlhMulti.msg
