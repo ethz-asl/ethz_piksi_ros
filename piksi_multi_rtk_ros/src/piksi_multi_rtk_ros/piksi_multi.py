@@ -18,8 +18,9 @@ from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu, MagneticField
 import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
-                                InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhCov,
-                                PosLlhMulti, ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
+                                InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation,
+                                PositionWithCovarianceStamped, PosEcef, PosLlhCov,PosLlhMulti,
+                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -331,7 +332,7 @@ class PiksiMulti:
         publishers = {}
 
         publishers['llh'] = rospy.Publisher(rospy.get_name() + '/llh', NavSatFix, queue_size=10)
-        publishers['ecef'] = rospy.Publisher(rospy.get_name() + '/ecef', PoseWithCovarianceStamped, queue_size=10)
+        publishers['ecef'] = rospy.Publisher(rospy.get_name() + '/ecef', PositionWithCovarianceStamped, queue_size=10)
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
@@ -837,22 +838,17 @@ class PiksiMulti:
                 stamp = self.tow_to_utc(msg.tow)
 
         # Publish ecef.
-        ecef_msg = PoseWithCovarianceStamped()
+        ecef_msg = PositionWithCovarianceStamped()
         ecef_msg.header.stamp = stamp
         ecef_msg.header.frame_id = self.enu_frame_id
 
-        ecef_msg.pose.pose.position.x = msg.x
-        ecef_msg.pose.pose.position.y = msg.y
-        ecef_msg.pose.pose.position.z = msg.z
+        ecef_msg.position.position.x = msg.x
+        ecef_msg.position.position.y = msg.y
+        ecef_msg.position.position.z = msg.z
 
-        ecef_msg.pose.pose.orientation.x = 0.0
-        ecef_msg.pose.pose.orientation.y = 0.0
-        ecef_msg.pose.pose.orientation.z = 0.0
-        ecef_msg.pose.pose.orientation.w = -1.0
-
-        ecef_msg.pose.covariance = [msg.cov_x_x, msg.cov_x_y, msg.cov_x_z,
-                                    msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
-                                    msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
+        ecef_msg.position.covariance = [msg.cov_x_x, msg.cov_x_y, msg.cov_x_z,
+                                        msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
+                                        msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
 
         self.publishers['ecef'].publish(ecef_msg)
 
