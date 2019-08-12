@@ -57,6 +57,8 @@ add_message_files(
     UtcTimeMulti.msg
     VelEcef.msg
     VelNed.msg
+    VelocityWithCovariance.msg
+    VelocityWithCovarianceStamped.msg
 )
 
 ## Generate services in the 'srv' folder

@@ -20,7 +20,7 @@ from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
                                 InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation,
                                 PositionWithCovarianceStamped, PosEcef, PosLlhCov,PosLlhMulti,
-                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
+                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed, VelocityWithCovarianceStamped)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
@@ -267,6 +267,7 @@ class PiksiMulti:
         if self.publish_covariances:
             self.handler.add_callback(self.cb_sbp_pos_llh_cov, msg_type=SBP_MSG_POS_LLH_COV)
             self.handler.add_callback(self.cb_sbp_pos_ecef_cov, msg_type=SBP_MSG_POS_ECEF_COV)
+            self.handler.add_callback(self.cb_sbp_vel_ned_cov, msg_type=SBP_MSG_VEL_NED_COV)
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -333,6 +334,8 @@ class PiksiMulti:
 
         publishers['llh'] = rospy.Publisher(rospy.get_name() + '/llh', NavSatFix, queue_size=10)
         publishers['ecef'] = rospy.Publisher(rospy.get_name() + '/ecef', PositionWithCovarianceStamped, queue_size=10)
+        publishers['vel_enu'] = rospy.Publisher(rospy.get_name() + '/vel_enu', VelocityWithCovarianceStamped, queue_size=10)
+        publishers['vel_ned'] = rospy.Publisher(rospy.get_name() + '/vel_ned', VelocityWithCovarianceStamped, queue_size=10)
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
@@ -851,6 +854,59 @@ class PiksiMulti:
                                         msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
 
         self.publishers['ecef'].publish(ecef_msg)
+
+    def cb_sbp_vel_ned_cov(self, msg_raw, **metadata):
+        msg = MsgVelNEDCov(msg_raw)
+        if msg.flags == VelNedCov.VEL_MODE_INVALID:
+            rospy.logwarn("Invalid NED velocity message.")
+            return
+
+        # Set time stamp.
+        stamp = rospy.Time.now()
+        if self.use_gps_time:
+            stamp = self.utc_times.get(msg.tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
+                stamp = self.tow_to_utc(msg.tow)
+
+        # Publish NED velocity.
+        vel_ned_msg = VelocityWithCovarianceStamped()
+        vel_ned_msg.header.stamp = stamp
+        vel_ned_msg.header.frame_id = self.enu_frame_id
+
+        vel_ned_msg.velocity.velocity.x = msg.n
+        vel_ned_msg.velocity.velocity.y = msg.e
+        vel_ned_msg.velocity.velocity.z = msg.d
+
+        vel_ned_msg.velocity.covariance = [msg.cov_n_n, msg.cov_n_e, msg.cov_n_d,
+                                        msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
+                                        msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
+
+        self.publishers['vel_ned'].publish(vel_ned_msg)
+
+        # Publish ENU velocity.
+        R_enu_ned = np.matrix([[0, 1, 0], [1, 0, 0], [0, 0, -1]])
+        pos_ned = np.array(msg.n, msg.e, msg.d)
+        cov_ned = np.matrix([[msg.cov_n_n, msg.cov_n_e, msg.cov_n_d],
+                             [msg.cov_n_e, msg.cov_e_e, msg.cov_e_d],
+                             [msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]])
+
+        pos_enu = np.dot(R_enu_ned, pos_ned)
+        cov_enu = np.dot(np.dot(R_enu_ned, cov_ned), R_enu_ned.transpose())
+
+        vel_enu_msg = VelocityWithCovarianceStamped()
+        vel_enu_msg.header.stamp = stamp
+        vel_enu_msg.header.frame_id = self.enu_frame_id
+
+        vel_enu_msg.velocity.velocity.x = pos_enu[0]
+        vel_enu_msg.velocity.velocity.y = pos_enu[1]
+        vel_enu_msg.velocity.velocity.z = pos_enu[2]
+
+        vel_enu_msg.velocity.covariance = [cov_enu[0][0], cov_enu[0][1], cov_enu[0][2],
+                                           cov_enu[1][0], cov_enu[1][1], cov_enu[1][2],
+                                           cov_enu[2][0], cov_enu[2][1], cov_enu[2][2]]
+
+        self.publishers['vel_enu'].publish(vel_enu_msg)
 
     def publish_spp(self, latitude, longitude, height, stamp, variance, navsatstatus_fix):
         self.publish_wgs84_point(latitude, longitude, height, stamp, variance, navsatstatus_fix,
