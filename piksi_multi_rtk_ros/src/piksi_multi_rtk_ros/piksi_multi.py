@@ -185,6 +185,7 @@ class PiksiMulti:
         self.service_servers = self.advertise_services()
 
         # Create topic callbacks.
+        self.publish_covariances = rospy.get_param('~publish_covariances', False)
         self.create_topic_callbacks()
 
         # Init messages with "memory".
@@ -210,8 +211,6 @@ class PiksiMulti:
         self.use_gps_time = rospy.get_param('~use_gps_time', False)
         self.utc_times = {}
         self.tow = deque()
-
-        self.publish_covariances = rospy.get_param('~publish_covariances', False)
 
         self.handler.start()
 
