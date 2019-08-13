@@ -59,7 +59,7 @@ class GeodeticSurvey:
         rospy.spin()
 
     def pos_ecef_cov_callback(self, msg):
-        if not use_covariance:
+        if not self.use_covariance:
             return
 
         # Measurement.
@@ -109,7 +109,7 @@ class GeodeticSurvey:
 
 
     def navsatfix_callback(self, msg):
-        if use_covariance:
+        if self.use_covariance:
             return
 
         # Sanity check: we should have either SPP or SBAS fix.
