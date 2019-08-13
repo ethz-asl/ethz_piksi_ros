@@ -12,6 +12,9 @@ import std_srvs.srv
 from sensor_msgs.msg import (NavSatFix, NavSatStatus)
 import os
 import time
+import numpy as np
+import math
+import pyproj
 
 
 class GeodeticSurvey:
@@ -30,6 +33,10 @@ class GeodeticSurvey:
         self.number_of_fixes = 0
         self.surveyed_position_set = False
 
+        self.x = np.array([0.0, 0.0, 0.0])
+        self.P = np.zeros([3,3])
+        self.x_init = False
+
         # Settings
         self.number_of_desired_fixes = rospy.get_param('~number_of_desired_fixes', 5000)
         self.navsatfix_topics_name = rospy.get_param('~navsatfix_topics_name', 'piksi_multi_base_station/navsatfix_spp')
@@ -40,14 +47,70 @@ class GeodeticSurvey:
         self.read_resp_settings_service_name = rospy.get_param('~read_resp_settings_service_name',
                                                                'piksi_multi_base_station/settings_read_resp')
         self.height_base_station_from_ground = rospy.get_param('~height_base_station_from_ground', 0.0)
+        self.use_covariance = rospy.get_param('~use_covariance', False)
+        self.pos_ecef_cov_topics_name = rospy.get_param('~pos_ecef_cov_topics_name', 'piksi_multi_base_station/pos_ecef_cov')
 
         # Subscribe.
         rospy.Subscriber(self.navsatfix_topics_name, NavSatFix,
                          self.navsatfix_callback)
+        rospy.Subscriber(self.pos_ecef_cov_topics_name, PositionWithCovarianceStamped, self.pos_ecef_cov_callback)
 
         rospy.spin()
 
+    def pos_ecef_cov_callback(self, msg):
+        if not use_covariance:
+            return
+
+        # Measurement.
+        z = np.array([msg.position.position.x, msg.position.position.y, msg.position.position.z])
+        R = np.matrix([[msg.position.covariance[0], msg.position.covariance[1], msg.position.covariance[2]],
+                       [msg.position.covariance[3], msg.position.covariance[4], msg.position.covariance[5]],
+                       [msg.position.covariance[6], msg.position.covariance[7], msg.position.covariance[8]]])
+
+        # Initialize x with current measurement.
+        if self.x_init == False:
+            self.x = z
+            self.P = R
+            self.x_init = True
+            return
+
+        # Innovation.
+        y = z - x
+        S = self.P + R
+        # Gain
+        K = np.dot(self.P, np.linalg.inverse(S))
+        # Update
+        self.x = self.x + np.dot(K, y)
+        self.P = np.dot((np.identity(3) - K), self.P)
+
+        (eig_values, eig_vectors) = np.linalg.eig(self.P)
+
+        rospy.loginfo(
+            "Received: [%.3f, %.3f, %.3f]; temporary mean: [%.3f, %.3f, %.3f]; temporary 3-sigma bound: [%.3f, %.3f, %.3f] waiting for %d samples" % (
+                z[0], z[1], z[2], x[0], x[1], x[2],
+                3 * math.sqrt(eig_values[0]), 3 * math.sqrt(eig_values[1]), 3 * math.sqrt(eig_values[2]), self.number_of_desired_fixes - self.number_of_fixes))
+
+        if self.number_of_fixes >= self.number_of_desired_fixes and not self.surveyed_position_set:
+            ecef = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
+            lla = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
+            lon0, lat0, alt0 = pyproj.transform(ecef, lla, self.x[0], self.x[1], self.x[2], radians=False)
+
+        if self.set_base_station_position(lat0, lon0, alt0):
+            self.surveyed_position_set = True
+            rospy.loginfo("Base station position set correctly.")
+            rospy.loginfo(
+                "Creating ENU frame on surveyed position and substructing specified height of base station.")
+            self.log_enu_origin_position(lat0, lon0, alt0)
+            rospy.signal_shutdown("Base station position set correctly. Stop this node and launch base station node.")
+        else:
+            rospy.logerr("Base station position not set correctly.")
+            rospy.signal_shutdown("Base station position not set correctly.")
+
+
     def navsatfix_callback(self, msg):
+        if use_covariance:
+            return
+
         # Sanity check: we should have either SPP or SBAS fix.
         if msg.status.status != NavSatStatus.STATUS_FIX and msg.status.status != NavSatStatus.STATUS_SBAS_FIX:
             rospy.logerr(
