@@ -20,8 +20,9 @@ import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: globa
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
                                 InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation,
-                                PositionWithCovarianceStamped, PosEcef, PosLlhCov,PosLlhMulti,
-                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed, VelocityWithCovarianceStamped)
+                                PositionWithCovarianceStamped, PosEcef, PosEcefCov, PosLlhCov, PosLlhMulti,
+                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti,
+                                VelEcef, VelEcefCov, VelNed, VelNedCov, VelocityWithCovarianceStamped)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
