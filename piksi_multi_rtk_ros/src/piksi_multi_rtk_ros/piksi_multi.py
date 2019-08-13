@@ -790,7 +790,7 @@ class PiksiMulti:
         self.publish_receiver_state_msg()
 
     def cb_sbp_pos_llh_cov(self, msg_raw, **metadata):
-        if self.publishers['pos_llh_cov'].getNumSubscribers() == 0:
+        if self.publishers['pos_llh_cov'].get_num_connections() == 0:
             return
 
         msg = MsgPosLLHCov(msg_raw)
@@ -834,8 +834,8 @@ class PiksiMulti:
         self.publishers['pos_llh_cov'].publish(navsatfix_msg)
 
     def cb_sbp_baseline_ned_cov(self, msg_raw, **metadata):
-        if self.publishers['baseline_ned_cov'].getNumSubscribers() == 0 \
-        and self.publishers['baseline_ned_cov_viz'].getNumSubscribers() == 0:
+        if self.publishers['baseline_ned_cov'].get_num_connections() == 0 \
+        and self.publishers['baseline_ned_cov_viz'].get_num_connections() == 0:
             return
 
         msg = MsgBaselineNED(msg_raw)
@@ -854,7 +854,7 @@ class PiksiMulti:
         cov_h_h = (msg.h_accuracy * self.kFromMilli)**2
         cov_v_v = (msg.v_accuracy * self.kFromMilli)**2
 
-        if self.publishers['baseline_ned_cov'].getNumSubscribers() > 0:
+        if self.publishers['baseline_ned_cov'].get_num_connections() > 0:
             # Publish ecef.
             baseline_msg = PositionWithCovarianceStamped()
             baseline_msg.header.stamp = stamp
@@ -870,7 +870,7 @@ class PiksiMulti:
 
             self.publishers['baseline_ned_cov'].publish(baseline_msg)
 
-        if self.publishers['baseline_ned_cov_viz'].getNumSubscribers() > 0:
+        if self.publishers['baseline_ned_cov_viz'].get_num_connections() > 0:
             # https://answers.ros.org/question/11081/plot-a-gaussian-3d-representation-with-markers-in-rviz/
             marker = Marker()
             marker.header.stamp = stamp
@@ -912,8 +912,8 @@ class PiksiMulti:
         return stamp
 
     def cb_sbp_pos_ecef_cov(self, msg_raw, **metadata):
-        if self.publishers['pos_ecef_cov'].getNumSubscribers() == 0 \
-        and self.publishers['pos_ecef_cov_viz'].getNumSubscribers() == 0:
+        if self.publishers['pos_ecef_cov'].get_num_connections() == 0 \
+        and self.publishers['pos_ecef_cov_viz'].get_num_connections() == 0:
             return
 
         msg = MsgPosECEFCov(msg_raw)
@@ -923,7 +923,7 @@ class PiksiMulti:
         # Set time stamp.
         stamp = get_time_stamp(msg.tow)
 
-        if self.publishers['pos_ecef_cov'].getNumSubscribers() > 0:
+        if self.publishers['pos_ecef_cov'].get_num_connections() > 0:
             # Publish ecef.
             ecef_msg = PositionWithCovarianceStamped()
             ecef_msg.header.stamp = stamp
@@ -939,7 +939,7 @@ class PiksiMulti:
 
             self.publishers['pos_ecef_cov'].publish(ecef_msg)
 
-        if self.publishers['pos_ecef_cov_viz'].getNumSubscribers() > 0:
+        if self.publishers['pos_ecef_cov_viz'].get_num_connections() > 0:
             # https://answers.ros.org/question/11081/plot-a-gaussian-3d-representation-with-markers-in-rviz/
             marker = Marker()
             marker.header.stamp = stamp
@@ -972,7 +972,7 @@ class PiksiMulti:
             self.publishers['pos_ecef_cov_viz'].publish(marker)
 
     def cb_sbp_vel_ned_cov(self, msg_raw, **metadata):
-        if self.publishers['vel_ned_cov'].getNumSubscribers() == 0:
+        if self.publishers['vel_ned_cov'].get_num_connections() == 0:
             return
 
         msg = MsgVelNEDCov(msg_raw)
@@ -998,7 +998,7 @@ class PiksiMulti:
         self.publishers['vel_ned_cov'].publish(vel_ned_msg)
 
     def cb_sbp_vel_ecef_cov(self, msg_raw, **metadata):
-        if self.publishers['vel_ecef_cov'].getNumSubscribers() == 0:
+        if self.publishers['vel_ecef_cov'].get_num_connections() == 0:
             return
 
         msg = MsgVelECEFCov(msg_raw)
