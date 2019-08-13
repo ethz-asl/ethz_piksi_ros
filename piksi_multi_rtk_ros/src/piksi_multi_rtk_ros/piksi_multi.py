@@ -722,7 +722,7 @@ class PiksiMulti:
     def tow_to_utc(self, tow):
         return self.tow_f_to_utc(tow, 0)
 
-    def get_time_stamp(tow):
+    def get_time_stamp(self, tow):
         stamp = rospy.Time.now()
         if self.use_gps_time:
             stamp = self.utc_times.get(tow, None)
