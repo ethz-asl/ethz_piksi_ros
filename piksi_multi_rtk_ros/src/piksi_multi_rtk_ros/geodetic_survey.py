@@ -96,16 +96,16 @@ class GeodeticSurvey:
             lla = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
             lon0, lat0, alt0 = pyproj.transform(ecef, lla, self.x[0], self.x[1], self.x[2], radians=False)
 
-        if self.set_base_station_position(lat0, lon0, alt0):
-            self.surveyed_position_set = True
-            rospy.loginfo("Base station position set correctly.")
-            rospy.loginfo(
-                "Creating ENU frame on surveyed position and substructing specified height of base station.")
-            self.log_enu_origin_position(lat0, lon0, alt0)
-            rospy.signal_shutdown("Base station position set correctly. Stop this node and launch base station node.")
-        else:
-            rospy.logerr("Base station position not set correctly.")
-            rospy.signal_shutdown("Base station position not set correctly.")
+            if self.set_base_station_position(lat0, lon0, alt0):
+                self.surveyed_position_set = True
+                rospy.loginfo("Base station position set correctly.")
+                rospy.loginfo(
+                    "Creating ENU frame on surveyed position and substructing specified height of base station.")
+                self.log_enu_origin_position(lat0, lon0, alt0)
+                rospy.signal_shutdown("Base station position set correctly. Stop this node and launch base station node.")
+            else:
+                rospy.logerr("Base station position not set correctly.")
+                rospy.signal_shutdown("Base station position not set correctly.")
 
 
     def navsatfix_callback(self, msg):
