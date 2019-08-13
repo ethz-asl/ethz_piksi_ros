@@ -845,19 +845,28 @@ class PiksiMulti:
         # Set time stamp.
         stamp = get_time_stamp(msg.tow)
 
+        # Get position in m.
+        x = msg.n * self.kFromMilli
+        y = msg.e * self.kFromMilli
+        z = msg.d * self.kFromMilli
+
+        # Get horizontal and vertical covariances.
+        cov_h_h = msg.h_accuracy**2
+        cov_v_v = msg.v_accuracy**2
+
         if self.publishers['baseline_ned_cov'].getNumSubscribers() > 0:
             # Publish ecef.
             baseline_msg = PositionWithCovarianceStamped()
             baseline_msg.header.stamp = stamp
             baseline_msg.header.frame_id = self.base_ned_frame
 
-            baseline_msg.position.position.x = msg.n
-            baseline_msg.position.position.y = msg.e
-            baseline_msg.position.position.z = msg.d
+            baseline_msg.position.position.x = x
+            baseline_msg.position.position.y = y
+            baseline_msg.position.position.z = z
 
-            baseline_msg.position.covariance = [msg.h_accuracy**2, 0.0, 0.0,
-                                                0.0, msg.h_accuracy**2, 0.0,
-                                                0.0, 0.0, msg.v_accuracy**2]
+            baseline_msg.position.covariance = [cov_h_h, 0.0, 0.0,
+                                                0.0, cov_h_h, 0.0,
+                                                0.0, 0.0, cov_v_v]
 
             self.publishers['baseline_ned_cov'].publish(baseline_msg)
 
@@ -869,9 +878,9 @@ class PiksiMulti:
             marker.type = marker.SPHERE
             marker.action = marker.ADD
 
-            cov = np.matrix([[msg.h_accuracy**2, 0.0, 0.0],
-                             [0.0, msg.h_accuracy**2, 0.0],
-                             [0.0, 0.0, msg.v_accuracy**2]])
+            cov = np.matrix([[cov_h_h, 0.0, 0.0],
+                             [0.0, cov_h_h, 0.0],
+                             [0.0, 0.0, cov_v_v]])
 
             (eig_values, eig_vectors) = np.linalg.eig(cov)
 
@@ -887,9 +896,9 @@ class PiksiMulti:
             marker.scale.y = math.sqrt(eig_values[1])
             marker.scale.z = math.sqrt(eig_values[2])
 
-            marker.pose.position.x = msg.x
-            marker.pose.position.x = msg.y
-            marker.pose.position.x = msg.z
+            marker.pose.position.x = x
+            marker.pose.position.x = y
+            marker.pose.position.x = z
 
             self.publishers['baseline_ned_cov_viz'].publish(marker)
 
