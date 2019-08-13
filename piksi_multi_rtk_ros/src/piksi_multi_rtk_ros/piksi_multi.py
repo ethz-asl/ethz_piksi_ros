@@ -895,7 +895,7 @@ class PiksiMulti:
             (eig_values, eig_vectors) = np.linalg.eig(cov)
 
             R = -1.0 * eig_vectors.transpose()
-            q = np.quaternion.from_rotation_matrix(R)
+            q = quaternion.from_rotation_matrix(R)
 
             marker.pose.orientation.x = q.x
             marker.pose.orientation.y = q.y
@@ -955,7 +955,7 @@ class PiksiMulti:
             (eig_values, eig_vectors) = np.linalg.eig(cov)
 
             R = -1.0 * eig_vectors.transpose()
-            q = np.quaternion.from_rotation_matrix(R)
+            q = quaternion.from_rotation_matrix(R)
 
             marker.pose.orientation.x = q.x
             marker.pose.orientation.y = q.y
