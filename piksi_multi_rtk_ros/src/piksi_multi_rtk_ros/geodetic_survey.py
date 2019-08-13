@@ -76,7 +76,7 @@ class GeodeticSurvey:
             return
 
         # Innovation.
-        y = z - x
+        y = z - self.x
         S = self.P + R
         # Gain
         K = np.dot(self.P, np.linalg.inverse(S))
@@ -88,7 +88,7 @@ class GeodeticSurvey:
 
         rospy.loginfo(
             "Received: [%.3f, %.3f, %.3f]; temporary mean: [%.3f, %.3f, %.3f]; temporary 3-sigma bound: [%.3f, %.3f, %.3f] waiting for %d samples" % (
-                z[0], z[1], z[2], x[0], x[1], x[2],
+                z[0], z[1], z[2], self.x[0], self.x[1], self.x[2],
                 3 * math.sqrt(eig_values[0]), 3 * math.sqrt(eig_values[1]), 3 * math.sqrt(eig_values[2]), self.number_of_desired_fixes - self.number_of_fixes))
 
         if self.number_of_fixes >= self.number_of_desired_fixes and not self.surveyed_position_set:
