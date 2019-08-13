@@ -86,6 +86,8 @@ class GeodeticSurvey:
 
         (eig_values, eig_vectors) = np.linalg.eig(self.P)
 
+        self.number_of_fixes += 1
+
         rospy.loginfo(
             "Received: [%.3f, %.3f, %.3f]; temporary mean: [%.3f, %.3f, %.3f]; temporary 3-sigma bound: [%.3f, %.3f, %.3f] waiting for %d samples" % (
                 z[0], z[1], z[2], self.x[0], self.x[1], self.x[2],
