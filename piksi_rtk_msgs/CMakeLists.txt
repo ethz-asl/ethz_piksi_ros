@@ -56,7 +56,9 @@ add_message_files(
     UartState_V2_3_15.msg
     UtcTimeMulti.msg
     VelEcef.msg
+    VelEcefCov.msg
     VelNed.msg
+    VelNedCov.msg
     VelocityWithCovariance.msg
     VelocityWithCovarianceStamped.msg
 )

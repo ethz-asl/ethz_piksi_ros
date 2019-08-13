@@ -68,6 +68,7 @@ class PiksiMulti:
     kGravity = 9.81
     kDegToRad = np.pi / 180.0
     kFromMicro = 1.0 / 10**6
+    kFromMilli = 1.0 / 10**3
 
     kAccPrescale = kGravity * kSensorSensitivity
     kGyroPrescale = kDegToRad * kSensorSensitivity
@@ -187,6 +188,9 @@ class PiksiMulti:
 
         # Create topic callbacks.
         self.publish_covariances = rospy.get_param('~publish_covariances', False)
+        self.llh_frame = rospy.get_param('~llh_frame', 'wgs84')
+        self.ecef_frame = rospy.get_param('~ecef_frame', 'ecef')
+        self.ned_frame = rospy.get_param('~ned_frame', 'local_tangent_ned')
         self.create_topic_callbacks()
 
         # Init messages with "memory".
@@ -268,6 +272,7 @@ class PiksiMulti:
             self.handler.add_callback(self.cb_sbp_pos_llh_cov, msg_type=SBP_MSG_POS_LLH_COV)
             self.handler.add_callback(self.cb_sbp_pos_ecef_cov, msg_type=SBP_MSG_POS_ECEF_COV)
             self.handler.add_callback(self.cb_sbp_vel_ned_cov, msg_type=SBP_MSG_VEL_NED_COV)
+            self.handler.add_callback(self.cb_sbp_vel_ecef_cov, msg_type=SBP_MSG_VEL_ECEF_COV)
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -332,10 +337,12 @@ class PiksiMulti:
         """
         publishers = {}
 
-        publishers['llh'] = rospy.Publisher(rospy.get_name() + '/llh', NavSatFix, queue_size=10)
-        publishers['ecef'] = rospy.Publisher(rospy.get_name() + '/ecef', PositionWithCovarianceStamped, queue_size=10)
-        publishers['vel_enu'] = rospy.Publisher(rospy.get_name() + '/vel_enu', VelocityWithCovarianceStamped, queue_size=10)
-        publishers['vel_ned'] = rospy.Publisher(rospy.get_name() + '/vel_ned', VelocityWithCovarianceStamped, queue_size=10)
+        # Topics with covariances.
+        publishers['llh_cov'] = rospy.Publisher(rospy.get_name() + '/llh_cov', NavSatFix, queue_size=10)
+        publishers['ecef_cov'] = rospy.Publisher(rospy.get_name() + '/ecef_cov', PositionWithCovarianceStamped, queue_size=10)
+        publishers['vel_ned_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ned_cov', VelocityWithCovarianceStamped, queue_size=10)
+        publishers['vel_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ecef_cov', VelocityWithCovarianceStamped, queue_size=10)
+
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
@@ -710,12 +717,7 @@ class PiksiMulti:
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
 
-        stamp = rospy.Time.now()
-        if self.use_gps_time:
-            stamp = self.utc_times.get(msg.tow, None)
-            if stamp is None:
-                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
-                stamp = self.tow_to_utc(msg.tow)
+        stamp = get_time_stamp(msg.tow)
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
@@ -780,23 +782,20 @@ class PiksiMulti:
         self.publish_receiver_state_msg()
 
     def cb_sbp_pos_llh_cov(self, msg_raw, **metadata):
+        if self.publishers['llh_cov'].getNumSubscribers() == 0:
+            return
+
         msg = MsgPosLLHCov(msg_raw)
         if msg.flags == PosLlhCov.FIX_MODE_INVALID:
-            rospy.logwarn("Invalid LLH message.")
             return
 
         # Set time stamp.
-        stamp = rospy.Time.now()
-        if self.use_gps_time:
-            stamp = self.utc_times.get(msg.tow, None)
-            if stamp is None:
-                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
-                stamp = self.tow_to_utc(msg.tow)
+        stamp = get_time_stamp(msg.tow)
 
         # Publish NavSatFix.
         navsatfix_msg = NavSatFix()
         navsatfix_msg.header.stamp = stamp
-        navsatfix_msg.header.frame_id = self.navsatfix_frame_id
+        navsatfix_msg.header.frame_id = self.llh_frame
         navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_KNOWN
         # WARNING: We do not distinguish between the different fix types.
         if msg.flags == PosLlhCov.FIX_MODE_DEAD_RECKONING:
@@ -824,26 +823,32 @@ class PiksiMulti:
                                              msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
                                              msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
 
-        self.publishers['llh'].publish(navsatfix_msg)
+        self.publishers['llh_cov'].publish(navsatfix_msg)
+
+    def get_time_stamp(tow):
+        stamp = rospy.Time.now()
+        if self.use_gps_time:
+            stamp = self.utc_times.get(tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
+                stamp = self.tow_to_utc(tow)
+        return stamp
 
     def cb_sbp_pos_ecef_cov(self, msg_raw, **metadata):
+        if self.publishers['ecef_cov'].getNumSubscribers() == 0:
+            return
+
         msg = MsgPosECEFCov(msg_raw)
         if msg.flags == PosLlhCov.FIX_MODE_INVALID:
-            rospy.logwarn("Invalid ECEF message.")
             return
 
         # Set time stamp.
-        stamp = rospy.Time.now()
-        if self.use_gps_time:
-            stamp = self.utc_times.get(msg.tow, None)
-            if stamp is None:
-                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
-                stamp = self.tow_to_utc(msg.tow)
+        stamp = get_time_stamp(msg.tow)
 
         # Publish ecef.
         ecef_msg = PositionWithCovarianceStamped()
         ecef_msg.header.stamp = stamp
-        ecef_msg.header.frame_id = self.enu_frame_id
+        ecef_msg.header.frame_id = self.ecef_frame
 
         ecef_msg.position.position.x = msg.x
         ecef_msg.position.position.y = msg.y
@@ -853,60 +858,59 @@ class PiksiMulti:
                                         msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
                                         msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
 
-        self.publishers['ecef'].publish(ecef_msg)
+        self.publishers['ecef_cov'].publish(ecef_msg)
 
     def cb_sbp_vel_ned_cov(self, msg_raw, **metadata):
+        if self.publishers['vel_ned_cov'].getNumSubscribers() == 0:
+            return
+
         msg = MsgVelNEDCov(msg_raw)
         if msg.flags == VelNedCov.VEL_MODE_INVALID:
-            rospy.logwarn("Invalid NED velocity message.")
             return
 
         # Set time stamp.
-        stamp = rospy.Time.now()
-        if self.use_gps_time:
-            stamp = self.utc_times.get(msg.tow, None)
-            if stamp is None:
-                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
-                stamp = self.tow_to_utc(msg.tow)
+        stamp = get_time_stamp(msg.tow)
 
         # Publish NED velocity.
         vel_ned_msg = VelocityWithCovarianceStamped()
         vel_ned_msg.header.stamp = stamp
-        vel_ned_msg.header.frame_id = self.enu_frame_id
+        vel_ned_msg.header.frame_id = self.ned_frame
 
-        vel_ned_msg.velocity.velocity.x = msg.n
-        vel_ned_msg.velocity.velocity.y = msg.e
-        vel_ned_msg.velocity.velocity.z = msg.d
+        vel_ned_msg.velocity.velocity.x = msg.n * PiksiMulti.kFromMilli
+        vel_ned_msg.velocity.velocity.y = msg.e * PiksiMulti.kFromMilli
+        vel_ned_msg.velocity.velocity.z = msg.d * PiksiMulti.kFromMilli
 
         vel_ned_msg.velocity.covariance = [msg.cov_n_n, msg.cov_n_e, msg.cov_n_d,
-                                        msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
-                                        msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
+                                           msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
+                                           msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
 
-        self.publishers['vel_ned'].publish(vel_ned_msg)
+        self.publishers['vel_ned_cov'].publish(vel_ned_msg)
 
-        # Publish ENU velocity.
-        R_enu_ned = np.matrix([[0, 1, 0], [1, 0, 0], [0, 0, -1]])
-        pos_ned = np.array(msg.n, msg.e, msg.d)
-        cov_ned = np.matrix([[msg.cov_n_n, msg.cov_n_e, msg.cov_n_d],
-                             [msg.cov_n_e, msg.cov_e_e, msg.cov_e_d],
-                             [msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]])
+    def cb_sbp_vel_ecef_cov(self, msg_raw, **metadata):
+        if self.publishers['vel_ecef_cov'].getNumSubscribers() == 0:
+            return
 
-        pos_enu = np.dot(R_enu_ned, pos_ned)
-        cov_enu = np.dot(np.dot(R_enu_ned, cov_ned), R_enu_ned.transpose())
+        msg = MsgVelECEFCov(msg_raw)
+        if msg.flags == VelEcefCov.VEL_MODE_INVALID:
+            return
 
-        vel_enu_msg = VelocityWithCovarianceStamped()
-        vel_enu_msg.header.stamp = stamp
-        vel_enu_msg.header.frame_id = self.enu_frame_id
+        # Set time stamp.
+        stamp = get_time_stamp(msg.tow)
 
-        vel_enu_msg.velocity.velocity.x = pos_enu[0]
-        vel_enu_msg.velocity.velocity.y = pos_enu[1]
-        vel_enu_msg.velocity.velocity.z = pos_enu[2]
+        # Publish ECEF velocity.
+        vel_ecef_msg = VelocityWithCovarianceStamped()
+        vel_ecef_msg.header.stamp = stamp
+        vel_ecef_msg.header.frame_id = self.ecef_frame
 
-        vel_enu_msg.velocity.covariance = [cov_enu[0][0], cov_enu[0][1], cov_enu[0][2],
-                                           cov_enu[1][0], cov_enu[1][1], cov_enu[1][2],
-                                           cov_enu[2][0], cov_enu[2][1], cov_enu[2][2]]
+        vel_ecef_msg.velocity.velocity.x = msg.x * PiksiMulti.kFromMilli
+        vel_ecef_msg.velocity.velocity.y = msg.y * PiksiMulti.kFromMilli
+        vel_ecef_msg.velocity.velocity.z = msg.z * PiksiMulti.kFromMilli
 
-        self.publishers['vel_enu'].publish(vel_enu_msg)
+        vel_ecef_msg.velocity.covariance = [msg.cov_x_x, msg.cov_x_y, msg.cov_x_z,
+                                            msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
+                                            msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
+
+        self.publishers['vel_ecef_cov'].publish(vel_ecef_msg)
 
     def publish_spp(self, latitude, longitude, height, stamp, variance, navsatstatus_fix):
         self.publish_wgs84_point(latitude, longitude, height, stamp, variance, navsatstatus_fix,
