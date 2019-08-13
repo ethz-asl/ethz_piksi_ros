@@ -851,8 +851,8 @@ class PiksiMulti:
         z = msg.d * self.kFromMilli
 
         # Get horizontal and vertical covariances.
-        cov_h_h = msg.h_accuracy**2
-        cov_v_v = msg.v_accuracy**2
+        cov_h_h = (msg.h_accuracy * self.kFromMilli)**2
+        cov_v_v = (msg.v_accuracy * self.kFromMilli)**2
 
         if self.publishers['baseline_ned_cov'].getNumSubscribers() > 0:
             # Publish ecef.
