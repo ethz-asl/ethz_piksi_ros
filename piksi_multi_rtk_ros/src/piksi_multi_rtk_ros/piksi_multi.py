@@ -342,13 +342,13 @@ class PiksiMulti:
         publishers = {}
 
         # Topics with covariances.
-        publishers['llh_cov'] = rospy.Publisher(rospy.get_name() + '/llh_cov', NavSatFix, queue_size=10)
-        publishers['ecef_cov'] = rospy.Publisher(rospy.get_name() + '/ecef_cov', PositionWithCovarianceStamped, queue_size=10)
+        publishers['pos_llh_cov'] = rospy.Publisher(rospy.get_name() + '/pos_llh_cov', NavSatFix, queue_size=10)
+        publishers['pos_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/pos_ecef_cov', PositionWithCovarianceStamped, queue_size=10)
         publishers['vel_ned_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ned_cov', VelocityWithCovarianceStamped, queue_size=10)
         publishers['vel_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ecef_cov', VelocityWithCovarianceStamped, queue_size=10)
         publishers['baseline_ned_cov'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov', PositionWithCovarianceStamped, queue_size=10)
 
-        publishers['ecef_cov_viz'] = rospy.Publisher(rospy.get_name() + '/ecef_cov_viz', Marker, queue_size=10)
+        publishers['pos_ecef_cov_viz'] = rospy.Publisher(rospy.get_name() + '/pos_ecef_cov_viz', Marker, queue_size=10)
         publishers['baseline_ned_cov_viz'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov_viz', Marker, queue_size=10)
 
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
@@ -790,7 +790,7 @@ class PiksiMulti:
         self.publish_receiver_state_msg()
 
     def cb_sbp_pos_llh_cov(self, msg_raw, **metadata):
-        if self.publishers['llh_cov'].getNumSubscribers() == 0:
+        if self.publishers['pos_llh_cov'].getNumSubscribers() == 0:
             return
 
         msg = MsgPosLLHCov(msg_raw)
@@ -831,7 +831,7 @@ class PiksiMulti:
                                              msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
                                              msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
 
-        self.publishers['llh_cov'].publish(navsatfix_msg)
+        self.publishers['pos_llh_cov'].publish(navsatfix_msg)
 
     def cb_sbp_baseline_ned_cov(self, msg_raw, **metadata):
         if self.publishers['baseline_ned_cov'].getNumSubscribers() == 0 \
@@ -912,8 +912,8 @@ class PiksiMulti:
         return stamp
 
     def cb_sbp_pos_ecef_cov(self, msg_raw, **metadata):
-        if self.publishers['ecef_cov'].getNumSubscribers() == 0 \
-        and self.publishers['ecef_cov_viz'].getNumSubscribers() == 0:
+        if self.publishers['pos_ecef_cov'].getNumSubscribers() == 0 \
+        and self.publishers['pos_ecef_cov_viz'].getNumSubscribers() == 0:
             return
 
         msg = MsgPosECEFCov(msg_raw)
@@ -923,7 +923,7 @@ class PiksiMulti:
         # Set time stamp.
         stamp = get_time_stamp(msg.tow)
 
-        if self.publishers['ecef_cov'].getNumSubscribers() > 0:
+        if self.publishers['pos_ecef_cov'].getNumSubscribers() > 0:
             # Publish ecef.
             ecef_msg = PositionWithCovarianceStamped()
             ecef_msg.header.stamp = stamp
@@ -937,9 +937,9 @@ class PiksiMulti:
                                             msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
                                             msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
 
-            self.publishers['ecef_cov'].publish(ecef_msg)
+            self.publishers['pos_ecef_cov'].publish(ecef_msg)
 
-        if self.publishers['ecef_cov_viz'].getNumSubscribers() > 0:
+        if self.publishers['pos_ecef_cov_viz'].getNumSubscribers() > 0:
             # https://answers.ros.org/question/11081/plot-a-gaussian-3d-representation-with-markers-in-rviz/
             marker = Marker()
             marker.header.stamp = stamp
@@ -969,7 +969,7 @@ class PiksiMulti:
             marker.pose.position.x = msg.y
             marker.pose.position.x = msg.z
 
-            self.publishers['ecef_cov_viz'].publish(marker)
+            self.publishers['pos_ecef_cov_viz'].publish(marker)
 
     def cb_sbp_vel_ned_cov(self, msg_raw, **metadata):
         if self.publishers['vel_ned_cov'].getNumSubscribers() == 0:
