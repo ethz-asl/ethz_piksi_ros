@@ -20,6 +20,7 @@
   <node pkg="piksi_multi_rtk_ros" type="geodetic_survey" name="geodetic_survey" output="screen">
     <param name="number_of_desired_fixes"             value="$(arg number_of_desired_fixes)"/>
     <param name="height_base_station_from_ground"     value="$(arg height_base_station_from_ground)"/>
+    <param name="use_covariance"                      value="$(arg use_covariance)"/>
   </node>
 
 </launch>
