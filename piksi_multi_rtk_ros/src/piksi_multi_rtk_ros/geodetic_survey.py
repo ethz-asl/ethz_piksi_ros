@@ -79,7 +79,7 @@ class GeodeticSurvey:
         y = z - self.x
         S = self.P + R
         # Gain
-        K = np.dot(self.P, np.linalg.inverse(S))
+        K = np.dot(self.P, np.linalg.inv(S))
         # Update
         self.x = self.x + np.dot(K, y)
         self.P = np.dot((np.identity(3) - K), self.P)
