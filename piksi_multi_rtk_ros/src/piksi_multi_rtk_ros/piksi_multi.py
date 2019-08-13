@@ -723,13 +723,13 @@ class PiksiMulti:
         return self.tow_f_to_utc(tow, 0)
 
     def get_time_stamp(tow):
-    stamp = rospy.Time.now()
-    if self.use_gps_time:
-        stamp = self.utc_times.get(tow, None)
-        if stamp is None:
-            rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
-            stamp = self.tow_to_utc(tow)
-    return stamp
+        stamp = rospy.Time.now()
+        if self.use_gps_time:
+            stamp = self.utc_times.get(tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
+                stamp = self.tow_to_utc(tow)
+        return stamp
 
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
