@@ -47,6 +47,7 @@ pip install --user -r requirements.txt
 pip install --user markupsafe
 pip install --user numpy-quaternion
 pip install --user pyproj
+pip install --user scipy
 sudo python setup.py install
 # Build package.
 cd ..
