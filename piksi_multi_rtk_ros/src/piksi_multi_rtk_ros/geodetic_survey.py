@@ -8,6 +8,7 @@
 import rospy
 import roslib.packages
 from piksi_rtk_msgs.srv import *
+from piksi_rtk_msgs.msg import PositionWithCovarianceStamped
 import std_srvs.srv
 from sensor_msgs.msg import (NavSatFix, NavSatStatus)
 import os
