@@ -907,8 +907,8 @@ class PiksiMulti:
             marker.scale.z = math.sqrt(eig_values[2])
 
             marker.pose.position.x = x
-            marker.pose.position.x = y
-            marker.pose.position.x = z
+            marker.pose.position.y = y
+            marker.pose.position.z = z
 
             self.publishers['baseline_ned_cov_viz'].publish(marker)
 
