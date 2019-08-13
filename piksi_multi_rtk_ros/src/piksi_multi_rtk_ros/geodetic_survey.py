@@ -64,9 +64,9 @@ class GeodeticSurvey:
 
         # Measurement.
         z = np.array([msg.position.position.x, msg.position.position.y, msg.position.position.z])
-        R = np.matrix([[msg.position.covariance[0], msg.position.covariance[1], msg.position.covariance[2]],
-                       [msg.position.covariance[3], msg.position.covariance[4], msg.position.covariance[5]],
-                       [msg.position.covariance[6], msg.position.covariance[7], msg.position.covariance[8]]])
+        R = np.array([[msg.position.covariance[0], msg.position.covariance[1], msg.position.covariance[2]],
+                      [msg.position.covariance[3], msg.position.covariance[4], msg.position.covariance[5]],
+                      [msg.position.covariance[6], msg.position.covariance[7], msg.position.covariance[8]]])
 
         # Initialize x with current measurement.
         if self.x_init == False:
