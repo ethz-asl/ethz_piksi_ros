@@ -725,7 +725,7 @@ class PiksiMulti:
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
 
-        stamp = get_time_stamp(msg.tow)
+        stamp = self.get_time_stamp(msg.tow)
 
         # Invalid messages.
         if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
@@ -798,7 +798,7 @@ class PiksiMulti:
             return
 
         # Set time stamp.
-        stamp = get_time_stamp(msg.tow)
+        stamp = self.get_time_stamp(msg.tow)
 
         # Publish NavSatFix.
         navsatfix_msg = NavSatFix()
@@ -843,7 +843,7 @@ class PiksiMulti:
             return
 
         # Set time stamp.
-        stamp = get_time_stamp(msg.tow)
+        stamp = self.get_time_stamp(msg.tow)
 
         # Get position in m.
         x = msg.n * self.kFromMilli
@@ -921,7 +921,7 @@ class PiksiMulti:
             return
 
         # Set time stamp.
-        stamp = get_time_stamp(msg.tow)
+        stamp = self.get_time_stamp(msg.tow)
 
         if self.publishers['pos_ecef_cov'].get_num_connections() > 0:
             # Publish ecef.
@@ -980,7 +980,7 @@ class PiksiMulti:
             return
 
         # Set time stamp.
-        stamp = get_time_stamp(msg.tow)
+        stamp = self.get_time_stamp(msg.tow)
 
         # Publish NED velocity.
         vel_ned_msg = VelocityWithCovarianceStamped()
@@ -1006,7 +1006,7 @@ class PiksiMulti:
             return
 
         # Set time stamp.
-        stamp = get_time_stamp(msg.tow)
+        stamp = self.get_time_stamp(msg.tow)
 
         # Publish ECEF velocity.
         vel_ecef_msg = VelocityWithCovarianceStamped()
