@@ -45,6 +45,7 @@ pip install --user tox
 pip install --user numba
 pip install --user -r requirements.txt
 pip install --user markupsafe
+pip install --user numpy-quaternion
 sudo python setup.py install
 # Build package.
 cd ..
