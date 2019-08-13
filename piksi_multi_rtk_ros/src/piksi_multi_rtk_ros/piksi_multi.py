@@ -9,6 +9,7 @@
 
 import rospy
 import math
+import quaternion
 import numpy as np
 import datetime, time, leapseconds
 from collections import deque
@@ -24,6 +25,7 @@ from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading,
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
+from visualization_msgs import Marker
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -190,7 +192,8 @@ class PiksiMulti:
         self.publish_covariances = rospy.get_param('~publish_covariances', False)
         self.llh_frame = rospy.get_param('~llh_frame', 'wgs84')
         self.ecef_frame = rospy.get_param('~ecef_frame', 'ecef')
-        self.ned_frame = rospy.get_param('~ned_frame', 'local_tangent_ned')
+        self.antenna_ned_frame = rospy.get_param('~antenna_ned_frame', 'antenna_ned')
+        self.base_ned_frame = rospy.get_param('~base_ned_frame', 'base_ned')
         self.create_topic_callbacks()
 
         # Init messages with "memory".
@@ -273,6 +276,7 @@ class PiksiMulti:
             self.handler.add_callback(self.cb_sbp_pos_ecef_cov, msg_type=SBP_MSG_POS_ECEF_COV)
             self.handler.add_callback(self.cb_sbp_vel_ned_cov, msg_type=SBP_MSG_VEL_NED_COV)
             self.handler.add_callback(self.cb_sbp_vel_ecef_cov, msg_type=SBP_MSG_VEL_ECEF_COV)
+            self.handler.add_callback(self.cb_sbp_baseline_ned_cov, msg_type=SBP_MSG_BASELINE_NED)
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -342,6 +346,10 @@ class PiksiMulti:
         publishers['ecef_cov'] = rospy.Publisher(rospy.get_name() + '/ecef_cov', PositionWithCovarianceStamped, queue_size=10)
         publishers['vel_ned_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ned_cov', VelocityWithCovarianceStamped, queue_size=10)
         publishers['vel_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ecef_cov', VelocityWithCovarianceStamped, queue_size=10)
+        publishers['baseline_ned_cov'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov', PositionWithCovarianceStamped, queue_size=10)
+
+        publishers['ecef_cov_viz'] = rospy.Publisher(rospy.get_name() + '/ecef_cov_viz', Marker, queue_size=10)
+        publishers['baseline_ned_cov_viz'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov_viz', Marker, queue_size=10)
 
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
@@ -825,6 +833,66 @@ class PiksiMulti:
 
         self.publishers['llh_cov'].publish(navsatfix_msg)
 
+    def cb_sbp_baseline_ned_cov(self, msg_raw, **metadata):
+        if self.publishers['baseline_ned_cov'].getNumSubscribers() == 0 \
+        and self.publishers['baseline_ned_cov_viz'].getNumSubscribers() == 0:
+            return
+
+        msg = MsgBaselineNED(msg_raw)
+        if msg.flags == 0:
+            return
+
+        # Set time stamp.
+        stamp = get_time_stamp(msg.tow)
+
+        if self.publishers['baseline_ned_cov'].getNumSubscribers() > 0:
+            # Publish ecef.
+            baseline_msg = PositionWithCovarianceStamped()
+            baseline_msg.header.stamp = stamp
+            baseline_msg.header.frame_id = self.base_ned_frame
+
+            baseline_msg.position.position.x = msg.n
+            baseline_msg.position.position.y = msg.e
+            baseline_msg.position.position.z = msg.d
+
+            baseline_msg.position.covariance = [msg.h_accuracy**2, 0.0, 0.0,
+                                                0.0, msg.h_accuracy**2, 0.0,
+                                                0.0, 0.0, msg.v_accuracy**2]
+
+            self.publishers['baseline_ned_cov'].publish(baseline_msg)
+
+        if self.publishers['baseline_ned_cov_viz'].getNumSubscribers() > 0:
+            # https://answers.ros.org/question/11081/plot-a-gaussian-3d-representation-with-markers-in-rviz/
+            marker = Marker()
+            marker.header.stamp = stamp
+            marker.header.frame_id = self.base_ned_frame
+            marker.type = marker.SPHERE
+            marker.action = marker.ADD
+
+            cov = np.matrix([[msg.h_accuracy**2, 0.0, 0.0],
+                             [0.0, msg.h_accuracy**2, 0.0],
+                             [0.0, 0.0, msg.v_accuracy**2]])
+
+            (eig_values, eig_vectors) = np.linalg.eig(cov)
+
+            R = -1.0 * eig_vectors.transpose()
+            q = np.quaternion.from_rotation_matrix(R)
+
+            marker.pose.orientation.x = q.x
+            marker.pose.orientation.y = q.y
+            marker.pose.orientation.z = q.z
+            marker.pose.orientation.w = q.w
+
+            marker.scale.x = math.sqrt(eig_values[0])
+            marker.scale.y = math.sqrt(eig_values[1])
+            marker.scale.z = math.sqrt(eig_values[2])
+
+            marker.pose.position.x = msg.x
+            marker.pose.position.x = msg.y
+            marker.pose.position.x = msg.z
+
+            self.publishers['baseline_ned_cov_viz'].publish(marker)
+
     def get_time_stamp(tow):
         stamp = rospy.Time.now()
         if self.use_gps_time:
@@ -835,7 +903,8 @@ class PiksiMulti:
         return stamp
 
     def cb_sbp_pos_ecef_cov(self, msg_raw, **metadata):
-        if self.publishers['ecef_cov'].getNumSubscribers() == 0:
+        if self.publishers['ecef_cov'].getNumSubscribers() == 0 \
+        and self.publishers['ecef_cov_viz'].getNumSubscribers() == 0:
             return
 
         msg = MsgPosECEFCov(msg_raw)
@@ -845,20 +914,53 @@ class PiksiMulti:
         # Set time stamp.
         stamp = get_time_stamp(msg.tow)
 
-        # Publish ecef.
-        ecef_msg = PositionWithCovarianceStamped()
-        ecef_msg.header.stamp = stamp
-        ecef_msg.header.frame_id = self.ecef_frame
+        if self.publishers['ecef_cov'].getNumSubscribers() > 0:
+            # Publish ecef.
+            ecef_msg = PositionWithCovarianceStamped()
+            ecef_msg.header.stamp = stamp
+            ecef_msg.header.frame_id = self.ecef_frame
 
-        ecef_msg.position.position.x = msg.x
-        ecef_msg.position.position.y = msg.y
-        ecef_msg.position.position.z = msg.z
+            ecef_msg.position.position.x = msg.x
+            ecef_msg.position.position.y = msg.y
+            ecef_msg.position.position.z = msg.z
 
-        ecef_msg.position.covariance = [msg.cov_x_x, msg.cov_x_y, msg.cov_x_z,
-                                        msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
-                                        msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
+            ecef_msg.position.covariance = [msg.cov_x_x, msg.cov_x_y, msg.cov_x_z,
+                                            msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
+                                            msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
 
-        self.publishers['ecef_cov'].publish(ecef_msg)
+            self.publishers['ecef_cov'].publish(ecef_msg)
+
+        if self.publishers['ecef_cov_viz'].getNumSubscribers() > 0:
+            # https://answers.ros.org/question/11081/plot-a-gaussian-3d-representation-with-markers-in-rviz/
+            marker = Marker()
+            marker.header.stamp = stamp
+            marker.header.frame_id = self.ecef_frame
+            marker.type = marker.SPHERE
+            marker.action = marker.ADD
+
+            cov = np.matrix([[msg.cov_x_x, msg.cov_x_y, msg.cov_x_z],
+                             [msg.cov_x_y, msg.cov_y_y, msg.cov_y_z],
+                             [msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]])
+
+            (eig_values, eig_vectors) = np.linalg.eig(cov)
+
+            R = -1.0 * eig_vectors.transpose()
+            q = np.quaternion.from_rotation_matrix(R)
+
+            marker.pose.orientation.x = q.x
+            marker.pose.orientation.y = q.y
+            marker.pose.orientation.z = q.z
+            marker.pose.orientation.w = q.w
+
+            marker.scale.x = math.sqrt(eig_values[0])
+            marker.scale.y = math.sqrt(eig_values[1])
+            marker.scale.z = math.sqrt(eig_values[2])
+
+            marker.pose.position.x = msg.x
+            marker.pose.position.x = msg.y
+            marker.pose.position.x = msg.z
+
+            self.publishers['ecef_cov_viz'].publish(marker)
 
     def cb_sbp_vel_ned_cov(self, msg_raw, **metadata):
         if self.publishers['vel_ned_cov'].getNumSubscribers() == 0:
@@ -874,7 +976,7 @@ class PiksiMulti:
         # Publish NED velocity.
         vel_ned_msg = VelocityWithCovarianceStamped()
         vel_ned_msg.header.stamp = stamp
-        vel_ned_msg.header.frame_id = self.ned_frame
+        vel_ned_msg.header.frame_id = self.antenna_ned_frame
 
         vel_ned_msg.velocity.velocity.x = msg.n * PiksiMulti.kFromMilli
         vel_ned_msg.velocity.velocity.y = msg.e * PiksiMulti.kFromMilli
