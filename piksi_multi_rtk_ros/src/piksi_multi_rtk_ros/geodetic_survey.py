@@ -76,7 +76,7 @@ class GeodeticSurvey:
             return
 
         # Innovation.
-        y = z - self.x
+        y = (z - self.x).transpose()
         S = self.P + R
         # Gain
         K = self.P.dot(np.linalg.inv(S))
