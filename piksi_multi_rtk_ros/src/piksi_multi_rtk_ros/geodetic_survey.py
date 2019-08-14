@@ -53,8 +53,8 @@ class GeodeticSurvey:
         self.pos_ecef_cov_topics_name = rospy.get_param('~pos_ecef_cov_topics_name', 'piksi_multi_base_station/pos_ecef_cov')
 
         # Least squares variables.
-        self.R_inv = np.zeros(3 * self.number_of_desired_fixes, 3 * self.number_of_desired_fixes)
-        self.y = np.zeros(3 * self.number_of_desired_fixes, 1)
+        self.R_inv = np.zeros((3 * self.number_of_desired_fixes, 3 * self.number_of_desired_fixes))
+        self.y = np.zeros(3 * self.number_of_desired_fixes)
 
         # Subscribe.
         rospy.Subscriber(self.navsatfix_topics_name, NavSatFix,
@@ -75,23 +75,22 @@ class GeodeticSurvey:
 
         i = self.number_of_fixes * 3
         self.R_inv[i:i+3, i:i+3] = np.linalg.inv(R)
-        self.y[i:i+3] = z
+	self.y[i:i+3] = z
 
         # Initialize x with current measurement.
         if self.x_init == False:
             self.x = z
-            self.P = R
+	    self.P = R
             self.x_init = True
-            return
-
-        # Innovation.
-        y = (z - self.x).transpose()
-        S = self.P + R
-        # Gain
-        K = self.P.dot(np.linalg.inv(S))
-        # Update
-        self.x = self.x + K.dot(y)
-        self.P = (np.identity(3) - K).dot(self.P)
+	else:
+	    # Innovation.
+            y = (z - self.x).transpose()
+            S = self.P + R
+  	    # Gain
+            K = self.P.dot(np.linalg.inv(S))
+            # Update
+            self.x = self.x + K.dot(y)
+            self.P = (np.identity(3) - K).dot(self.P)
 
         (P_eig_values, P_eig_vectors) = np.linalg.eig(self.P)
         (R_eig_values, R_eig_vectors) = np.linalg.eig(R)
@@ -108,9 +107,9 @@ class GeodeticSurvey:
 
         if self.number_of_fixes >= self.number_of_desired_fixes and not self.surveyed_position_set:
             # Least squares estimation.
-            H = np.matlib.repmat(np.identity(3), number_of_fixes, 1)
+            H = np.tile(np.identity(3), (self.number_of_desired_fixes, 1))
             a = H.transpose().dot(self.R_inv.dot(H))
-            b = H.transpose().dot(self.R_inv)
+            b = H.transpose().dot(self.R_inv).dot(self.y)
             x = np.linalg.solve(a,b)
 
             P = np.linalg.inv(a)
@@ -119,11 +118,11 @@ class GeodeticSurvey:
             rospy.loginfo(
                 "ML estimate: [%.3f, %.3f, %.3f]; ML 3-sigma bound: [%.3f, %.3f, %.3f]" % (
                     x[0], x[1], x[2],
-                    3 * math.sqrt(R_eig_values[0]), 3 * math.sqrt(R_eig_values[1]), 3 * math.sqrt(R_eig_values[2]))
+                    3 * math.sqrt(P_eig_values[0]), 3 * math.sqrt(P_eig_values[1]), 3 * math.sqrt(P_eig_values[2])))
 
             ecef = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
             lla = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
-            lon0, lat0, alt0 = pyproj.transform(ecef, lla, self.x[0], self.x[1], self.x[2], radians=False)
+            lon0, lat0, alt0 = pyproj.transform(ecef, lla, x[0], x[1], x[2], radians=False)
 
             if self.set_base_station_position(lat0, lon0, alt0):
                 self.surveyed_position_set = True
