@@ -34,6 +34,7 @@ class GeodeticSurvey:
         self.number_of_fixes = 0
         self.surveyed_position_set = False
 
+        # Kalman filter variables.
         self.x = np.array([0.0, 0.0, 0.0])
         self.P = np.zeros([3,3])
         self.x_init = False
@@ -51,6 +52,10 @@ class GeodeticSurvey:
         self.use_covariance = rospy.get_param('~use_covariance', False)
         self.pos_ecef_cov_topics_name = rospy.get_param('~pos_ecef_cov_topics_name', 'piksi_multi_base_station/pos_ecef_cov')
 
+        # Least squares variables.
+        self.R_inv = np.zeros(3 * self.number_of_desired_fixes, 3 * self.number_of_desired_fixes)
+        self.y = np.zeros(3 * self.number_of_desired_fixes, 1)
+
         # Subscribe.
         rospy.Subscriber(self.navsatfix_topics_name, NavSatFix,
                          self.navsatfix_callback)
@@ -67,6 +72,10 @@ class GeodeticSurvey:
         R = np.array([[msg.position.covariance[0], msg.position.covariance[1], msg.position.covariance[2]],
                       [msg.position.covariance[3], msg.position.covariance[4], msg.position.covariance[5]],
                       [msg.position.covariance[6], msg.position.covariance[7], msg.position.covariance[8]]])
+
+        i = self.number_of_fixes * 3
+        self.R_inv[i:i+3, i:i+3] = np.linalg.inv(R)
+        self.y[i:i+3] = z
 
         # Initialize x with current measurement.
         if self.x_init == False:
@@ -98,6 +107,20 @@ class GeodeticSurvey:
                 self.number_of_desired_fixes - self.number_of_fixes))
 
         if self.number_of_fixes >= self.number_of_desired_fixes and not self.surveyed_position_set:
+            # Least squares estimation.
+            H = np.matlib.repmat(np.identity(3), number_of_fixes, 1)
+            a = H.transpose().dot(self.R_inv.dot(H))
+            b = H.transpose().dot(self.R_inv)
+            x = np.linalg.solve(a,b)
+
+            P = np.linalg.inv(a)
+            (P_eig_values, P_eig_vectors) = np.linalg.eig(P)
+
+            rospy.loginfo(
+                "ML estimate: [%.3f, %.3f, %.3f]; ML 3-sigma bound: [%.3f, %.3f, %.3f]" % (
+                    x[0], x[1], x[2],
+                    3 * math.sqrt(R_eig_values[0]), 3 * math.sqrt(R_eig_values[1]), 3 * math.sqrt(R_eig_values[2]))
+
             ecef = pyproj.Proj(proj='geocent', ellps='WGS84', datum='WGS84')
             lla = pyproj.Proj(proj='latlong', ellps='WGS84', datum='WGS84')
             lon0, lat0, alt0 = pyproj.transform(ecef, lla, self.x[0], self.x[1], self.x[2], radians=False)
