@@ -66,6 +66,8 @@ class GeodeticSurvey:
     def pos_ecef_cov_callback(self, msg):
         if not self.use_covariance:
             return
+        if self.number_of_fixes >= self.number_of_desired_fixes:
+            return
 
         # Measurement.
         z = np.array([msg.position.position.x, msg.position.position.y, msg.position.position.z])
