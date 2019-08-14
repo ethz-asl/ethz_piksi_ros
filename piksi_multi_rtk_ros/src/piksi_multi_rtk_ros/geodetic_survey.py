@@ -75,7 +75,7 @@ class GeodeticSurvey:
 
         i = self.number_of_fixes * 3
         self.R_inv[i:i+3, i:i+3] = np.linalg.inv(R)
-	self.y[i:i+3] = z
+        self.y[i:i+3] = z
 
         # Initialize x with current measurement.
         if self.x_init == False:
