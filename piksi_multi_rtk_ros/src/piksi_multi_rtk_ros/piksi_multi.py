@@ -151,6 +151,13 @@ class PiksiMulti:
         self.var_spp_sbas = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
         self.navsatfix_frame_id = rospy.get_param('~navsatfix_frame_id', 'gps')
 
+        # Covariance topic settings.
+        self.publish_covariances = rospy.get_param('~publish_covariances', False)
+        self.llh_frame = rospy.get_param('~llh_frame', 'wgs84')
+        self.ecef_frame = rospy.get_param('~ecef_frame', 'ecef')
+        self.antenna_ned_frame = rospy.get_param('~antenna_ned_frame', 'antenna_ned')
+        self.base_ned_frame = rospy.get_param('~base_ned_frame', 'base_ned')
+
         # Local ENU frame settings.
         self.origin_enu_set = False
         self.latitude0 = 0.0
@@ -190,11 +197,6 @@ class PiksiMulti:
         self.service_servers = self.advertise_services()
 
         # Create topic callbacks.
-        self.publish_covariances = rospy.get_param('~publish_covariances', False)
-        self.llh_frame = rospy.get_param('~llh_frame', 'wgs84')
-        self.ecef_frame = rospy.get_param('~ecef_frame', 'ecef')
-        self.antenna_ned_frame = rospy.get_param('~antenna_ned_frame', 'antenna_ned')
-        self.base_ned_frame = rospy.get_param('~base_ned_frame', 'base_ned')
         self.create_topic_callbacks()
 
         # Init messages with "memory".
