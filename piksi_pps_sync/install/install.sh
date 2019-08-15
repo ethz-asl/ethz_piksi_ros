@@ -2,7 +2,7 @@
 GPIO_PIN=250
 
 DEVICE='/dev/ttyS5'
-BAUD=230400
+BAUD=9600
 
 # Install PPS
 cd ..
