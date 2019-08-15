@@ -343,14 +343,15 @@ class PiksiMulti:
         publishers = {}
 
         # Topics with covariances.
-        publishers['pos_llh_cov'] = rospy.Publisher(rospy.get_name() + '/pos_llh_cov', NavSatFix, queue_size=10)
-        publishers['pos_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/pos_ecef_cov', PositionWithCovarianceStamped, queue_size=10)
-        publishers['vel_ned_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ned_cov', VelocityWithCovarianceStamped, queue_size=10)
-        publishers['vel_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ecef_cov', VelocityWithCovarianceStamped, queue_size=10)
-        publishers['baseline_ned_cov'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov', PositionWithCovarianceStamped, queue_size=10)
+        if self.publish_covariances:
+            publishers['pos_llh_cov'] = rospy.Publisher(rospy.get_name() + '/pos_llh_cov', NavSatFix, queue_size=10)
+            publishers['pos_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/pos_ecef_cov', PositionWithCovarianceStamped, queue_size=10)
+            publishers['vel_ned_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ned_cov', VelocityWithCovarianceStamped, queue_size=10)
+            publishers['vel_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ecef_cov', VelocityWithCovarianceStamped, queue_size=10)
+            publishers['baseline_ned_cov'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov', PositionWithCovarianceStamped, queue_size=10)
 
-        publishers['pos_ecef_cov_viz'] = rospy.Publisher(rospy.get_name() + '/pos_ecef_cov_viz', Marker, queue_size=10)
-        publishers['baseline_ned_cov_viz'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov_viz', Marker, queue_size=10)
+            publishers['pos_ecef_cov_viz'] = rospy.Publisher(rospy.get_name() + '/pos_ecef_cov_viz', Marker, queue_size=10)
+            publishers['baseline_ned_cov_viz'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov_viz', Marker, queue_size=10)
 
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
@@ -521,6 +522,8 @@ class PiksiMulti:
         """
 
         def callback(msg, **metadata):
+            if pub.get_num_connections() == 0:
+                return
             sbp_message = sbp_type(msg)
             ros_message.header.stamp = rospy.Time.now()
             for attr in attrs:
@@ -554,7 +557,7 @@ class PiksiMulti:
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
 
     def cb_sbp_obs(self, msg_raw, **metadata):
-        if self.debug_mode:
+        if self.debug_mode and self.publishers['observation'].get_num_connections() > 0:
             msg = MsgObs(msg_raw)
 
             obs_msg = Observation()
@@ -610,7 +613,7 @@ class PiksiMulti:
             self.publishers['base_pos_llh'].publish(pose_llh_msg)
 
     def cb_sbp_base_pos_ecef(self, msg_raw, **metadata):
-        if self.debug_mode:
+        if self.debug_mode and self.publishers['base_pos_ecef'].get_num_connections() > 0:
             msg = MsgBasePosECEF(msg_raw)
 
             pose_ecef_msg = BasePosEcef()
@@ -626,6 +629,8 @@ class PiksiMulti:
             self.multicaster.sendSbpPacket(msg_raw)
 
     def cb_sbp_uart_state(self, msg_raw, **metadata):
+        if self.publishers['uart_state'].get_num_connections() == 0:
+            return
         msg = MsgUartState(msg_raw)
         uart_state_msg = UartState_V2_3_15()
 
@@ -678,7 +683,7 @@ class PiksiMulti:
             self.num_wifi_corrections.header.seq += 1
             self.num_wifi_corrections.header.stamp = rospy.Time.now()
             self.num_wifi_corrections.received_corrections += 1
-            if not self.base_station_mode:
+            if not self.base_station_mode and self.publishers['wifi_corrections'].get_num_connections() > 0:
                 self.publishers['wifi_corrections'].publish(self.num_wifi_corrections)
 
         else:
@@ -1207,6 +1212,8 @@ class PiksiMulti:
             self.publish_receiver_state_msg()
 
     def publish_receiver_state_msg(self):
+        if self.publishers['receiver_state'].get_num_connections() == 0:
+            return
         self.receiver_state_msg.header.stamp = rospy.Time.now()
         self.publishers['receiver_state'].publish(self.receiver_state_msg)
 
