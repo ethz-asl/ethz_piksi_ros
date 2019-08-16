@@ -30,16 +30,16 @@ if [[ $configure_gpsd == "Y" || $configure_gpsd == "y" ]]; then
   echo "Configuring /etc/default/gpsd"
   sudo rm /etc/default/gpsd
   sudo sh -c "echo '# Start the gpsd daemon automatically at boot time.' >> /etc/default/gpsd"
-  sudo sh -c "echo 'START_DAEMON="true"' >> /etc/default/gpsd"
+  sudo sh -c "echo 'START_DAEMON=\"true\"' >> /etc/default/gpsd"
   sudo sh -c "echo '# Use USB hotplugging to add new USB devices automatically to the daemon.' >> /etc/default/gpsd"
-  sudo sh -c "echo 'USBAUTO="false"' >> /etc/default/gpsd"
+  sudo sh -c "echo 'USBAUTO=\"false\"' >> /etc/default/gpsd"
   sudo sh -c "echo '# Devices gpsd should collect to at boot time.' >> /etc/default/gpsd"
   sudo sh -c "echo '# They need to be read/writeable, either by user gpsd or the group dialout.' >> /etc/default/gpsd"
-  sudo sh -c "echo 'DEVICES="/dev/ttyS5"' >> /etc/default/gpsd"
+  sudo sh -c "echo 'DEVICES=\"${DEVICE}\"' >> /etc/default/gpsd"
   sudo sh -c "echo '# Other options you want to pass to gpsd.' >> /etc/default/gpsd"
-  sudo sh -c "echo 'GPSD_OPTIONS="-n -r"' >> /etc/default/gpsd"
+  sudo sh -c "echo 'GPSD_OPTIONS=\"-n -r\"' >> /etc/default/gpsd"
   sudo sh -c "echo '' >> /etc/default/gpsd"
-  sudo sh -c "echo 'GPSD_SOCKET="/var/run/gpsd.sock"' >> /etc/default/gpsd"
+  sudo sh -c "echo 'GPSD_SOCKET=\"/var/run/gpsd.sock\"' >> /etc/default/gpsd"
   sudo chmod +x /etc/rc.local
 fi
 
