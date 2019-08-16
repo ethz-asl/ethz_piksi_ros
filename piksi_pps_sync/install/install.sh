@@ -55,6 +55,7 @@ if [[ $create_rc_local == "Y" || $create_rc_local == "y" ]]; then
   sudo sh -c "echo '# Start pps-gpio-modprobe module.' >> /etc/rc.local"
   sudo sh -c "echo 'modprobe pps-gpio-modprobe gpio=${GPIO_PIN}' >> /etc/rc.local"
   sudo sh -c "echo '# Setting GPS UART' >> /etc/rc.local"
+  sudo sh -c "echo 'service gpsd stop' >> /etc/rc.local"
   sudo sh -c "echo 'stty -F ${DEVICE} ${BAUD}' >> /etc/rc.local"
   sudo sh -c "echo '# Start GPSD' >> /etc/rc.local"
   sudo sh -c "echo 'service gpsd start' >> /etc/rc.local"
