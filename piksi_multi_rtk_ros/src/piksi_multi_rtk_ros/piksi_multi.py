@@ -643,6 +643,7 @@ class PiksiMulti:
         ext_event_msg.stamp = gps_time_to_utc(msg.wn, msg.tow, msg.ns_residual)
         ext_event_msg.pin_value = msg.flags & 0b01
         ext_event_msg.quality = msg.flags & 0b10
+        ext_event_msg.pin = msg.pin
 
         publishers['ext_event'].publish(ext_event_msg)
 

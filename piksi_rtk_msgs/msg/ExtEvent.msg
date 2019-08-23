@@ -5,6 +5,7 @@
 std_msgs/Time stamp
 std_msgs/bool pin_value
 std_msgs/bool quality
+std_msgs/uint8 pin
 
 uint8 PIN_VALUE_LOW   = 0   # Falling edge.
 uint8 PIN_VALUE_HIGH  = 1   # Rising edge
