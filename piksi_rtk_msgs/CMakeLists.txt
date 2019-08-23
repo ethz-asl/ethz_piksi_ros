@@ -27,6 +27,7 @@ add_message_files(
     DeviceMonitor_V2_3_15.msg
     Dops.msg
     DopsMulti.msg
+    ExtEvent.msg
     GpsTime.msg
     GpsTimeMulti.msg
     Heartbeat.msg

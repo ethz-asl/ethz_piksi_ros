@@ -17,7 +17,7 @@ import std_srvs.srv
 from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu, MagneticField
 import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
-                                DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
+                                DeviceMonitor_V2_3_15, DopsMulti, ExtEvent, GpsTimeMulti, Heartbeat, ImuRawMulti,
                                 InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhMulti,
                                 ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
@@ -228,6 +228,7 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_sbp_measurement_state, msg_type=SBP_MSG_MEASUREMENT_STATE)
         self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
         self.handler.add_callback(self.cb_sbp_utc_time, msg_type=SBP_MSG_UTC_TIME)
+        self.handler.add_callback(self.cb_sbp_ext_event, msg_type=SBP_MSG_EXT_EVENT)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -337,6 +338,7 @@ class PiksiMulti:
                                                        piksi_rtk_msgs.msg.MeasurementState_V2_4_1, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
                                                        ReceiverState_V2_4_1, queue_size=10)
+        publishers['ext_event'] = rospy.Publisher(rospy.get_name() + '/ext_event', ExtEvent, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
@@ -630,6 +632,19 @@ class PiksiMulti:
         if len(self.tow) > 100:
             # Start removing samples
             self.utc_times.pop(self.tow.popleft())
+
+    def cb_sbp_ext_event(self, msg_raw, **metadata):
+        if self.publishers['ext_event'].get_num_connections() == 0:
+            return
+
+        msg = MsgExtEvent(msg_raw)
+
+        ext_event_msg = ExtEvent()
+        ext_event_msg.stamp = gps_time_to_utc(msg.wn, msg.tow, msg.ns_residual)
+        ext_event_msg.pin_value = msg.flags & 0b01
+        ext_event_msg.quality = msg.flags & 0b10
+
+        publishers['ext_event'].publish(ext_event_msg)
 
     def multicast_callback(self, msg, **metadata):
         if self.framer:
