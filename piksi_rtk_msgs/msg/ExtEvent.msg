@@ -1,11 +1,12 @@
 # Reports detection of an external event, the GPS time it occurred, which pin it
 # was and whether it was rising or falling.
-# Modified to also include ROS time.
+
+# Modified to contain ROS time.
 
 std_msgs/Time stamp
-std_msgs/bool pin_value
-std_msgs/bool quality
-std_msgs/uint8 pin
+std_msgs/Bool pin_value
+std_msgs/Bool quality
+std_msgs/UInt8 pin
 
 uint8 PIN_VALUE_LOW   = 0   # Falling edge.
 uint8 PIN_VALUE_HIGH  = 1   # Rising edge

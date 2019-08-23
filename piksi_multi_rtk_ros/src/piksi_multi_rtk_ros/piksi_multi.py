@@ -40,6 +40,7 @@ from zope.interface.exceptions import Invalid
 from sbp.imu import *
 # Piksi Multi features a Magnetometer Bosh bmm150 : https://www.bosch-sensortec.com/bst/products/all_products/bmm150
 from sbp.mag import SBP_MSG_MAG_RAW, MsgMagRaw
+from sbp.ext_events import *
 # At the moment importing 'sbp.version' module causes ValueError: Cannot find the version number!
 # import sbp.version
 # networking stuff
@@ -640,12 +641,12 @@ class PiksiMulti:
         msg = MsgExtEvent(msg_raw)
 
         ext_event_msg = ExtEvent()
-        ext_event_msg.stamp = gps_time_to_utc(msg.wn, msg.tow, msg.ns_residual)
-        ext_event_msg.pin_value = msg.flags & 0b01
-        ext_event_msg.quality = msg.flags & 0b10
-        ext_event_msg.pin = msg.pin
+        ext_event_msg.stamp.data = self.gps_time_to_utc(msg.wn, msg.tow, msg.ns_residual)
+        ext_event_msg.pin_value.data = msg.flags & 0b01
+        ext_event_msg.quality.data = msg.flags & 0b10
+        ext_event_msg.pin.data = msg.pin
 
-        publishers['ext_event'].publish(ext_event_msg)
+        self.publishers['ext_event'].publish(ext_event_msg)
 
     def multicast_callback(self, msg, **metadata):
         if self.framer:
