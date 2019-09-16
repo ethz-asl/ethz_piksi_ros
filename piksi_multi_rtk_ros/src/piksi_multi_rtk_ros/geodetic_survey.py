@@ -82,13 +82,13 @@ class GeodeticSurvey:
         # Initialize x with current measurement.
         if self.x_init == False:
             self.x = z
-	    self.P = R
+            self.P = R
             self.x_init = True
-	else:
-	    # Innovation.
+        else:
+	        # Innovation.
             y = (z - self.x).transpose()
             S = self.P + R
-  	    # Gain
+  	        # Gain
             K = self.P.dot(np.linalg.inv(S))
             # Update
             self.x = self.x + K.dot(y)
