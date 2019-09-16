@@ -721,9 +721,12 @@ class PiksiMulti:
             return
         # RTK messages.
         elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
-            # For now publish RTK float only in debug mode.
-            if self.debug_mode:
+            if self.origin_enu_set:
                 self.publish_rtk_float(msg.lat, msg.lon, msg.height, stamp)
+            else:
+                rospy.logwarn_throttle(5,
+                    "[cb_sbp_pos_llh]: cannot publish float RTK because ENU origin is not set. " +
+                    "Waiting for RTK fix.")
         elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
