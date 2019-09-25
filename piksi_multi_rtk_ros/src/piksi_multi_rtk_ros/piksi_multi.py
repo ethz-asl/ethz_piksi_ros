@@ -707,61 +707,62 @@ class PiksiMulti:
                 stamp = self.tow_to_utc(msg.tow)
 
         # Invalid messages.
-        if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
+        fix_mode = msg.flags & 0b111 # Lower 4 bits define fix mode.
+        if fix_mode == PosLlhMulti.FIX_MODE_INVALID:
             return
         # SPP GPS messages.
-        elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
+        elif fix_mode == PosLlhMulti.FIX_MODE_SPP:
             self.publish_spp(msg.lat, msg.lon, msg.height, stamp, self.var_spp, NavSatStatus.STATUS_FIX)
         # Differential GNSS (DGNSS)
-        elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
+        elif fix_mode == PosLlhMulti.FIX_MODE_DGNSS:
             rospy.logwarn(
                 "[cb_sbp_pos_llh]: case FIX_MODE_DGNSS was not implemented yet." +
                 "Contact the package/repository maintainers.")
             # TODO what to do here?
             return
         # RTK messages.
-        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+        elif fix_mode == PosLlhMulti.FIX_MODE_FLOAT_RTK:
             # For now publish RTK float only in debug mode.
             if self.debug_mode:
                 self.publish_rtk_float(msg.lat, msg.lon, msg.height, stamp)
-        elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
+        elif fix_mode == PosLlhMulti.FIX_MODE_FIX_RTK:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
 
             self.publish_rtk_fix(msg.lat, msg.lon, msg.height, stamp)
         # Dead reckoning
-        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+        elif fix_mode == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             rospy.logwarn(
                 "[cb_sbp_pos_llh]: case FIX_MODE_DEAD_RECKONING was not implemented yet." +
                 "Contact the package/repository maintainers.")
             return
         # SBAS Position
-        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
+        elif fix_mode == PosLlhMulti.FIX_MODE_SBAS:
             self.publish_spp(msg.lat, msg.lon, msg.height, stamp, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
         else:
             rospy.logerr(
                 "[cb_sbp_pos_llh]: Unknown case, you found a bug!" +
                 "Contact the package/repository maintainers." +
-                "Report: 'msg.flags = %d'" % (msg.flags))
+                "Report: 'msg.flags & 0b111 = %d'" % (fix_mode))
             return
 
         # Update debug msg and publish.
-        self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
+        self.receiver_state_msg.rtk_mode_fix = True if (fix_mode == PosLlhMulti.FIX_MODE_FIX_RTK) else False
 
-        if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
+        if fix_mode == PosLlhMulti.FIX_MODE_INVALID:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_INVALID
-        elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
+        elif fix_mode == PosLlhMulti.FIX_MODE_SPP:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SPP
-        elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
+        elif fix_mode == PosLlhMulti.FIX_MODE_DGNSS:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_DGNSS
-        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+        elif fix_mode == PosLlhMulti.FIX_MODE_FLOAT_RTK:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FLOAT_RTK
-        elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
+        elif fix_mode == PosLlhMulti.FIX_MODE_FIX_RTK:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FIXED_RTK
-        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+        elif fix_mode == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.FIX_MODE_DEAD_RECKONING
-        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
+        elif fix_mode == PosLlhMulti.FIX_MODE_SBAS:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SBAS
         else:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_UNKNOWN
