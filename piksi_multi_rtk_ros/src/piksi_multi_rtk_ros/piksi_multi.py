@@ -707,7 +707,7 @@ class PiksiMulti:
                 stamp = self.tow_to_utc(msg.tow)
 
         # Invalid messages.
-        fix_mode = msg.flags & 0b111 # Lower 4 bits define fix mode.
+        fix_mode = msg.flags & 0b111 # Lower 3 bits define fix mode.
         if fix_mode == PosLlhMulti.FIX_MODE_INVALID:
             return
         # SPP GPS messages.
