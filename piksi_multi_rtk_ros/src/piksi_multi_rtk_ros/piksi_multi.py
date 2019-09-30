@@ -17,7 +17,7 @@ import std_srvs.srv
 from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu, MagneticField
 import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
-                                DeviceMonitor_V2_3_15, DopsMulti, GpsTimeMulti, Heartbeat, ImuRawMulti,
+                                DeviceMonitor_V2_3_15, DopsMulti, ExtEvent, GpsTimeMulti, Heartbeat, ImuRawMulti,
                                 InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhMulti,
                                 ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
 from piksi_rtk_msgs.srv import *
@@ -40,6 +40,7 @@ from zope.interface.exceptions import Invalid
 from sbp.imu import *
 # Piksi Multi features a Magnetometer Bosh bmm150 : https://www.bosch-sensortec.com/bst/products/all_products/bmm150
 from sbp.mag import SBP_MSG_MAG_RAW, MsgMagRaw
+from sbp.ext_events import *
 # At the moment importing 'sbp.version' module causes ValueError: Cannot find the version number!
 # import sbp.version
 # networking stuff
@@ -228,6 +229,7 @@ class PiksiMulti:
         self.handler.add_callback(self.cb_sbp_measurement_state, msg_type=SBP_MSG_MEASUREMENT_STATE)
         self.handler.add_callback(self.cb_sbp_uart_state, msg_type=SBP_MSG_UART_STATE)
         self.handler.add_callback(self.cb_sbp_utc_time, msg_type=SBP_MSG_UTC_TIME)
+        self.handler.add_callback(self.cb_sbp_ext_event, msg_type=SBP_MSG_EXT_EVENT)
 
         # Callbacks generated "automatically".
         self.init_callback('baseline_ecef_multi', BaselineEcef,
@@ -337,6 +339,7 @@ class PiksiMulti:
                                                        piksi_rtk_msgs.msg.MeasurementState_V2_4_1, queue_size=10)
         publishers['receiver_state'] = rospy.Publisher(rospy.get_name() + '/debug/receiver_state',
                                                        ReceiverState_V2_4_1, queue_size=10)
+        publishers['ext_event'] = rospy.Publisher(rospy.get_name() + '/ext_event', ExtEvent, queue_size=10)
         # Do not publish llh message, prefer publishing directly navsatfix_spp or navsatfix_rtk_fix.
         # publishers['pos_llh'] = rospy.Publisher(rospy.get_name() + '/pos_llh',
         #                                        PosLlh, queue_size=10)
@@ -631,6 +634,20 @@ class PiksiMulti:
             # Start removing samples
             self.utc_times.pop(self.tow.popleft())
 
+    def cb_sbp_ext_event(self, msg_raw, **metadata):
+        if self.publishers['ext_event'].get_num_connections() == 0:
+            return
+
+        msg = MsgExtEvent(msg_raw)
+
+        ext_event_msg = ExtEvent()
+        ext_event_msg.stamp.data = self.gps_time_to_utc(msg.wn, msg.tow, msg.ns_residual)
+        ext_event_msg.pin_value.data = msg.flags & 0b01
+        ext_event_msg.quality.data = msg.flags & 0b10
+        ext_event_msg.pin.data = msg.pin
+
+        self.publishers['ext_event'].publish(ext_event_msg)
+
     def multicast_callback(self, msg, **metadata):
         if self.framer:
 
@@ -707,64 +724,65 @@ class PiksiMulti:
                 stamp = self.tow_to_utc(msg.tow)
 
         # Invalid messages.
-        if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
+        fix_mode = msg.flags & 0b111 # Lower 3 bits define fix mode.
+        if fix_mode == PosLlhMulti.FIX_MODE_INVALID:
             return
         # SPP GPS messages.
-        elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
+        elif fix_mode == PosLlhMulti.FIX_MODE_SPP:
             self.publish_spp(msg.lat, msg.lon, msg.height, stamp, self.var_spp, NavSatStatus.STATUS_FIX)
         # Differential GNSS (DGNSS)
-        elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
+        elif fix_mode == PosLlhMulti.FIX_MODE_DGNSS:
             rospy.logwarn(
                 "[cb_sbp_pos_llh]: case FIX_MODE_DGNSS was not implemented yet." +
                 "Contact the package/repository maintainers.")
             # TODO what to do here?
             return
         # RTK messages.
-        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+        elif fix_mode == PosLlhMulti.FIX_MODE_FLOAT_RTK:
             if self.origin_enu_set:
                 self.publish_rtk_float(msg.lat, msg.lon, msg.height, stamp)
             else:
                 rospy.logwarn_throttle(5,
                     "[cb_sbp_pos_llh]: cannot publish float RTK because ENU origin is not set. " +
                     "Waiting for RTK fix.")
-        elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
+        elif fix_mode == PosLlhMulti.FIX_MODE_FIX_RTK:
             # Use first RTK fix to set origin ENU frame, if it was not set by rosparam.
             if not self.origin_enu_set:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
 
             self.publish_rtk_fix(msg.lat, msg.lon, msg.height, stamp)
         # Dead reckoning
-        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+        elif fix_mode == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             rospy.logwarn(
                 "[cb_sbp_pos_llh]: case FIX_MODE_DEAD_RECKONING was not implemented yet." +
                 "Contact the package/repository maintainers.")
             return
         # SBAS Position
-        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
+        elif fix_mode == PosLlhMulti.FIX_MODE_SBAS:
             self.publish_spp(msg.lat, msg.lon, msg.height, stamp, self.var_spp_sbas, NavSatStatus.STATUS_SBAS_FIX)
         else:
             rospy.logerr(
                 "[cb_sbp_pos_llh]: Unknown case, you found a bug!" +
                 "Contact the package/repository maintainers." +
-                "Report: 'msg.flags = %d'" % (msg.flags))
+                "Report: 'msg.flags & 0b111 = %d'" % (fix_mode))
             return
 
         # Update debug msg and publish.
-        self.receiver_state_msg.rtk_mode_fix = True if (msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK) else False
+        self.receiver_state_msg.rtk_mode_fix = True if (fix_mode == PosLlhMulti.FIX_MODE_FIX_RTK) else False
 
-        if msg.flags == PosLlhMulti.FIX_MODE_INVALID:
+        if fix_mode == PosLlhMulti.FIX_MODE_INVALID:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_INVALID
-        elif msg.flags == PosLlhMulti.FIX_MODE_SPP:
+        elif fix_mode == PosLlhMulti.FIX_MODE_SPP:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SPP
-        elif msg.flags == PosLlhMulti.FIX_MODE_DGNSS:
+        elif fix_mode == PosLlhMulti.FIX_MODE_DGNSS:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_DGNSS
-        elif msg.flags == PosLlhMulti.FIX_MODE_FLOAT_RTK:
+        elif fix_mode == PosLlhMulti.FIX_MODE_FLOAT_RTK:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FLOAT_RTK
-        elif msg.flags == PosLlhMulti.FIX_MODE_FIX_RTK:
+        elif fix_mode == PosLlhMulti.FIX_MODE_FIX_RTK:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_FIXED_RTK
-        elif msg.flags == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
+        elif fix_mode == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.FIX_MODE_DEAD_RECKONING
-        elif msg.flags == PosLlhMulti.FIX_MODE_SBAS:
+        elif fix_mode == PosLlhMulti.FIX_MODE_SBAS:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_SBAS
         else:
             self.receiver_state_msg.fix_mode = ReceiverState_V2_4_1.STR_FIX_MODE_UNKNOWN
