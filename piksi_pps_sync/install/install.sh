@@ -14,7 +14,7 @@ echo "Setting baud rate to ${BAUD}."
 # Install PPS
 cd ..
 cd pps-gpio-modprobe
-sudo apt-get install linux-headers-$(uname -r)
+sudo apt install linux-headers-$(uname -r) libelf-dev
 make clean
 make
 sudo cp pps-gpio-modprobe.ko /lib/modules/$(uname -r)/kernel/drivers/pps/clients/
