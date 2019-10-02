@@ -329,6 +329,8 @@ class PiksiMulti:
 
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
+        publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
+                                                NavSatFix, queue_size=10)
         publishers['spp'] = rospy.Publisher(rospy.get_name() + '/navsatfix_spp',
                                             NavSatFix, queue_size=10)
         publishers['best_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_best_fix',
@@ -376,6 +378,13 @@ class PiksiMulti:
                                                            AgeOfCorrections, queue_size=10)
         publishers['enu_pose_best_fix'] = rospy.Publisher(rospy.get_name() + '/enu_pose_best_fix',
                                                           PoseWithCovarianceStamped, queue_size=10)
+        publishers['enu_pose_float'] = rospy.Publisher(rospy.get_name() + '/enu_pose_float',
+                                                       PoseWithCovarianceStamped, queue_size=10)
+        publishers['enu_point_float'] = rospy.Publisher(rospy.get_name() + '/enu_point_float',
+                                                        PointStamped, queue_size=10)
+        publishers['enu_transform_float'] = rospy.Publisher(rospy.get_name() + '/enu_transform_float',
+                                                            TransformStamped, queue_size=10)
+
 
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
@@ -390,16 +399,8 @@ class PiksiMulti:
 
         # Topics published only if in "debug mode".
         if self.debug_mode:
-            publishers['rtk_float'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_float',
-                                                      NavSatFix, queue_size=10)
             publishers['vel_ecef'] = rospy.Publisher(rospy.get_name() + '/vel_ecef',
                                                      VelEcef, queue_size=10)
-            publishers['enu_pose_float'] = rospy.Publisher(rospy.get_name() + '/enu_pose_float',
-                                                           PoseWithCovarianceStamped, queue_size=10)
-            publishers['enu_point_float'] = rospy.Publisher(rospy.get_name() + '/enu_point_float',
-                                                            PointStamped, queue_size=10)
-            publishers['enu_transform_float'] = rospy.Publisher(rospy.get_name() + '/enu_transform_float',
-                                                                TransformStamped, queue_size=10)
             publishers['baseline_ecef_multi'] = rospy.Publisher(rospy.get_name() + '/baseline_ecef',
                                                                 BaselineEcef, queue_size=10)
             publishers['dops_multi'] = rospy.Publisher(rospy.get_name() + '/dops',
