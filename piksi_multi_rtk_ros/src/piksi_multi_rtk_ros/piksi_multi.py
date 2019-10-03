@@ -1103,7 +1103,7 @@ class PiksiMulti:
         (east, north, up) = self.geodetic_to_enu(latitude, longitude, height)
 
         # Pose message.
-        if pub_pose.get_num_connections() > 0 \
+        if pub_pose.get_num_connections() > 0 or \
         pub_pose_best_fix.get_num_connections() > 0:
             pose_msg = PoseWithCovarianceStamped()
             pose_msg.header.stamp = stamp
@@ -1114,7 +1114,7 @@ class PiksiMulti:
         # Point message.
         if pub_point.get_num_connections() > 0:
             point_msg = PointStamped()
-            point_msg.header.stamp = navsatfix_msg.header.stamp
+            point_msg.header.stamp = stamp
             point_msg.header.frame_id = self.enu_frame_id
             point_msg.point = self.enu_to_point_msg(east, north, up)
             pub_point.publish(point_msg)
@@ -1122,7 +1122,7 @@ class PiksiMulti:
         # Transform message.
         if pub_transform.get_num_connections() > 0:
             transform_msg = TransformStamped()
-            transform_msg.header.stamp = navsatfix_msg.header.stamp
+            transform_msg.header.stamp = stamp
             transform_msg.header.frame_id = self.enu_frame_id
             transform_msg.child_frame_id = self.transform_child_frame_id
             transform_msg.transform = self.enu_to_transform_msg(east, north, up)
