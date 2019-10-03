@@ -78,10 +78,10 @@ Raw measurements are published in `/piksi/imu_raw` and `/piksi/mag_raw`.
 Set `publish_covariances: true` to publish position measurements with covariance information set.
 
 ### GPS time stamping.
-`use_gps_time` enables GPS time stamped measurements. Otherwise the measurements are time stamped on arrival.
+`use_gps_time` enables GPS time stamped measurements. Otherwise the measurements are time stamped on arrival. This requires [synchronization against PPS](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Piksi-PPS-Sync).
 
 ## Origin ENU Frame
-The origin of the ENU (East-North-Up) frame is set either using rosparameters or using the first RTK fix message obtained.
+The origin of the ENU (East-North-Up) frame is set either using ROS parameters or using the first RTK fix message obtained.
 In the former case the following private parameters must be set:
 
  - `latitude0_deg`: latitude where the origin of ENU frame is located, in degrees;
