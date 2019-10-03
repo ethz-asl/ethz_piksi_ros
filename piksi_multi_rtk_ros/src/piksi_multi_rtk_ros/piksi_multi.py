@@ -9,6 +9,7 @@
 
 import rospy
 import math
+import quaternion
 import numpy as np
 import datetime, time, leapseconds
 from collections import deque
@@ -18,11 +19,14 @@ from sensor_msgs.msg import NavSatFix, NavSatStatus, Imu, MagneticField
 import piksi_rtk_msgs # TODO(rikba): If we dont have this I get NameError: global name 'piksi_rtk_msgs' is not defined.
 from piksi_rtk_msgs.msg import (AgeOfCorrections, BaselineEcef, BaselineHeading, BaselineNed, BasePosEcef, BasePosLlh,
                                 DeviceMonitor_V2_3_15, DopsMulti, ExtEvent, GpsTimeMulti, Heartbeat, ImuRawMulti,
-                                InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation, PosEcef, PosLlhMulti,
-                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti, VelEcef, VelNed)
+                                InfoWifiCorrections, Log, MagRaw, MeasurementState_V2_4_1, Observation,
+                                PositionWithCovarianceStamped, PosEcef, PosEcefCov, PosLlhCov, PosLlhMulti,
+                                ReceiverState_V2_4_1, UartState_V2_3_15, UtcTimeMulti,
+                                VelEcef, VelEcefCov, VelNed, VelNedCov, VelocityWithCovarianceStamped)
 from piksi_rtk_msgs.srv import *
 from geometry_msgs.msg import (PoseWithCovarianceStamped, PointStamped, PoseWithCovariance, Point, TransformStamped,
                                Transform)
+from visualization_msgs.msg import Marker
 # Import Piksi SBP library
 from sbp.client.drivers.pyserial_driver import PySerialDriver
 from sbp.client.drivers.network_drivers import TCPDriver
@@ -54,7 +58,7 @@ import collections
 
 
 class PiksiMulti:
-    LIB_SBP_VERSION_MULTI = '2.4.1'  # SBP version used for Piksi Multi.
+    LIB_SBP_VERSION_MULTI = '2.6.5'  # SBP version used for Piksi Multi.
 
     # Geodetic Constants.
     kSemimajorAxis = 6378137.0
@@ -68,6 +72,7 @@ class PiksiMulti:
     kGravity = 9.81
     kDegToRad = np.pi / 180.0
     kFromMicro = 1.0 / 10**6
+    kFromMilli = 1.0 / 10**3
 
     kAccPrescale = kGravity * kSensorSensitivity
     kGyroPrescale = kDegToRad * kSensorSensitivity
@@ -146,6 +151,13 @@ class PiksiMulti:
         self.var_rtk_fix = rospy.get_param('~var_rtk_fix', [0.0049, 0.0049, 0.01])
         self.var_spp_sbas = rospy.get_param('~var_spp_sbas', [1.0, 1.0, 1.0])
         self.navsatfix_frame_id = rospy.get_param('~navsatfix_frame_id', 'gps')
+
+        # Covariance topic settings.
+        self.publish_covariances = rospy.get_param('~publish_covariances', False)
+        self.llh_frame = rospy.get_param('~llh_frame', 'wgs84')
+        self.ecef_frame = rospy.get_param('~ecef_frame', 'ecef')
+        self.antenna_ned_frame = rospy.get_param('~antenna_ned_frame', 'antenna_ned')
+        self.base_ned_frame = rospy.get_param('~base_ned_frame', 'base_ned')
 
         # Local ENU frame settings.
         self.origin_enu_set = False
@@ -264,6 +276,13 @@ class PiksiMulti:
                            SBP_MSG_DEVICE_MONITOR, MsgDeviceMonitor, 'dev_vin', 'cpu_vint', 'cpu_vaux',
                            'cpu_temperature', 'fe_temperature')
 
+        if self.publish_covariances:
+            self.handler.add_callback(self.cb_sbp_pos_llh_cov, msg_type=SBP_MSG_POS_LLH_COV)
+            self.handler.add_callback(self.cb_sbp_pos_ecef_cov, msg_type=SBP_MSG_POS_ECEF_COV)
+            self.handler.add_callback(self.cb_sbp_vel_ned_cov, msg_type=SBP_MSG_VEL_NED_COV)
+            self.handler.add_callback(self.cb_sbp_vel_ecef_cov, msg_type=SBP_MSG_VEL_ECEF_COV)
+            self.handler.add_callback(self.cb_sbp_baseline_ned_cov, msg_type=SBP_MSG_BASELINE_NED)
+
         # Raw IMU and Magnetometer measurements.
         if self.publish_raw_imu_and_mag:
             self.init_callback('imu_raw', ImuRawMulti,
@@ -326,6 +345,17 @@ class PiksiMulti:
         :return: python dictionary, with topic names used as keys and publishers as values.
         """
         publishers = {}
+
+        # Topics with covariances.
+        if self.publish_covariances:
+            publishers['pos_llh_cov'] = rospy.Publisher(rospy.get_name() + '/pos_llh_cov', NavSatFix, queue_size=10)
+            publishers['pos_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/pos_ecef_cov', PositionWithCovarianceStamped, queue_size=10)
+            publishers['vel_ned_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ned_cov', VelocityWithCovarianceStamped, queue_size=10)
+            publishers['vel_ecef_cov'] = rospy.Publisher(rospy.get_name() + '/vel_ecef_cov', VelocityWithCovarianceStamped, queue_size=10)
+            publishers['baseline_ned_cov'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov', PositionWithCovarianceStamped, queue_size=10)
+
+            publishers['pos_ecef_cov_viz'] = rospy.Publisher(rospy.get_name() + '/pos_ecef_cov_viz', Marker, queue_size=10)
+            publishers['baseline_ned_cov_viz'] = rospy.Publisher(rospy.get_name() + '/baseline_ned_cov_viz', Marker, queue_size=10)
 
         publishers['rtk_fix'] = rospy.Publisher(rospy.get_name() + '/navsatfix_rtk_fix',
                                                 NavSatFix, queue_size=10)
@@ -498,6 +528,8 @@ class PiksiMulti:
         """
 
         def callback(msg, **metadata):
+            if pub.get_num_connections() == 0:
+                return
             sbp_message = sbp_type(msg)
             ros_message.header.stamp = rospy.Time.now()
             for attr in attrs:
@@ -531,7 +563,7 @@ class PiksiMulti:
             self.handler.add_callback(callback_function, msg_type=sbp_msg_type)
 
     def cb_sbp_obs(self, msg_raw, **metadata):
-        if self.debug_mode:
+        if self.debug_mode and self.publishers['observation'].get_num_connections() > 0:
             msg = MsgObs(msg_raw)
 
             obs_msg = Observation()
@@ -587,7 +619,7 @@ class PiksiMulti:
             self.publishers['base_pos_llh'].publish(pose_llh_msg)
 
     def cb_sbp_base_pos_ecef(self, msg_raw, **metadata):
-        if self.debug_mode:
+        if self.debug_mode and self.publishers['base_pos_ecef'].get_num_connections() > 0:
             msg = MsgBasePosECEF(msg_raw)
 
             pose_ecef_msg = BasePosEcef()
@@ -603,6 +635,8 @@ class PiksiMulti:
             self.multicaster.sendSbpPacket(msg_raw)
 
     def cb_sbp_uart_state(self, msg_raw, **metadata):
+        if self.publishers['uart_state'].get_num_connections() == 0:
+            return
         msg = MsgUartState(msg_raw)
         uart_state_msg = UartState_V2_3_15()
 
@@ -669,7 +703,7 @@ class PiksiMulti:
             self.num_wifi_corrections.header.seq += 1
             self.num_wifi_corrections.header.stamp = rospy.Time.now()
             self.num_wifi_corrections.received_corrections += 1
-            if not self.base_station_mode:
+            if not self.base_station_mode and self.publishers['wifi_corrections'].get_num_connections() > 0:
                 self.publishers['wifi_corrections'].publish(self.num_wifi_corrections)
 
         else:
@@ -710,19 +744,22 @@ class PiksiMulti:
         nsec = tow_f / 256.0 * 10**6
         return self.gps_time_to_utc(wn, tow, nsec)
 
-
     def tow_to_utc(self, tow):
         return self.tow_f_to_utc(tow, 0)
+
+    def get_time_stamp(self, tow):
+        stamp = rospy.Time.now()
+        if self.use_gps_time:
+            stamp = self.utc_times.get(tow, None)
+            if stamp is None:
+                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
+                stamp = self.tow_to_utc(tow)
+        return stamp
 
     def cb_sbp_pos_llh(self, msg_raw, **metadata):
         msg = MsgPosLLH(msg_raw)
 
-        stamp = rospy.Time.now()
-        if self.use_gps_time:
-            stamp = self.utc_times.get(msg.tow, None)
-            if stamp is None:
-                rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
-                stamp = self.tow_to_utc(msg.tow)
+        stamp = self.get_time_stamp(msg.tow)
 
         # Invalid messages.
         fix_mode = msg.flags & 0b111 # Lower 3 bits define fix mode.
@@ -741,7 +778,7 @@ class PiksiMulti:
         # RTK messages.
         elif fix_mode == PosLlhMulti.FIX_MODE_FLOAT_RTK:
             if self.origin_enu_set:
-                self.publish_rtk_float(msg.lat, msg.lon, msg.height, stamp)
+                self.publish_rtk_float(msg.lat, msg.lon, msg.height, stamp, self.var_rtk_float)
             else:
                 rospy.logwarn_throttle(5,
                     "[cb_sbp_pos_llh]: cannot publish float RTK because ENU origin is not set. " +
@@ -751,7 +788,7 @@ class PiksiMulti:
             if not self.origin_enu_set:
                 self.init_geodetic_reference(msg.lat, msg.lon, msg.height)
 
-            self.publish_rtk_fix(msg.lat, msg.lon, msg.height, stamp)
+            self.publish_rtk_fix(msg.lat, msg.lon, msg.height, stamp, self.var_rtk_fix)
         # Dead reckoning
         elif fix_mode == PosLlhMulti.FIX_MODE_DEAD_RECKONING:
             rospy.logwarn(
@@ -790,6 +827,231 @@ class PiksiMulti:
 
         self.publish_receiver_state_msg()
 
+    def cb_sbp_pos_llh_cov(self, msg_raw, **metadata):
+        if self.publishers['pos_llh_cov'].get_num_connections() == 0:
+            return
+
+        msg = MsgPosLLHCov(msg_raw)
+        if msg.flags == PosLlhCov.FIX_MODE_INVALID:
+            return
+
+        # Set time stamp.
+        stamp = self.get_time_stamp(msg.tow)
+
+        # Publish NavSatFix.
+        navsatfix_msg = NavSatFix()
+        navsatfix_msg.header.stamp = stamp
+        navsatfix_msg.header.frame_id = self.llh_frame
+        navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_KNOWN
+        # WARNING: We do not distinguish between the different fix types.
+        if msg.flags == PosLlhCov.FIX_MODE_DEAD_RECKONING:
+            navsatfix_msg.status.status = NavSatStatus.STATUS_NO_FIX
+        elif msg.flags == PosLlhCov.FIX_MODE_SBAS:
+            navsatfix_msg.status.status = NavSatStatus.STATUS_SBAS_FIX
+        elif msg.flags == PosLlhCov.FIX_MODE_FLOAT_RTK or msg.flags == PosLlhCov.FIX_MODE_FIX_RTK:
+            navsatfix_msg.status.status = NavSatStatus.STATUS_GBAS_FIX
+        else:
+            navsatfix_msg.status.status = NavSatStatus.STATUS_FIX
+
+        navsatfix_msg.status.service = 0
+        if self.receiver_state_msg.num_gps_sat > 0:
+            navsatfix_msg.status.service = navsatfix_msg.status.service + NavSatStatus.SERVICE_GPS
+        if self.receiver_state_msg.num_glonass_sat > 0:
+            navsatfix_msg.status.service = navsatfix_msg.status.service + NavSatStatus.SERVICE_GLONASS
+        if self.receiver_state_msg.num_bds_sat > 0:
+            navsatfix_msg.status.service = navsatfix_msg.status.service + NavSatStatus.SERVICE_COMPASS
+        if self.receiver_state_msg.num_gal_sat > 0:
+            navsatfix_msg.status.service = navsatfix_msg.status.service + NavSatStatus.SERVICE_GALILEO
+        navsatfix_msg.latitude = msg.lat
+        navsatfix_msg.longitude = msg.lon
+        navsatfix_msg.altitude = msg.height
+        navsatfix_msg.position_covariance = [msg.cov_n_n, msg.cov_n_e, msg.cov_n_d,
+                                             msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
+                                             msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
+
+        self.publishers['pos_llh_cov'].publish(navsatfix_msg)
+
+    def cb_sbp_baseline_ned_cov(self, msg_raw, **metadata):
+        if self.publishers['baseline_ned_cov'].get_num_connections() == 0 \
+        and self.publishers['baseline_ned_cov_viz'].get_num_connections() == 0:
+            return
+
+        msg = MsgBaselineNED(msg_raw)
+        if msg.flags == 0:
+            return
+
+        # Set time stamp.
+        stamp = self.get_time_stamp(msg.tow)
+
+        # Get position in m.
+        x = msg.n * self.kFromMilli
+        y = msg.e * self.kFromMilli
+        z = msg.d * self.kFromMilli
+
+        # Get horizontal and vertical covariances.
+        cov_h_h = (msg.h_accuracy * self.kFromMilli)**2
+        cov_v_v = (msg.v_accuracy * self.kFromMilli)**2
+
+        if self.publishers['baseline_ned_cov'].get_num_connections() > 0:
+            # Publish ecef.
+            baseline_msg = PositionWithCovarianceStamped()
+            baseline_msg.header.stamp = stamp
+            baseline_msg.header.frame_id = self.base_ned_frame
+
+            baseline_msg.position.position.x = x
+            baseline_msg.position.position.y = y
+            baseline_msg.position.position.z = z
+
+            baseline_msg.position.covariance = [cov_h_h, 0.0, 0.0,
+                                                0.0, cov_h_h, 0.0,
+                                                0.0, 0.0, cov_v_v]
+
+            self.publishers['baseline_ned_cov'].publish(baseline_msg)
+
+        if self.publishers['baseline_ned_cov_viz'].get_num_connections() > 0:
+            # https://answers.ros.org/question/11081/plot-a-gaussian-3d-representation-with-markers-in-rviz/
+            marker = Marker()
+            marker.header.stamp = stamp
+            marker.header.frame_id = self.base_ned_frame
+            marker.type = marker.SPHERE
+            marker.action = marker.ADD
+
+            cov = np.matrix([[cov_h_h, 0.0, 0.0],
+                             [0.0, cov_h_h, 0.0],
+                             [0.0, 0.0, cov_v_v]])
+
+            (eig_values, eig_vectors) = np.linalg.eig(cov)
+
+            R = eig_vectors.transpose()
+            q = quaternion.from_rotation_matrix(R)
+
+            marker.pose.orientation.x = q.x
+            marker.pose.orientation.y = q.y
+            marker.pose.orientation.z = q.z
+            marker.pose.orientation.w = q.w
+
+            marker.scale.x = math.sqrt(eig_values[0])
+            marker.scale.y = math.sqrt(eig_values[1])
+            marker.scale.z = math.sqrt(eig_values[2])
+
+            marker.pose.position.x = x
+            marker.pose.position.y = y
+            marker.pose.position.z = z
+
+            self.publishers['baseline_ned_cov_viz'].publish(marker)
+
+    def cb_sbp_pos_ecef_cov(self, msg_raw, **metadata):
+        if self.publishers['pos_ecef_cov'].get_num_connections() == 0 \
+        and self.publishers['pos_ecef_cov_viz'].get_num_connections() == 0:
+            return
+
+        msg = MsgPosECEFCov(msg_raw)
+        if msg.flags == PosLlhCov.FIX_MODE_INVALID:
+            return
+
+        # Set time stamp.
+        stamp = self.get_time_stamp(msg.tow)
+
+        if self.publishers['pos_ecef_cov'].get_num_connections() > 0:
+            # Publish ecef.
+            ecef_msg = PositionWithCovarianceStamped()
+            ecef_msg.header.stamp = stamp
+            ecef_msg.header.frame_id = self.ecef_frame
+
+            ecef_msg.position.position.x = msg.x
+            ecef_msg.position.position.y = msg.y
+            ecef_msg.position.position.z = msg.z
+
+            ecef_msg.position.covariance = [msg.cov_x_x, msg.cov_x_y, msg.cov_x_z,
+                                            msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
+                                            msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
+
+            self.publishers['pos_ecef_cov'].publish(ecef_msg)
+
+        if self.publishers['pos_ecef_cov_viz'].get_num_connections() > 0:
+            # https://answers.ros.org/question/11081/plot-a-gaussian-3d-representation-with-markers-in-rviz/
+            marker = Marker()
+            marker.header.stamp = stamp
+            marker.header.frame_id = self.ecef_frame
+            marker.type = marker.SPHERE
+            marker.action = marker.ADD
+
+            cov = np.matrix([[msg.cov_x_x, msg.cov_x_y, msg.cov_x_z],
+                             [msg.cov_x_y, msg.cov_y_y, msg.cov_y_z],
+                             [msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]])
+
+            (eig_values, eig_vectors) = np.linalg.eig(cov)
+
+            R = eig_vectors.transpose()
+            q = quaternion.from_rotation_matrix(R)
+
+            marker.pose.orientation.x = q.x
+            marker.pose.orientation.y = q.y
+            marker.pose.orientation.z = q.z
+            marker.pose.orientation.w = q.w
+
+            marker.scale.x = math.sqrt(eig_values[0])
+            marker.scale.y = math.sqrt(eig_values[1])
+            marker.scale.z = math.sqrt(eig_values[2])
+
+            marker.pose.position.x = msg.x
+            marker.pose.position.x = msg.y
+            marker.pose.position.x = msg.z
+
+            self.publishers['pos_ecef_cov_viz'].publish(marker)
+
+    def cb_sbp_vel_ned_cov(self, msg_raw, **metadata):
+        if self.publishers['vel_ned_cov'].get_num_connections() == 0:
+            return
+
+        msg = MsgVelNEDCov(msg_raw)
+        if msg.flags == VelNedCov.VEL_MODE_INVALID:
+            return
+
+        # Set time stamp.
+        stamp = self.get_time_stamp(msg.tow)
+
+        # Publish NED velocity.
+        vel_ned_msg = VelocityWithCovarianceStamped()
+        vel_ned_msg.header.stamp = stamp
+        vel_ned_msg.header.frame_id = self.antenna_ned_frame
+
+        vel_ned_msg.velocity.velocity.x = msg.n * PiksiMulti.kFromMilli
+        vel_ned_msg.velocity.velocity.y = msg.e * PiksiMulti.kFromMilli
+        vel_ned_msg.velocity.velocity.z = msg.d * PiksiMulti.kFromMilli
+
+        vel_ned_msg.velocity.covariance = [msg.cov_n_n, msg.cov_n_e, msg.cov_n_d,
+                                           msg.cov_n_e, msg.cov_e_e, msg.cov_e_d,
+                                           msg.cov_n_d, msg.cov_e_d, msg.cov_d_d]
+
+        self.publishers['vel_ned_cov'].publish(vel_ned_msg)
+
+    def cb_sbp_vel_ecef_cov(self, msg_raw, **metadata):
+        if self.publishers['vel_ecef_cov'].get_num_connections() == 0:
+            return
+
+        msg = MsgVelECEFCov(msg_raw)
+        if msg.flags == VelEcefCov.VEL_MODE_INVALID:
+            return
+
+        # Set time stamp.
+        stamp = self.get_time_stamp(msg.tow)
+
+        # Publish ECEF velocity.
+        vel_ecef_msg = VelocityWithCovarianceStamped()
+        vel_ecef_msg.header.stamp = stamp
+        vel_ecef_msg.header.frame_id = self.ecef_frame
+
+        vel_ecef_msg.velocity.velocity.x = msg.x * PiksiMulti.kFromMilli
+        vel_ecef_msg.velocity.velocity.y = msg.y * PiksiMulti.kFromMilli
+        vel_ecef_msg.velocity.velocity.z = msg.z * PiksiMulti.kFromMilli
+
+        vel_ecef_msg.velocity.covariance = [msg.cov_x_x, msg.cov_x_y, msg.cov_x_z,
+                                            msg.cov_x_y, msg.cov_y_y, msg.cov_y_z,
+                                            msg.cov_x_z, msg.cov_y_z, msg.cov_z_z]
+
+        self.publishers['vel_ecef_cov'].publish(vel_ecef_msg)
+
     def publish_spp(self, latitude, longitude, height, stamp, variance, navsatstatus_fix):
         self.publish_wgs84_point(latitude, longitude, height, stamp, variance, navsatstatus_fix,
                                  self.publishers['spp'],
@@ -797,15 +1059,15 @@ class PiksiMulti:
                                  self.publishers['enu_transform_spp'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
 
-    def publish_rtk_float(self, latitude, longitude, height, stamp):
-        self.publish_wgs84_point(latitude, longitude, height, stamp, self.var_rtk_float, NavSatStatus.STATUS_GBAS_FIX,
+    def publish_rtk_float(self, latitude, longitude, height, stamp, variance):
+        self.publish_wgs84_point(latitude, longitude, height, stamp, variance, NavSatStatus.STATUS_GBAS_FIX,
                                  self.publishers['rtk_float'],
                                  self.publishers['enu_pose_float'], self.publishers['enu_point_float'],
                                  self.publishers['enu_transform_float'], self.publishers['best_fix'],
                                  self.publishers['enu_pose_best_fix'])
 
-    def publish_rtk_fix(self, latitude, longitude, height, stamp):
-        self.publish_wgs84_point(latitude, longitude, height, stamp, self.var_rtk_fix, NavSatStatus.STATUS_GBAS_FIX,
+    def publish_rtk_fix(self, latitude, longitude, height, stamp, variance):
+        self.publish_wgs84_point(latitude, longitude, height, stamp, variance, NavSatStatus.STATUS_GBAS_FIX,
                                  self.publishers['rtk_fix'],
                                  self.publishers['enu_pose_fix'], self.publishers['enu_point_fix'],
                                  self.publishers['enu_transform_fix'], self.publishers['best_fix'],
@@ -814,47 +1076,58 @@ class PiksiMulti:
     def publish_wgs84_point(self, latitude, longitude, height, stamp, variance, navsat_status, pub_navsatfix, pub_pose,
                             pub_point, pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
         # Navsatfix message.
-        navsatfix_msg = NavSatFix()
-        navsatfix_msg.header.stamp = stamp
-        navsatfix_msg.header.frame_id = self.navsatfix_frame_id
-        navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
-        navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
-        navsatfix_msg.latitude = latitude
-        navsatfix_msg.longitude = longitude
-        navsatfix_msg.altitude = height
-        navsatfix_msg.status.status = navsat_status
-        navsatfix_msg.position_covariance = [variance[0], 0, 0,
-                                             0, variance[1], 0,
-                                             0, 0, variance[2]]
+        if pub_navsatfix.get_num_connections() > 0 or \
+        pub_navsatfix_best_pose.get_num_connections() > 0:
+            navsatfix_msg = NavSatFix()
+            navsatfix_msg.header.stamp = stamp
+            navsatfix_msg.header.frame_id = self.navsatfix_frame_id
+            navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
+            navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
+            navsatfix_msg.latitude = latitude
+            navsatfix_msg.longitude = longitude
+            navsatfix_msg.altitude = height
+            navsatfix_msg.status.status = navsat_status
+            navsatfix_msg.position_covariance = [variance[0], 0, 0,
+                                                 0, variance[1], 0,
+                                                 0, 0, variance[2]]
+            pub_navsatfix.publish(navsatfix_msg)
+            pub_navsatfix_best_pose.publish(navsatfix_msg)
+
+        if pub_pose.get_num_connections() == 0 and \
+        pub_pose_best_fix.get_num_connections() == 0 and \
+        pub_point.get_num_connections() == 0 and \
+        pub_transform.get_num_connections() == 0:
+            return
+
         # Local Enu coordinate.
         (east, north, up) = self.geodetic_to_enu(latitude, longitude, height)
 
         # Pose message.
-        pose_msg = PoseWithCovarianceStamped()
-        pose_msg.header.stamp = navsatfix_msg.header.stamp
-        pose_msg.header.frame_id = self.enu_frame_id
-        pose_msg.pose = self.enu_to_pose_msg(east, north, up, variance)
+        if pub_pose.get_num_connections() > 0 or \
+        pub_pose_best_fix.get_num_connections() > 0:
+            pose_msg = PoseWithCovarianceStamped()
+            pose_msg.header.stamp = stamp
+            pose_msg.header.frame_id = self.enu_frame_id
+            pose_msg.pose = self.enu_to_pose_msg(east, north, up, variance)
+            pub_pose.publish(pose_msg)
+            pub_pose_best_fix.publish(pose_msg)
 
         # Point message.
-        point_msg = PointStamped()
-        point_msg.header.stamp = navsatfix_msg.header.stamp
-        point_msg.header.frame_id = self.enu_frame_id
-        point_msg.point = self.enu_to_point_msg(east, north, up)
+        if pub_point.get_num_connections() > 0:
+            point_msg = PointStamped()
+            point_msg.header.stamp = stamp
+            point_msg.header.frame_id = self.enu_frame_id
+            point_msg.point = self.enu_to_point_msg(east, north, up)
+            pub_point.publish(point_msg)
 
         # Transform message.
-        transform_msg = TransformStamped()
-        transform_msg.header.stamp = navsatfix_msg.header.stamp
-        transform_msg.header.frame_id = self.enu_frame_id
-        transform_msg.child_frame_id = self.transform_child_frame_id
-        transform_msg.transform = self.enu_to_transform_msg(east, north, up)
-
-        # Publish.
-        pub_navsatfix.publish(navsatfix_msg)
-        pub_pose.publish(pose_msg)
-        pub_point.publish(point_msg)
-        pub_transform.publish(transform_msg)
-        pub_navsatfix_best_pose.publish(navsatfix_msg)
-        pub_pose_best_fix.publish(pose_msg)
+        if pub_transform.get_num_connections() > 0:
+            transform_msg = TransformStamped()
+            transform_msg.header.stamp = stamp
+            transform_msg.header.frame_id = self.enu_frame_id
+            transform_msg.child_frame_id = self.transform_child_frame_id
+            transform_msg.transform = self.enu_to_transform_msg(east, north, up)
+            pub_transform.publish(transform_msg)
 
     def cb_sbp_heartbeat(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
@@ -973,6 +1246,8 @@ class PiksiMulti:
             self.publish_receiver_state_msg()
 
     def publish_receiver_state_msg(self):
+        if self.publishers['receiver_state'].get_num_connections() == 0:
+            return
         self.receiver_state_msg.header.stamp = rospy.Time.now()
         self.publishers['receiver_state'].publish(self.receiver_state_msg)
 

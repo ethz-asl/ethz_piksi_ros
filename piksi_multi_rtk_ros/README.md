@@ -2,7 +2,7 @@ piksi_multi_rtk_gps
 ======
 ROS node to read SBP messages from an attached Piksi **Multi** RTK device.
 
-The piksi_multi_rtk_ros package has been tested under ROS Indigo and Ubuntu 14.04, and ROS Kinetic and Ubuntu 16.04.
+The piksi_multi_rtk_ros package has been tested under ROS Melodic and Ubuntu 18.04.
 
 
 **WARNING:** default baud rate of the driver is set to '230400' (default baud rate of Piksi Multi is '115200').
@@ -22,8 +22,8 @@ source install/install_piksi_multi.sh
 ### Firmware and SBP Lib Version
 Please check [here](https://support.swiftnav.com/customer/en/portal/articles/2492810-swift-binary-protocol) which Piksi Multi firmware version based on the current SBP Lib version.
 
-Currently the `install_piksi_multi.sh` will install **SBP Lib 2.4.1** (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)).
-This means you are supposed to install **Firmware 2.1.14** from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
+Currently the `install_piksi_multi.sh` will install **SBP Lib 2.6.5** (see [REPO_TAG](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_rtk_ros/install/install_piksi_multi.sh#L4)).
+This means you are supposed to install **Firmware 2.3.19** from [SwiftNav Firmware page](https://support.swiftnav.com/customer/en/portal/articles/2492784-piksi-multi-and-duro-firmware) in your Piksi Multi.
 **WARNING: If upgrading from a firmware below v2.0.0 to a firmware greater than v2.0.0, you must upgrade to v2.0.0 first.**
 
 ## Usage
@@ -74,8 +74,14 @@ For a complete list of advertised topics please check function [`advertise_topic
 Raw IMU and magnetometer measurements are not published by default. If you want to publish them in ROS you need to: (a) Open Swifnav console, connect to Piksi, navigate to "Settings", and then in the "imu" section enable "imu raw output" and "mag raw output" (save these new settings, so you need to do this operation only once); (b) set to true the flag [publish_raw_imu_and_mag](./cfg/piksi_multi_driver_settings.yaml#L19).
 Raw measurements are published in `/piksi/imu_raw` and `/piksi/mag_raw`.
 
+### Position measurements with covariance information.
+Set `publish_covariances: true` to publish position measurements with covariance information set.
+
+### GPS time stamping.
+`use_gps_time` enables GPS time stamped measurements. Otherwise the measurements are time stamped on arrival. This requires [synchronization against PPS](https://github.com/ethz-asl/ethz_piksi_ros/wiki/Piksi-PPS-Sync).
+
 ## Origin ENU Frame
-The origin of the ENU (East-North-Up) frame is set either using rosparameters or using the first RTK fix message obtained.
+The origin of the ENU (East-North-Up) frame is set either using ROS parameters or using the first RTK fix message obtained.
 In the former case the following private parameters must be set:
 
  - `latitude0_deg`: latitude where the origin of ENU frame is located, in degrees;

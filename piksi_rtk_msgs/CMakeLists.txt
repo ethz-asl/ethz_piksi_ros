@@ -39,7 +39,11 @@ add_message_files(
     MeasurementState_V2_4_1.msg
     Observation.msg
     PosEcef.msg
+    PosEcefCov.msg
+    PositionWithCovariance.msg
+    PositionWithCovarianceStamped.msg
     PosLlh.msg
+    PosLlhCov.msg
     PosLlhMulti.msg
     ReceiverState.msg
     ReceiverState_V2_2_15.msg
@@ -48,11 +52,16 @@ add_message_files(
     TrackingState.msg
     TrackingState_V2_2_15.msg
     TrackingState_V2_3_15.msg
+    TrackingState_V2_6_3.msg
     UartState.msg
     UartState_V2_3_15.msg
     UtcTimeMulti.msg
     VelEcef.msg
+    VelEcefCov.msg
     VelNed.msg
+    VelNedCov.msg
+    VelocityWithCovariance.msg
+    VelocityWithCovarianceStamped.msg
 )
 
 ## Generate services in the 'srv' folder
