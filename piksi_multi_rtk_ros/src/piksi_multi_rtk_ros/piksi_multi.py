@@ -744,7 +744,6 @@ class PiksiMulti:
         nsec = tow_f / 256.0 * 10**6
         return self.gps_time_to_utc(wn, tow, nsec)
 
-
     def tow_to_utc(self, tow):
         return self.tow_f_to_utc(tow, 0)
 
@@ -1077,47 +1076,57 @@ class PiksiMulti:
     def publish_wgs84_point(self, latitude, longitude, height, stamp, variance, navsat_status, pub_navsatfix, pub_pose,
                             pub_point, pub_transform, pub_navsatfix_best_pose, pub_pose_best_fix):
         # Navsatfix message.
-        navsatfix_msg = NavSatFix()
-        navsatfix_msg.header.stamp = stamp
-        navsatfix_msg.header.frame_id = self.navsatfix_frame_id
-        navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
-        navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
-        navsatfix_msg.latitude = latitude
-        navsatfix_msg.longitude = longitude
-        navsatfix_msg.altitude = height
-        navsatfix_msg.status.status = navsat_status
-        navsatfix_msg.position_covariance = [variance[0], 0, 0,
-                                             0, variance[1], 0,
-                                             0, 0, variance[2]]
+        pub_navsatfix.get_num_connections() > 0 or \
+        pub_navsatfix_best_pose.get_num_connections() > 0:
+            navsatfix_msg = NavSatFix()
+            navsatfix_msg.header.stamp = stamp
+            navsatfix_msg.header.frame_id = self.navsatfix_frame_id
+            navsatfix_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_APPROXIMATED
+            navsatfix_msg.status.service = NavSatStatus.SERVICE_GPS
+            navsatfix_msg.latitude = latitude
+            navsatfix_msg.longitude = longitude
+            navsatfix_msg.altitude = height
+            navsatfix_msg.status.status = navsat_status
+            navsatfix_msg.position_covariance = [variance[0], 0, 0,
+                                                 0, variance[1], 0,
+                                                 0, 0, variance[2]]
+            pub_navsatfix.publish(navsatfix_msg)
+            pub_navsatfix_best_pose.publish(navsatfix_msg)
+
+        if pub_pose.get_num_connections() == 0 and \
+        pub_pose_best_fix.get_num_connections() == 0 and \
+        pub_point.get_num_connections() == 0 and \
+        pub_transform.get_num_connections() == 0:
+            return
+
         # Local Enu coordinate.
         (east, north, up) = self.geodetic_to_enu(latitude, longitude, height)
 
         # Pose message.
-        pose_msg = PoseWithCovarianceStamped()
-        pose_msg.header.stamp = navsatfix_msg.header.stamp
-        pose_msg.header.frame_id = self.enu_frame_id
-        pose_msg.pose = self.enu_to_pose_msg(east, north, up, variance)
+        pub_pose.get_num_connections() > 0 \
+        pub_pose_best_fix.get_num_connections() > 0:
+            pose_msg = PoseWithCovarianceStamped()
+            pose_msg.header.stamp = stamp
+            pose_msg.header.frame_id = self.enu_frame_id
+            pose_msg.pose = self.enu_to_pose_msg(east, north, up, variance)
+            pub_pose.publish(pose_msg)
 
         # Point message.
-        point_msg = PointStamped()
-        point_msg.header.stamp = navsatfix_msg.header.stamp
-        point_msg.header.frame_id = self.enu_frame_id
-        point_msg.point = self.enu_to_point_msg(east, north, up)
+        pub_point.get_num_connections() > 0:
+            point_msg = PointStamped()
+            point_msg.header.stamp = navsatfix_msg.header.stamp
+            point_msg.header.frame_id = self.enu_frame_id
+            point_msg.point = self.enu_to_point_msg(east, north, up)
+            pub_point.publish(point_msg)
 
         # Transform message.
-        transform_msg = TransformStamped()
-        transform_msg.header.stamp = navsatfix_msg.header.stamp
-        transform_msg.header.frame_id = self.enu_frame_id
-        transform_msg.child_frame_id = self.transform_child_frame_id
-        transform_msg.transform = self.enu_to_transform_msg(east, north, up)
-
-        # Publish.
-        pub_navsatfix.publish(navsatfix_msg)
-        pub_pose.publish(pose_msg)
-        pub_point.publish(point_msg)
-        pub_transform.publish(transform_msg)
-        pub_navsatfix_best_pose.publish(navsatfix_msg)
-        pub_pose_best_fix.publish(pose_msg)
+        pub_transform.get_num_connections() > 0:
+            transform_msg = TransformStamped()
+            transform_msg.header.stamp = navsatfix_msg.header.stamp
+            transform_msg.header.frame_id = self.enu_frame_id
+            transform_msg.child_frame_id = self.transform_child_frame_id
+            transform_msg.transform = self.enu_to_transform_msg(east, north, up)
+            pub_transform.publish(transform_msg)
 
     def cb_sbp_heartbeat(self, msg_raw, **metadata):
         msg = MsgHeartbeat(msg_raw)
