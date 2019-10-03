@@ -1110,6 +1110,7 @@ class PiksiMulti:
             pose_msg.header.frame_id = self.enu_frame_id
             pose_msg.pose = self.enu_to_pose_msg(east, north, up, variance)
             pub_pose.publish(pose_msg)
+            pub_pose_best_fix.publish(pose_msg)
 
         # Point message.
         if pub_point.get_num_connections() > 0:
