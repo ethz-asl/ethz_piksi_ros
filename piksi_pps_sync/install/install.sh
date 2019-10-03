@@ -1,43 +1,92 @@
 #!/bin/bash
-GPIO_PIN=250
+echo "Please enter the PPS GPIO pin number, e.g., 250..."
+read GPIO_PIN
+echo "PPS is triggered on pin ${GPIO_PIN}."
 
-DEVICE='/dev/ttyS5'
-BAUD=115200
+echo "Please enter the NMEA UART device, e.g., /dev/ttyS5..."
+read DEVICE
+echo "Using serial port ${DEVICE}."
+
+echo "Please enter the serial port baud rate, e.g., 115200..."
+read BAUD
+echo "Setting baud rate to ${BAUD}."
 
 # Install PPS
 cd ..
 cd pps-gpio-modprobe
+sudo apt install linux-headers-$(uname -r) libelf-dev
 make clean
 make
 sudo cp pps-gpio-modprobe.ko /lib/modules/$(uname -r)/kernel/drivers/pps/clients/
 sudo depmod
-sudo sh -c 'echo "pps-gpio-modprobe" >> /etc/modules-load.d/10-pps-gpio-modprobe.conf'
-sudo sh -c "echo 'options pps-gpio-modprobe gpio=${GPIO_PIN}' >> /etc/modprobe.d/10-pps-gpio-modprobe.conf"
 cd ..
-
-# Install NMEA GPS
-sudo apt install gpsd -y
-sudo cp cfg/gpsd /etc/default/gpsd
-sudo dpkg-reconfigure gpsd
-
-sudo sh -c "echo '#!/bin/bash' >> /etc/rc.local"
-sudo sh -c "echo '' >> /etc/rc.local"
-sudo sh -c "echo '# Setting GPS UART' >> /etc/rc.local"
-sudo sh -c "echo 'stty -F ${DEVICE} ${BAUD}' >> /etc/rc.local"
-sudo sh -c "echo '# Start GPSD' >> /etc/rc.local"
-sudo sh -c "echo 'service gpsd start' >> /etc/rc.local"
-sudo sh -c "echo '' >> /etc/rc.local"
-sudo sh -c "echo 'exit 0' >> /etc/rc.local"
-
-sudo chmod +x /etc/rc.local
 
 # Install chrony.
 sudo apt install chrony -y
 
-sudo sh -c "echo '' >> /etc/chrony/chrony.conf"
-sudo sh -c "echo '# GPS + PPS' >> /etc/chrony/chrony.conf"
-sudo sh -c "echo 'refclock PPS /dev/pps0 lock NMEA' >> /etc/chrony/chrony.conf"
-sudo sh -c "echo 'refclock SHM 0 delay 0.2 refid NMEA' >> /etc/chrony/chrony.conf"
+echo "Do you wish to append a new PPS refclock to /etc/chrony/chrony.conf? [y or Y to accept]"
+read append_chrony_conf
+if [[ $append_chrony_conf == "Y" || $append_chrony_conf == "y" ]]; then
+  sudo sh -c "tee -a /etc/chrony/chrony.conf << END
+
+# GPS + PPS
+refclock PPS /dev/pps0 lock NMEA
+refclock SHM 0 delay 0.2 refid NMEA
+END"
+fi
+
+# Install NMEA GPS
+sudo apt install gpsd -y
+echo "Do you wish to configure gpsd? [y or Y to accept]"
+read configure_gpsd
+if [[ $configure_gpsd == "Y" || $configure_gpsd == "y" ]]; then
+  echo "Configuring /etc/systemd/system/gpsd.service"
+  sudo rm /etc/systemd/system/gpsd.service
+  sudo sh -c "tee -a /etc/systemd/system/gpsd.service << END
+[Unit]
+Description=GPS (Global Positioning System) Daemon
+Requires=gpsd.socket
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/stty -F ${DEVICE} ${BAUD}
+ExecStart=/usr/sbin/gpsd -n -r ${DEVICE}
+
+[Install]
+WantedBy=multi-user.target
+WantedBy=chrony.service
+Also=gpsd.socket
+END"
+fi
+
+sudo systemctl daemon-reload
+sudo systemctl enable gpsd.service
+
+# Install PPS
+echo "Do you wish to configure pps? [y or Y to accept]"
+read configure_pps
+if [[ $configure_pps == "Y" || $configure_pps == "y" ]]; then
+  echo "Configuring /etc/systemd/system/pps-modprobe.service"
+  sudo rm /etc/systemd/system/pps-modprobe.service
+  sudo sh -c "tee -a /etc/systemd/system/pps-modprobe.service << END
+[Unit]
+Description=Modprobe pps gpio.
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/sbin/modprobe pps-gpio-modprobe gpio=${GPIO_PIN}
+ExecStop=/sbin/rmmod pps-gpio-modprobe
+
+[Install]
+WantedBy=multi-user.target
+WantedBy=chrony.service
+END"
+fi
+
+sudo systemctl daemon-reload
+sudo systemctl enable pps-gpio-modprobe.service
 
 # Install PPS debug tools.
 sudo apt install pps-tools gpsd-clients -y
