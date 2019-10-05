@@ -60,7 +60,10 @@ bool DevicesUSB::read() {
 }
 
 bool DevicesUSB::close() {
-  libusb_exit(NULL);
+  for (auto handle : handles_) {
+    libusb_close(handle);
+  }
+  libusb_exit(nullptr);
   return true;
 }
 
