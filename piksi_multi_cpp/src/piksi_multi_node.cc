@@ -10,24 +10,25 @@ int main(int argc, char** argv) {
 
   piksi_multi_cpp::PiksiMulti driver(nh, nh_private);
 
-  if (driver.connect()) {
-    ROS_INFO("Port opened.");
+  if (driver.open()) {
+    ROS_INFO("Port(s) opened.");
   } else {
-    ROS_FATAL("Error opening port.");
+    ROS_FATAL("Error opening port(s).");
     exit(1);
   }
 
   while (ros::ok()) {
     if(!driver.read()) {
       ROS_WARN("Failed reading data.");
+      exit(1);
     }
     ros::spinOnce();
   }
 
-  if (driver.disconnect()) {
-    ROS_INFO("Port closed.");
+  if (driver.close()) {
+    ROS_INFO("Port(s) closed.");
   } else {
-    ROS_FATAL("Error closing port.");
+    ROS_FATAL("Error closing port(s).");
     exit(1);
   }
 
