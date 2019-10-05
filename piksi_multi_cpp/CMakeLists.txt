@@ -13,7 +13,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(${PROJECT_NAME}
   src/piksi_multi.cc
 )
-target_link_libraries(${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME} usb-1.0)
 
 ############
 # BINARIES #

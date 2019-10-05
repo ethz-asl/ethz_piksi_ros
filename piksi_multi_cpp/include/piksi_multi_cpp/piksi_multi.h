@@ -29,7 +29,7 @@ private:
     Parameters() {}
 
     std::string interface = "usb";
-    std::string port = "/dev/ttyACM0";
+    std::string serial_port = "/dev/ttyACM0";
   };
 
   Parameters params_;
