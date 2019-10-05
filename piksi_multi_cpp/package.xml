@@ -12,4 +12,5 @@
   <buildtool_depend>catkin_simple</buildtool_depend>
 
   <depend>libsbp_catkin</depend>
+  <depend>roscpp</depend>
 </package>

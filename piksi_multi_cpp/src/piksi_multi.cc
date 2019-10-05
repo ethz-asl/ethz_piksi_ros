@@ -11,8 +11,8 @@ PiksiMulti::PiksiMulti(const ros::NodeHandle &nh,
   advertiseTopics();
 }
 
-PiksiMulti::getROSParameters() {}
+void PiksiMulti::getROSParameters() {}
 
-PiksiMulti::advertiseTopics() {}
+void PiksiMulti::advertiseTopics() {}
 
 } // namespace piksi_multi_cpp

@@ -1,6 +1,8 @@
 #ifndef PIKSI_MULTI_CPP_PIKSI_MULTI_H_
 #define PIKSI_MULTI_CPP_PIKSI_MULTI_H_
 
+#include <ros/ros.h>
+
 namespace piksi_multi_cpp {
 
 class PiksiMulti {
