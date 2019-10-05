@@ -46,6 +46,8 @@ bool DevicesUSB::open() {
                       << libusb_get_device_address(piksi) << " Code: " << open);
       continue;
     }
+    ROS_INFO_STREAM("Device " << handles_.size() << ":");
+    printDeviceInfo(handle);
     handles_.push_back(handle);
   }
 
@@ -81,12 +83,50 @@ bool DevicesUSB::identifyPiksi(libusb_device* dev) {
   const uint16_t kIDProduct = 0x1001;
 
   if (desc.idVendor == kIDVendor && desc.idProduct == kIDProduct) {
-    ROS_INFO_STREAM("Identified Piksi Multi on bus number "
-                    << libusb_get_bus_number(dev) << " with device address "
-                    << libusb_get_device_address(dev));
     return true;
   } else {
     return false;
+  }
+}
+
+void DevicesUSB::printDeviceInfo(libusb_device_handle* handle) {
+  if (!handle) return;
+
+  auto dev = libusb_get_device(handle);
+  if (!dev) return;
+
+  libusb_device_descriptor desc = {0};
+  int err = libusb_get_device_descriptor(dev, &desc);
+  if (err < 0) {
+    ROS_WARN_STREAM("Could not get device descriptor: " << err);
+    return;
+  }
+
+  if (desc.iManufacturer) {
+    unsigned char string[256];
+    int ret = libusb_get_string_descriptor_ascii(handle, desc.iManufacturer,
+                                                 string, sizeof(string));
+    if (ret > 0) {
+      ROS_INFO_STREAM("Manufacturer: " << string);
+    }
+  }
+
+  if (desc.iProduct) {
+    unsigned char string[256];
+    int ret = libusb_get_string_descriptor_ascii(handle, desc.iProduct, string,
+                                                 sizeof(string));
+    if (ret > 0) {
+      ROS_INFO_STREAM("Product: " << string);
+    }
+  }
+
+  if (desc.iSerialNumber) {
+    unsigned char string[256];
+    int ret = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
+                                                 string, sizeof(string));
+    if (ret > 0) {
+      ROS_INFO_STREAM("SerialNumber: " << string);
+    }
   }
 }
 

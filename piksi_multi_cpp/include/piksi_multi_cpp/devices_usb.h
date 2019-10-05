@@ -16,6 +16,7 @@ class DevicesUSB : DevicesBase {
 
  private:
   bool identifyPiksi(libusb_device* dev);
+  void printDeviceInfo(libusb_device_handle* dev);
 
   std::vector<libusb_device_handle*> handles_;
 };
