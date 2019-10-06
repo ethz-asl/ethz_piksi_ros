@@ -1,11 +1,14 @@
-#include "piksi_multi_cpp/devices_usb.h"
+#include "piksi_multi_cpp/device_usb.h"
 
 #include <ros/console.h>
 
-namespace piksi_multi_cpp {
-DevicesUSB::DevicesUSB() {}
+const int kInterfaceNumber = 0;
 
-bool DevicesUSB::open() {
+namespace piksi_multi_cpp {
+
+DeviceUSB::DeviceUSB() : handle_(nullptr) {}
+
+bool DeviceUSB::open() {
   // Initialize libusb.
   int init = libusb_init(nullptr);
   if (init < 0) {
@@ -41,35 +44,49 @@ bool DevicesUSB::open() {
     libusb_device_handle* handle;
     int open = libusb_open(piksi, &handle);
     if (open < 0) {
-      ROS_WARN_STREAM("Failed to open Piksi Multi on bus number "
-                      << libusb_get_bus_number(piksi) << " with device address "
-                      << libusb_get_device_address(piksi) << " Code: " << open);
+      ROS_INFO(
+          "Failed to open Piksi Multi on bus number / address %03d.%03d: %d",
+          libusb_get_bus_number(piksi), libusb_get_device_address(piksi), open);
       continue;
     }
-    ROS_INFO_STREAM("Device " << handles_.size() << ":");
+    int detach_kernel = libusb_set_auto_detach_kernel_driver(handle, 1);
+    if (detach_kernel < 0){
+      ROS_WARN_STREAM("Cannot detach kernel driver: " << detach_kernel);
+    }
+    int claim = libusb_claim_interface(handle, kInterfaceNumber);
+    if (claim < 0) {
+      ROS_INFO_STREAM("Failed to claim device: " << claim);
+      continue;
+    }
+    ROS_INFO_STREAM("New device "
+                    << ":");
     printDeviceInfo(handle);
-    handles_.push_back(handle);
+    handle_ = handle;
+    break;
   }
 
   libusb_free_device_list(list, 1);
-
-  return !handles_.empty();
+  return handle_ != nullptr;
 }
 
-bool DevicesUSB::read() {
+bool DeviceUSB::read() {
   ROS_ERROR("Read USB not implemented.");
   return false;
 }
 
-bool DevicesUSB::close() {
-  for (auto handle : handles_) {
-    libusb_close(handle);
+bool DeviceUSB::close() {
+  bool success = true;
+  int release = libusb_release_interface(handle_, kInterfaceNumber);
+  if (release < 0) {
+    ROS_WARN_STREAM("Device was not released: " << release);
+    success = false;
   }
+  libusb_close(handle_);
   libusb_exit(nullptr);
-  return true;
+  return success;
 }
 
-bool DevicesUSB::identifyPiksi(libusb_device* dev) {
+bool DeviceUSB::identifyPiksi(libusb_device* dev) {
   if (!dev) return false;
 
   libusb_device_descriptor desc = {0};
@@ -83,15 +100,15 @@ bool DevicesUSB::identifyPiksi(libusb_device* dev) {
   const uint16_t kIDProduct = 0x1001;
 
   if (desc.idVendor == kIDVendor && desc.idProduct == kIDProduct) {
-    ROS_INFO("Identified Piksi on %03d.%03d", libusb_get_bus_number(dev),
-             libusb_get_device_address(dev));
+    ROS_INFO("Identified Piksi on bus number / address %03d.%03d",
+             libusb_get_bus_number(dev), libusb_get_device_address(dev));
     return true;
   } else {
     return false;
   }
 }
 
-void DevicesUSB::printDeviceInfo(libusb_device_handle* handle) {
+void DeviceUSB::printDeviceInfo(libusb_device_handle* handle) {
   if (!handle) return;
 
   auto dev = libusb_get_device(handle);

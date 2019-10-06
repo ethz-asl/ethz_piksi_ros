@@ -11,7 +11,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # LIBRARIES #
 #############
 cs_add_library(${PROJECT_NAME}
-  src/devices_usb.cc
+  src/device_usb.cc
   src/piksi_multi.cc
 )
 target_link_libraries(${PROJECT_NAME} usb-1.0)

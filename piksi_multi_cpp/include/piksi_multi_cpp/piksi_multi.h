@@ -2,7 +2,7 @@
 #define PIKSI_MULTI_CPP_PIKSI_MULTI_H_
 
 #include <ros/ros.h>
-#include "piksi_multi_cpp/devices_usb.h"
+#include "piksi_multi_cpp/device_usb.h"
 
 namespace piksi_multi_cpp {
 
@@ -27,7 +27,7 @@ class PiksiMulti {
 
   Parameters params_;
 
-  DevicesUSB devices_usb_;
+  std::vector<DeviceUSB> devices_usb_;
 };
 
 }  // namespace piksi_multi_cpp

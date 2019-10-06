@@ -1,14 +1,14 @@
-#ifndef PIKSI_MULTI_CPP_DEVICES_USB_H_
-#define PIKSI_MULTI_CPP_DEVICES_USB_H_
+#ifndef PIKSI_MULTI_CPP_DEVICE_USB_H_
+#define PIKSI_MULTI_CPP_DEVICE_USB_H_
 
 #include <libusb-1.0/libusb.h>
 #include <vector>
-#include "piksi_multi_cpp/devices_base.h"
+#include "piksi_multi_cpp/device_base.h"
 
 namespace piksi_multi_cpp {
-class DevicesUSB : DevicesBase {
+class DeviceUSB : DeviceBase {
  public:
-  DevicesUSB();
+  DeviceUSB();
 
   bool open() override;
   bool read() override;
@@ -18,8 +18,8 @@ class DevicesUSB : DevicesBase {
   bool identifyPiksi(libusb_device* dev);
   void printDeviceInfo(libusb_device_handle* dev);
 
-  std::vector<libusb_device_handle*> handles_;
+  libusb_device_handle* handle_;
 };
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_DEVICES_USB_H_
+#endif  // PIKSI_MULTI_CPP_DEVICE_USB_H_
