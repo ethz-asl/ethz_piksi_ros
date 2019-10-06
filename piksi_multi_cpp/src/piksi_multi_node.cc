@@ -6,6 +6,7 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "piksi_multi");
   ros::NodeHandle nh;
   ros::NodeHandle nh_private("~");
+  int poll_rate = nh_private.param<int>("poll_rate", 100);
   piksi_multi_cpp::PiksiMulti piksi_multi(nh, nh_private);
 
   piksi_multi_cpp::PiksiMulti driver(nh, nh_private);
@@ -17,9 +18,11 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
+  ros::Rate r(poll_rate);
   while (ros::ok()) {
     driver.read();
     ros::spinOnce();
+    r.sleep();
   }
 
   if (driver.close()) {
