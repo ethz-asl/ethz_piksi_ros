@@ -2,7 +2,7 @@
 
 #include <ros/console.h>
 
-const int kInterfaceNumber = 0;
+const int kInterfaceNumber = 1;
 
 namespace piksi_multi_cpp {
 
