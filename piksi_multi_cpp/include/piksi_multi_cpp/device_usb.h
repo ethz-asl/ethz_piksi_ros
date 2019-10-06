@@ -11,7 +11,7 @@ class DeviceUSB : DeviceBase {
   DeviceUSB();
 
   bool open() override;
-  bool read() override;
+  static int32_t read(uint8_t *buff, uint32_t n, void *context);
   bool close() override;
 
  private:

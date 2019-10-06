@@ -71,9 +71,27 @@ bool DeviceUSB::open() {
   }
 }
 
-bool DeviceUSB::read() {
-  ROS_ERROR("Read USB not implemented.");
-  return false;
+int32_t DeviceUSB::read(uint8_t* buff, uint32_t n, void* context) {
+  //(void)context;
+  // https://www.ibm.com/support/pages/using-pointers-class-member-functions-arguments-other-functions
+  DeviceUSB* device_usb = (DeviceUSB*)context;
+  if (!device_usb->handle_) return LIBUSB_ERROR_NO_DEVICE;
+
+  // Transfer config inferred from `lsusb -v -d 2e69:1001`
+  const unsigned char kEndpointAdress = 0x01;
+  int transferred = 0;
+  const unsigned int kTimeOut = 0;  // [ms] 0: Inifinite timeout.
+  int read = libusb_bulk_transfer(device_usb->handle_, kEndpointAdress,
+                                       buff, n, &transferred, kTimeOut);
+  if (read < 0) {
+    ROS_ERROR_STREAM("Failed to read USB: " << read);
+  }
+  if (transferred != static_cast<int>(n)) {
+    ROS_WARN_STREAM("Bytes transferred does not reflect bytes requested: "
+                    << transferred << " vs " << n);
+  }
+
+  return read;
 }
 
 bool DeviceUSB::close() {

@@ -1,6 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_PIKSI_MULTI_H_
 #define PIKSI_MULTI_CPP_PIKSI_MULTI_H_
 
+#include <libsbp/sbp.h>
 #include <ros/ros.h>
 #include "piksi_multi_cpp/device_usb.h"
 
@@ -12,11 +13,15 @@ class PiksiMulti {
 
   bool open();
   bool close();
-  bool read();
+  void read();
 
  private:
   void getROSParameters();
   void advertiseTopics();
+
+  // SBP callbacks.
+  static void callbackHeartbeat(uint16_t sender_id, uint8_t len, uint8_t msg[],
+                                void* context);
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
@@ -28,6 +33,8 @@ class PiksiMulti {
   Parameters params_;
 
   std::vector<DeviceUSB> devices_usb_;
+  sbp_state_t state_;
+  sbp_msg_callbacks_node_t heartbeat_callback_node_;
 };
 
 }  // namespace piksi_multi_cpp

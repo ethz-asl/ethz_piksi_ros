@@ -18,10 +18,7 @@ int main(int argc, char** argv) {
   }
 
   while (ros::ok()) {
-    if(!driver.read()) {
-      ROS_WARN("Failed reading data.");
-      exit(1);
-    }
+    driver.read();
     ros::spinOnce();
   }
 

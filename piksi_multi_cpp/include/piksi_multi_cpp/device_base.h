@@ -7,7 +7,6 @@ class DeviceBase {
   DeviceBase() {}
 
   virtual bool open() = 0;
-  virtual bool read() = 0;
   virtual bool close() = 0;
 };
 }  // namespace piksi_multi_cpp
