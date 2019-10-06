@@ -3,6 +3,8 @@
 #include <libsbp/sbp.h>
 #include <libsbp/system.h>
 #include <libusb-1.0/libusb.h>
+#include <memory>
+#include "piksi_multi_cpp/device_usb.h"
 
 namespace piksi_multi_cpp {
 
@@ -14,8 +16,10 @@ PiksiMulti::PiksiMulti(const ros::NodeHandle& nh,
 
   // Setup SBP.
   sbp_state_init(&state_);
+  // Pass the current device to the read() function.
+  sbp_state_set_io_context(&state_, current_device_);
   sbp_register_callback(&state_, SBP_MSG_HEARTBEAT,
-                        &piksi_multi_cpp::PiksiMulti::callbackHeartbeat, NULL,
+                        &piksi_multi_cpp::PiksiMulti::callbackHeartbeat, this,
                         &heartbeat_callback_node_);
 }
 
@@ -30,27 +34,43 @@ void PiksiMulti::callbackHeartbeat(uint16_t sender_id, uint8_t len,
 }
 
 bool PiksiMulti::open() {
+  // Discover and open all attached USB devices.
   bool has_usb_devs = true;
   while (has_usb_devs) {
-    DeviceUSB new_dev;
-    has_usb_devs = new_dev.open();
-    if (has_usb_devs) devices_usb_.push_back(new_dev);
+    auto new_dev = std::make_shared<DeviceUSB>();
+    has_usb_devs = new_dev->open();
+    if (has_usb_devs) {
+      devices_.push_back(std::static_pointer_cast<DeviceBase>(new_dev));
+    }
   }
-  return !devices_usb_.empty();
+
+  return !devices_.empty();
 }
 
 bool PiksiMulti::close() {
   bool success = true;
-  for (auto dev : devices_usb_) {
-    success = dev.close() && success;
+  // Close all devices.
+  for (auto dev : devices_) {
+    if (!dev) continue;
+    success = dev->close() && success;
   }
 
   return success;
 }
 
 void PiksiMulti::read() {
-  for (auto dev : devices_usb_) {
-    sbp_process(&state_, &dev.read);
+  for (auto dev : devices_) {
+    if (!dev) continue;
+    current_device_ = dev.get();
+
+    // TODO(rikba): It would be nice to be able to call base class read instead
+    // of trying to cast all devices. sbp_process(&state_,
+    // &piksi_multi_cpp::DeviceBase::read);
+
+    auto usb_dev = std::dynamic_pointer_cast<DeviceUSB>(dev);
+    if (usb_dev) {
+      sbp_process(&state_, &piksi_multi_cpp::DeviceUSB::read);
+    }
   }
 }
 

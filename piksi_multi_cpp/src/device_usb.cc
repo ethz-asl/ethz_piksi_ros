@@ -72,17 +72,28 @@ bool DeviceUSB::open() {
 }
 
 int32_t DeviceUSB::read(uint8_t* buff, uint32_t n, void* context) {
-  //(void)context;
-  // https://www.ibm.com/support/pages/using-pointers-class-member-functions-arguments-other-functions
-  DeviceUSB* device_usb = (DeviceUSB*)context;
-  if (!device_usb->handle_) return LIBUSB_ERROR_NO_DEVICE;
+  if (!context) {
+    ROS_ERROR_STREAM("Failed to access context.");
+    return LIBUSB_ERROR_OTHER;
+  }
+  DeviceUSB* device = static_cast<DeviceUSB*>(context);
+  ROS_INFO("Read USB.");
+  if (!device) {
+    ROS_ERROR_STREAM("Failed to access current device.");
+    return LIBUSB_ERROR_OTHER;
+  }
+  if (!device->handle_) {
+    ROS_ERROR_STREAM("Failed to access handle.");
+    return LIBUSB_ERROR_OTHER;
+  }
 
   // Transfer config inferred from `lsusb -v -d 2e69:1001`
   const unsigned char kEndpointAdress = 0x01;
   int transferred = 0;
   const unsigned int kTimeOut = 0;  // [ms] 0: Inifinite timeout.
-  int read = libusb_bulk_transfer(device_usb->handle_, kEndpointAdress,
-                                       buff, n, &transferred, kTimeOut);
+  ROS_INFO("Bulk transfer.");
+  int read = libusb_bulk_transfer(device->handle_, kEndpointAdress, buff, n,
+                                  &transferred, kTimeOut);
   if (read < 0) {
     ROS_ERROR_STREAM("Failed to read USB: " << read);
   }
@@ -91,6 +102,7 @@ int32_t DeviceUSB::read(uint8_t* buff, uint32_t n, void* context) {
                     << transferred << " vs " << n);
   }
 
+  ROS_INFO_STREAM("Done: " << read);
   return read;
 }
 

@@ -6,7 +6,7 @@
 #include "piksi_multi_cpp/device_base.h"
 
 namespace piksi_multi_cpp {
-class DeviceUSB : DeviceBase {
+class DeviceUSB : public DeviceBase {
  public:
   DeviceUSB();
 
