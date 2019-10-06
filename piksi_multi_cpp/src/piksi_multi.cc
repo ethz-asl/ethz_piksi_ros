@@ -16,7 +16,6 @@ PiksiMulti::PiksiMulti(const ros::NodeHandle& nh,
 
   // Setup SBP.
   sbp_state_init(&state_);
-  // Pass the current device to the read() function.
   sbp_register_callback(&state_, SBP_MSG_HEARTBEAT,
                         &piksi_multi_cpp::PiksiMulti::callbackHeartbeat, this,
                         &heartbeat_callback_node_);
