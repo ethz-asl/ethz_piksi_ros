@@ -17,7 +17,6 @@ PiksiMulti::PiksiMulti(const ros::NodeHandle& nh,
   // Setup SBP.
   sbp_state_init(&state_);
   // Pass the current device to the read() function.
-  sbp_state_set_io_context(&state_, current_device_);
   sbp_register_callback(&state_, SBP_MSG_HEARTBEAT,
                         &piksi_multi_cpp::PiksiMulti::callbackHeartbeat, this,
                         &heartbeat_callback_node_);
@@ -62,6 +61,7 @@ void PiksiMulti::read() {
   for (auto dev : devices_) {
     if (!dev) continue;
     current_device_ = dev.get();
+    sbp_state_set_io_context(&state_, current_device_);
 
     // TODO(rikba): It would be nice to be able to call base class read instead
     // of trying to cast all devices. sbp_process(&state_,
