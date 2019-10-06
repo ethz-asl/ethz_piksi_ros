@@ -83,6 +83,8 @@ bool DevicesUSB::identifyPiksi(libusb_device* dev) {
   const uint16_t kIDProduct = 0x1001;
 
   if (desc.idVendor == kIDVendor && desc.idProduct == kIDProduct) {
+    ROS_INFO("Identified Piksi on %03d.%03d", libusb_get_bus_number(dev),
+             libusb_get_device_address(dev));
     return true;
   } else {
     return false;
