@@ -50,7 +50,7 @@ void DeviceUSB::printPorts() {
   }
 }
 
-bool DeviceUSB::allocatePort(const Identifier& id) {
+bool DeviceUSB::allocatePort() {
   // Find any serial port with id.
   struct sp_port** ports;
   sp_return result = sp_list_ports(&ports);
@@ -60,8 +60,8 @@ bool DeviceUSB::allocatePort(const Identifier& id) {
   }
 
   for (int i = 0; ports[i]; i++) {
-    Identifier id = identifyPiksi(ports[i]);
-    if (identifierEqual(id, id)) {
+    Identifier id_query = identifyPiksi(ports[i]);
+    if (identifierEqual(id_query, id_)) {
       result = sp_copy_port(ports[i], &port_);
       if (result == SP_OK) {
         break;
@@ -85,7 +85,7 @@ bool DeviceUSB::allocatePort(const Identifier& id) {
 
 bool DeviceUSB::open() {
   // Allocate port.
-  if (!allocatePort(id_)) {
+  if (!allocatePort()) {
     close();
     return false;
   }

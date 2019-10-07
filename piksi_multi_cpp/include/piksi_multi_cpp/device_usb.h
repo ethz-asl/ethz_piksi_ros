@@ -20,7 +20,7 @@ class DeviceUSB : public Device {
   static Identifier identifyPiksi(struct sp_port* port);
   static void printDeviceInfo(struct sp_port* port);
   static void printPorts();
-  bool allocatePort(const Identifier& id);
+  bool allocatePort();
 
   struct sp_port* port_;
 };
