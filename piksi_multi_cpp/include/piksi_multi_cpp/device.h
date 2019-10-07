@@ -5,6 +5,8 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <vector>
+
 
 enum DeviceType { kUSB = 0 };
 
@@ -23,6 +25,7 @@ class Device {
 
   // Factory method to create all devices.
   static std::shared_ptr<Device> create(DeviceType type, const Identifier& id);
+  static std::vector<std::shared_ptr<Device>> createAllDevices();
 };
 }  // namespace piksi_multi_cpp
 
