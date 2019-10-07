@@ -77,7 +77,6 @@ int32_t DeviceUSB::read(uint8_t* buff, uint32_t n, void* context) {
     return LIBUSB_ERROR_OTHER;
   }
   DeviceUSB* device = static_cast<DeviceUSB*>(context);
-  ROS_INFO("Read USB.");
   if (!device) {
     ROS_ERROR_STREAM("Failed to access current device.");
     return LIBUSB_ERROR_OTHER;
@@ -88,11 +87,12 @@ int32_t DeviceUSB::read(uint8_t* buff, uint32_t n, void* context) {
   }
 
   // Transfer config inferred from `lsusb -v -d 2e69:1001`
-  const unsigned char kEndpointAdress = 0x01;
+  const unsigned char kEndpointAdress = 0x81;
   int transferred = 0;
   const unsigned int kTimeOut = 0;  // [ms] 0: Inifinite timeout.
-  ROS_INFO("Bulk transfer.");
-  int read = libusb_bulk_transfer(device->handle_, kEndpointAdress, buff, n,
+  const int kMaxPacketSize = 1024;
+  uint8_t data[kMaxPacketSize];
+  int read = libusb_bulk_transfer(device->handle_, kEndpointAdress, data, n,
                                   &transferred, kTimeOut);
   if (read < 0) {
     ROS_ERROR_STREAM("Failed to read USB: " << read);
@@ -102,8 +102,13 @@ int32_t DeviceUSB::read(uint8_t* buff, uint32_t n, void* context) {
                     << transferred << " vs " << n);
   }
 
-  ROS_INFO_STREAM("Done: " << read);
-  return read;
+  ROS_INFO_STREAM_COND(read != 0, "Done: " << read);
+  //std::cout << buff[0] << std::endl;
+  ROS_INFO_STREAM("transferred: " << transferred);
+  ROS_INFO_STREAM("n: " << n);
+  ROS_INFO_STREAM("buff.size(): " << sizeof(buff) / sizeof(buff[0]));
+  ROS_INFO_STREAM_COND(n == 0, "Did not request any data.");
+  return transferred;
 }
 
 bool DeviceUSB::close() {

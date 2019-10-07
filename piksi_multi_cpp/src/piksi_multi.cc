@@ -29,6 +29,7 @@ void PiksiMulti::callbackHeartbeat(uint16_t sender_id, uint8_t len,
                                    uint8_t msg[], void* context) {
   (void)sender_id, (void)len, (void)msg, (void)context;
   fprintf(stdout, "%s\n", __FUNCTION__);
+  ROS_INFO("TEST");
 }
 
 bool PiksiMulti::open() {
@@ -68,7 +69,8 @@ void PiksiMulti::read() {
 
     auto usb_dev = std::dynamic_pointer_cast<DeviceUSB>(dev);
     if (usb_dev) {
-      sbp_process(&state_, &piksi_multi_cpp::DeviceUSB::read);
+      int process = sbp_process(&state_, &piksi_multi_cpp::DeviceUSB::read);
+      ROS_INFO_STREAM("process: " << process);
     }
   }
 }
