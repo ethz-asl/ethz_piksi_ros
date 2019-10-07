@@ -20,7 +20,7 @@ class Device {
  public:
   Device(const Identifier& id);
   virtual bool open() = 0;
-  virtual int32_t read(uint8_t* buff, uint32_t n) = 0;
+  virtual int32_t read(uint8_t* buff, uint32_t n) const = 0;
   virtual void close() = 0;
   inline std::string getID() const { return id_; }
 

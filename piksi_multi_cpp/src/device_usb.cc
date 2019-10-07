@@ -136,7 +136,7 @@ bool DeviceUSB::open() {
   return false;
 }
 
-int32_t DeviceUSB::read(uint8_t* buff, uint32_t n) {
+int32_t DeviceUSB::read(uint8_t* buff, uint32_t n) const {
   if (!port_) {
     ROS_ERROR_STREAM("Port not opened.");
     return 0;
