@@ -48,7 +48,7 @@ var_rtk_fix: [0.0049, 0.0049, 0.01]
 
 # serial_port: defines which serial device to use for communication
 # ex '/dev/ttyUSB0'.
-serial_port: '/dev/ttyACM1'
+serial_port: '/dev/ttyUSB0'
 
 # baud_rate: defines the rate for the serial connection. This driver uses
 # 230400 as the default. Swift Navigation receivers ship with a
