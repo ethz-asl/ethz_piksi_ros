@@ -2,37 +2,28 @@
 #define PIKSI_MULTI_CPP_DEVICE_USB_H_
 
 #include <libserialport.h>
-#include <cstring>
-#include <set>
-#include <vector>
 #include "piksi_multi_cpp/device.h"
 
 namespace piksi_multi_cpp {
 
-typedef char* USBIdentifier;
-struct identifierless {
-  bool operator()(USBIdentifier a, USBIdentifier b) { return strcmp(a, b) < 0; }
-};
-typedef std::set<USBIdentifier, identifierless> USBIdentifiers;
-
 class DeviceUSB : public Device {
  public:
-  DeviceUSB(const USBIdentifier& id);
+  DeviceUSB(const Identifier& id);
 
   // List all unique Piksi multi devices using the usb serial number.
-  static USBIdentifiers getAllIdentifiers();
+  static Identifiers getAllIdentifiers();
   bool open() override;
   int32_t read(uint8_t* buff, uint32_t n, void* context) override;
   void close() override;
 
  private:
-  static USBIdentifier identifyPiksi(struct sp_port* port);
+  static Identifier identifyPiksi(struct sp_port* port);
   static void printDeviceInfo(struct sp_port* port);
   static void printPorts();
-  bool allocatePort(const USBIdentifier& id);
+  bool allocatePort(const Identifier& id);
 
   struct sp_port* port_;
-  USBIdentifier id_;
+  Identifier serial_number_;
 };
 }  // namespace piksi_multi_cpp
 

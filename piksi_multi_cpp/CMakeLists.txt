@@ -11,6 +11,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # LIBRARIES #
 #############
 cs_add_library(${PROJECT_NAME}
+  src/device.cc
   src/device_usb.cc
   src/piksi_multi.cc
 )
