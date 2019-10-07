@@ -40,15 +40,9 @@ void PiksiMulti::callbackHeartbeat(uint16_t sender_id, uint8_t len,
 }
 
 bool PiksiMulti::open() {
-  // // Discover and open all attached USB devices.
-  // bool has_usb_devs = true;
-  // while (has_usb_devs) {
-  //   auto new_dev = std::make_shared<DeviceUSB>();
-  //   has_usb_devs = new_dev->open();
-  //   if (has_usb_devs) {
-  //     devices_.push_back(std::static_pointer_cast<Device>(new_dev));
-  //   }
-  // }
+  for (auto dev : devices_) {
+    dev->open();
+  }
 
   return !devices_.empty();
 }

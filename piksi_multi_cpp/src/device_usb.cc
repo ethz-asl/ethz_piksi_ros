@@ -78,7 +78,8 @@ bool DeviceUSB::allocatePort(const Identifier& id) {
     ROS_ERROR("Failed to allocate port.");
     return false;
   } else {
-    ROS_INFO_STREAM("Allocated port for ID: " << serial_number_);
+    ROS_INFO_STREAM("Allocated USB port for Piksi Multi with serial number: "
+                    << serial_number_);
     return true;
   }
 }
@@ -107,7 +108,7 @@ bool DeviceUSB::open() {
     close();
     return false;
   }
-  ROS_INFO("Configured the flow control.");
+  ROS_DEBUG("Configured the flow control.");
 
   result = sp_set_bits(port_, 8);
   if (result != SP_OK) {
@@ -115,7 +116,7 @@ bool DeviceUSB::open() {
     close();
     return false;
   }
-  ROS_INFO("Configured the number of data bits.");
+  ROS_DEBUG("Configured the number of data bits.");
 
   result = sp_set_parity(port_, SP_PARITY_NONE);
   if (result != SP_OK) {
@@ -123,7 +124,7 @@ bool DeviceUSB::open() {
     close();
     return false;
   }
-  ROS_INFO("Configured the parity.");
+  ROS_DEBUG("Configured the parity.");
 
   result = sp_set_stopbits(port_, 1);
   if (result != SP_OK) {
@@ -131,7 +132,7 @@ bool DeviceUSB::open() {
     close();
     return false;
   }
-  ROS_INFO("Configured the number of stop bits.");
+  ROS_DEBUG("Configured the number of stop bits.");
 
   return false;
 }
