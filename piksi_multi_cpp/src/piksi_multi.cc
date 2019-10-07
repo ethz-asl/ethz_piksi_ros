@@ -13,11 +13,19 @@ PiksiMulti::PiksiMulti(const ros::NodeHandle& nh,
   getROSParameters();
   advertiseTopics();
 
-  // Setup SBP.
-  sbp_state_init(&state_);
-  sbp_register_callback(&state_, SBP_MSG_HEARTBEAT,
-                        &piksi_multi_cpp::PiksiMulti::callbackHeartbeat, this,
-                        &heartbeat_callback_node_);
+  // Create all devices.
+  devices_ = Device::createAllDevices();
+  // Initialize SBP.
+  for (auto dev : devices_) {
+    states_[dev] = sbp_state_t();
+    sbp_state_init(&states_[dev]);
+
+    // Standard callbacks for all devices.
+    heartbeat_callback_nodes_[dev] = sbp_msg_callbacks_node_t();
+    sbp_register_callback(&states_[dev], SBP_MSG_HEARTBEAT,
+                          &piksi_multi_cpp::PiksiMulti::callbackHeartbeat, this,
+                          &heartbeat_callback_nodes_[dev]);
+  }
 }
 
 void PiksiMulti::getROSParameters() {}
@@ -62,7 +70,8 @@ void PiksiMulti::read() {
   //   current_device_ = dev.get();
   //   sbp_state_set_io_context(&state_, current_device_);
   //
-  //   // TODO(rikba): It would be nice to be able to call base class read instead
+  //   // TODO(rikba): It would be nice to be able to call base class read
+  //   instead
   //   // of trying to cast all devices. sbp_process(&state_,
   //   // &piksi_multi_cpp::Device::read);
   //

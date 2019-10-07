@@ -35,8 +35,10 @@ class PiksiMulti {
 
   Device* current_device_;
   std::vector<std::shared_ptr<Device>> devices_;
-  sbp_state_t state_;
-  sbp_msg_callbacks_node_t heartbeat_callback_node_;
+  std::map<std::shared_ptr<Device>, sbp_state_t> states_;
+
+  std::map<std::shared_ptr<Device>, sbp_msg_callbacks_node_t>
+      heartbeat_callback_nodes_;
 };
 
 }  // namespace piksi_multi_cpp
