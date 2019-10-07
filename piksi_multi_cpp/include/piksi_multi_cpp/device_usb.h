@@ -23,7 +23,6 @@ class DeviceUSB : public Device {
   bool allocatePort(const Identifier& id);
 
   struct sp_port* port_;
-  Identifier serial_number_;
 };
 }  // namespace piksi_multi_cpp
 

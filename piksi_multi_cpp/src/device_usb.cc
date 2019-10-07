@@ -7,8 +7,7 @@ const int kInterfaceNumber = 1;
 
 namespace piksi_multi_cpp {
 
-DeviceUSB::DeviceUSB(const Identifier& id)
-    : port_(nullptr), serial_number_(id) {}
+DeviceUSB::DeviceUSB(const Identifier& id) : Device(id), port_(nullptr) {}
 
 Identifiers DeviceUSB::getAllIdentifiers() {
   Identifiers identifiers;
@@ -78,15 +77,15 @@ bool DeviceUSB::allocatePort(const Identifier& id) {
     ROS_ERROR("Failed to allocate port.");
     return false;
   } else {
-    ROS_INFO_STREAM("Allocated USB port for Piksi Multi with serial number: "
-                    << serial_number_);
+    ROS_INFO_STREAM(
+        "Allocated USB port for Piksi Multi with serial number: " << id_);
     return true;
   }
 }
 
 bool DeviceUSB::open() {
   // Allocate port.
-  if (!allocatePort(serial_number_)) {
+  if (!allocatePort(id_)) {
     close();
     return false;
   }
