@@ -1,190 +1,203 @@
 #include "piksi_multi_cpp/device_usb.h"
 
+#include <libserialport.h>
 #include <ros/console.h>
 
 const int kInterfaceNumber = 1;
 
 namespace piksi_multi_cpp {
 
-DeviceUSB::DeviceUSB() : handle_(nullptr) {}
+DeviceUSB::DeviceUSB(const USBIdentifier& id) : port_(nullptr), id_(id) {}
+
+USBIdentifiers DeviceUSB::getAllIdentifiers() {
+  USBIdentifiers identifiers;
+
+  // Get list of all ports.
+  struct sp_port** ports;
+  sp_return result = sp_list_ports(&ports);
+
+  if (result != SP_OK) {
+    ROS_WARN_STREAM("No USB devices detected: " << result);
+    return identifiers;
+  }
+
+  // Identify Piksi Multi among ports.
+  for (int i = 0; ports[i]; i++) {
+    // Check if port belongs to a Piksi Multi.
+    USBIdentifier id = identifyPiksi(ports[i]);
+    // Add serial to identifier set.
+    if (id) {
+      identifiers.insert(id);
+    }
+  }
+
+  ROS_INFO("%lu Piksi Multi identified on USB.", identifiers.size());
+  sp_free_port_list(ports);
+
+  return identifiers;
+}
+
+void DeviceUSB::printPorts() {
+  struct sp_port** ports;
+  sp_return result = sp_list_ports(&ports);
+  if (result == SP_OK) {
+    for (int i = 0; ports[i]; i++) {
+      printDeviceInfo(ports[i]);
+    }
+    sp_free_port_list(ports);
+  } else {
+    ROS_ERROR_STREAM("No serial devices detected: " << result);
+  }
+}
+
+bool DeviceUSB::allocatePort(const USBIdentifier& id) {
+  // Find any serial port with id.
+  struct sp_port** ports;
+  sp_return result = sp_list_ports(&ports);
+  if (result < 0) {
+    ROS_ERROR_STREAM("No serial devices detected: " << result);
+    return false;
+  }
+
+  for (int i = 0; ports[i]; i++) {
+    USBIdentifier id = identifyPiksi(ports[i]);
+    if (strcmp(id, id) == 0) {
+      result = sp_copy_port(ports[i], &port_);
+      if (result == SP_OK) {
+        break;
+      } else {
+        ROS_ERROR_STREAM("Cannot copy port: " << result);
+      }
+    }
+  }
+
+  sp_free_port_list(ports);
+
+  if (!port_) {
+    ROS_ERROR("Failed to allocate port.");
+    return false;
+  } else {
+    ROS_INFO_STREAM("Allocated port for ID: " << id_);
+    return true;
+  }
+}
 
 bool DeviceUSB::open() {
-  // Initialize libusb.
-  int init = libusb_init(nullptr);
-  if (init < 0) {
-    ROS_ERROR_STREAM("Cannot initialize libusb: " << init);
+  // Allocate port.
+  if (!allocatePort(id_)) {
     close();
     return false;
   }
 
-  // Discover all devices.
-  libusb_device** list;
-  ssize_t cnt = libusb_get_device_list(nullptr, &list);
-  if (cnt < 0) {
-    ROS_ERROR_STREAM("Invalid device list: " << cnt);
+  // Open port.
+  ROS_INFO_STREAM("Opening port: " << sp_get_port_name(port_));
+  sp_return result = sp_open(port_, SP_MODE_READ);
+  if (result != SP_OK) {
+    ROS_ERROR_STREAM("Cannot open port: " << result);
     close();
     return false;
   }
 
-  bool new_dev = false;
-  for (ssize_t i = 0; i < cnt; ++i) {
-    // Identify Piksi.
-    libusb_device* device = list[i];
-    if (!identifyPiksi(device)) continue;
-
-    // Open port.
-    int open = libusb_open(device, &handle_);
-    if (open < 0) {
-      ROS_INFO(
-          "Failed to open Piksi Multi on bus number / address %03d.%03d: %d",
-          libusb_get_bus_number(device), libusb_get_device_address(device),
-          open);
-      continue;
-    }
-
-    // Claim device.
-    int detach_kernel = libusb_set_auto_detach_kernel_driver(handle_, 1);
-    if (detach_kernel < 0) {
-      ROS_WARN_STREAM("Cannot detach kernel driver: " << detach_kernel);
-    }
-    int claim = libusb_claim_interface(handle_, kInterfaceNumber);
-    if (claim < 0) {
-      ROS_INFO_STREAM("Failed to claim device: " << claim);
-      ROS_INFO_COND(claim == LIBUSB_ERROR_BUSY, "Device already claimed.");
-      continue;
-    }
-
-    // Save device handle.
-    ROS_INFO_STREAM("Opened new device:");
-    new_dev = true;
-    printDeviceInfo(handle_);
-    break;
-  }
-
-  libusb_free_device_list(list, 1);
-
-  if (new_dev) {
-    return true;
-  } else {
+  // Configuration.
+  // https://github.com/swift-nav/libsbp/blob/master/c/example/example.c
+  result = sp_set_flowcontrol(port_, SP_FLOWCONTROL_NONE);
+  if (result != SP_OK) {
+    ROS_ERROR_STREAM("Cannot set flow control: " << result);
     close();
     return false;
   }
+  ROS_INFO("Configured the flow control.");
+
+  result = sp_set_bits(port_, 8);
+  if (result != SP_OK) {
+    ROS_ERROR_STREAM("Cannot set data bits: " << result);
+    close();
+    return false;
+  }
+  ROS_INFO("Configured the number of data bits.");
+
+  result = sp_set_parity(port_, SP_PARITY_NONE);
+  if (result != SP_OK) {
+    ROS_ERROR_STREAM("Cannot set parity: " << result);
+    close();
+    return false;
+  }
+  ROS_INFO("Configured the parity.");
+
+  result = sp_set_stopbits(port_, 1);
+  if (result != SP_OK) {
+    ROS_ERROR_STREAM("Cannot set stop bits: " << result);
+    close();
+    return false;
+  }
+  ROS_INFO("Configured the number of stop bits.");
+
+  return false;
 }
 
 int32_t DeviceUSB::read(uint8_t* buff, uint32_t n, void* context) {
-  if (!context) {
-    ROS_ERROR_STREAM("Failed to access context.");
-    return LIBUSB_ERROR_OTHER;
-  }
-  DeviceUSB* device = static_cast<DeviceUSB*>(context);
-  if (!device) {
-    ROS_ERROR_STREAM("Failed to access current device.");
-    return LIBUSB_ERROR_OTHER;
-  }
-  if (!device->handle_) {
-    ROS_ERROR_STREAM("Failed to access handle.");
-    return LIBUSB_ERROR_OTHER;
+  if (!port_) {
+    ROS_ERROR_STREAM("Port not opened.");
+    return 0;
   }
 
-  // Transfer config inferred from `lsusb -v -d 2e69:1001`
-  const unsigned char kEndpointAdress = 0x81;
-  int transferred = 0;
-  const unsigned int kTimeOut = 0;  // [ms] 0: Inifinite timeout.
-  const int kMaxPacketSize = 1024;
-  uint8_t data[kMaxPacketSize];
-  int read = libusb_bulk_transfer(device->handle_, kEndpointAdress, data, n,
-                                  &transferred, kTimeOut);
-  if (read < 0) {
-    ROS_ERROR_STREAM("Failed to read USB: " << read);
-  }
-  if (transferred != static_cast<int>(n)) {
-    ROS_WARN_STREAM("Bytes transferred does not reflect bytes requested: "
-                    << transferred << " vs " << n);
-  }
-
-  ROS_INFO_STREAM_COND(read != 0, "Done: " << read);
-  //std::cout << buff[0] << std::endl;
-  ROS_INFO_STREAM("transferred: " << transferred);
-  ROS_INFO_STREAM("n: " << n);
-  ROS_INFO_STREAM("buff.size(): " << sizeof(buff) / sizeof(buff[0]));
-  ROS_INFO_STREAM_COND(n == 0, "Did not request any data.");
-  return transferred;
+  (void)context;
+  return sp_blocking_read(port_, buff, n, 0);
 }
 
-bool DeviceUSB::close() {
-  bool success = true;
-  if (handle_) {
-    int release = libusb_release_interface(handle_, kInterfaceNumber);
-    if (release < 0) {
-      ROS_WARN_STREAM("Device was not released: " << release);
-      success = false;
+void DeviceUSB::close() {
+  if (port_) {
+    sp_return result = sp_close(port_);
+    if (result != SP_OK) {
+      ROS_ERROR("Cannot close %s properly.", sp_get_port_name(port_));
     }
-    libusb_close(handle_);
+    sp_free_port(port_);
+    port_ = nullptr;
   }
-  libusb_exit(nullptr);
-  return success;
 }
 
-bool DeviceUSB::identifyPiksi(libusb_device* dev) {
-  if (!dev) return false;
+USBIdentifier DeviceUSB::identifyPiksi(struct sp_port* port) {
+  if (!port) return nullptr;
 
-  libusb_device_descriptor desc = {0};
-  int err = libusb_get_device_descriptor(dev, &desc);
-  if (err < 0) {
-    ROS_WARN_STREAM("Could not get device descriptor: " << err);
-    return false;
+  // Get vendor and product ID to identify Piksi Multi.
+  int usb_vid = -1;
+  int usb_pid = -1;
+  sp_return result = sp_get_port_usb_vid_pid(port, &usb_vid, &usb_pid);
+  if (result != SP_OK) {
+    ROS_ERROR_STREAM("Cannot get vendor ID and product ID." << result);
+    return nullptr;
   }
 
+  // These are the Piksi Multi USB identifiers. (see lsusb -v)
   const uint16_t kIDVendor = 0x2E69;
   const uint16_t kIDProduct = 0x1001;
 
-  if (desc.idVendor == kIDVendor && desc.idProduct == kIDProduct) {
-    ROS_INFO("Identified Piksi on bus number / address %03d.%03d",
-             libusb_get_bus_number(dev), libusb_get_device_address(dev));
-    return true;
+  if (usb_vid == kIDVendor && usb_pid == kIDProduct) {
+    // Get serial number as a unique identifier.
+    return sp_get_port_usb_serial(port);
   } else {
-    return false;
+    return nullptr;
   }
 }
 
-void DeviceUSB::printDeviceInfo(libusb_device_handle* handle) {
-  if (!handle) return;
+void DeviceUSB::printDeviceInfo(struct sp_port* port) {
+  if (!port) return;
 
-  auto dev = libusb_get_device(handle);
-  if (!dev) return;
-
-  libusb_device_descriptor desc = {0};
-  int err = libusb_get_device_descriptor(dev, &desc);
-  if (err < 0) {
-    ROS_WARN_STREAM("Could not get device descriptor: " << err);
-    return;
+  ROS_INFO("Port: %s", sp_get_port_name(port));
+  ROS_INFO("Manufacturer: %s", sp_get_port_usb_manufacturer(port));
+  ROS_INFO("Product: %s", sp_get_port_usb_product(port));
+  ROS_INFO("USB serial number: %s", sp_get_port_usb_serial(port));
+  int usb_bus = -1;
+  int usb_address = -1;
+  sp_return result = sp_get_port_usb_bus_address(port, &usb_bus, &usb_address);
+  if (result == SP_OK) {
+    ROS_INFO("Bus: %d Adress: %d", usb_bus, usb_address);
   }
-
-  if (desc.iManufacturer) {
-    unsigned char string[256];
-    int ret = libusb_get_string_descriptor_ascii(handle, desc.iManufacturer,
-                                                 string, sizeof(string));
-    if (ret > 0) {
-      ROS_INFO_STREAM("Manufacturer: " << string);
-    }
-  }
-
-  if (desc.iProduct) {
-    unsigned char string[256];
-    int ret = libusb_get_string_descriptor_ascii(handle, desc.iProduct, string,
-                                                 sizeof(string));
-    if (ret > 0) {
-      ROS_INFO_STREAM("Product: " << string);
-    }
-  }
-
-  if (desc.iSerialNumber) {
-    unsigned char string[256];
-    int ret = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
-                                                 string, sizeof(string));
-    if (ret > 0) {
-      ROS_INFO_STREAM("SerialNumber: " << string);
-    }
+  int usb_vid = -1;
+  int usb_pid = -1;
+  result = sp_get_port_usb_vid_pid(port, &usb_vid, &usb_pid);
+  if (result == SP_OK) {
+    ROS_INFO("VendorID:ProductID: %4.0X:%4.0X", usb_vid, usb_pid);
   }
 }
 

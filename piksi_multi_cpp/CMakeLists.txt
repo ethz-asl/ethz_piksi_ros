@@ -14,7 +14,7 @@ cs_add_library(${PROJECT_NAME}
   src/device_usb.cc
   src/piksi_multi.cc
 )
-target_link_libraries(${PROJECT_NAME} usb-1.0)
+target_link_libraries(${PROJECT_NAME} serialport)
 
 ############
 # BINARIES #

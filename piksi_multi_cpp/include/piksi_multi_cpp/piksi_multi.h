@@ -2,9 +2,9 @@
 #define PIKSI_MULTI_CPP_PIKSI_MULTI_H_
 
 #include <libsbp/sbp.h>
-#include <memory>
 #include <ros/ros.h>
-#include "piksi_multi_cpp/device_base.h"
+#include <memory>
+#include "piksi_multi_cpp/device.h"
 
 namespace piksi_multi_cpp {
 
@@ -33,8 +33,8 @@ class PiksiMulti {
 
   Parameters params_;
 
-  DeviceBase* current_device_;
-  std::vector<std::shared_ptr<DeviceBase>> devices_;
+  Device* current_device_;
+  std::vector<std::shared_ptr<Device>> devices_;
   sbp_state_t state_;
   sbp_msg_callbacks_node_t heartbeat_callback_node_;
 };
