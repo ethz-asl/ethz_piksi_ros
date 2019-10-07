@@ -137,13 +137,12 @@ bool DeviceUSB::open() {
   return false;
 }
 
-int32_t DeviceUSB::read(uint8_t* buff, uint32_t n, void* context) {
+int32_t DeviceUSB::read(uint8_t* buff, uint32_t n) {
   if (!port_) {
     ROS_ERROR_STREAM("Port not opened.");
     return 0;
   }
 
-  (void)context;
   return sp_blocking_read(port_, buff, n, 0);
 }
 

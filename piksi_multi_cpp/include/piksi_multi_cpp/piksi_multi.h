@@ -13,7 +13,7 @@ class PiksiMulti {
   PiksiMulti(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
 
   bool open();
-  bool close();
+  void close();
   void read();
 
  private:

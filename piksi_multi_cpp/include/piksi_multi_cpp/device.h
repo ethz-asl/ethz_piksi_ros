@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-
 enum DeviceType { kUSB = 0 };
 
 typedef std::string Identifier;
@@ -20,8 +19,14 @@ namespace piksi_multi_cpp {
 class Device {
  public:
   virtual bool open() = 0;
-  virtual int32_t read(uint8_t* buff, uint32_t n, void* context) = 0;
+  virtual int32_t read(uint8_t* buff, uint32_t n) = 0;
   virtual void close() = 0;
+
+  // This function will be passed to sbp_process.
+  // libsbp is a C interface and does not allow binding a non-static member
+  // function using std::bind. Thus we bind this static member function that
+  // points on the context's read function.
+  static int32_t read_redirect(uint8_t* buff, uint32_t n, void* context);
 
   // Factory method to create all devices.
   static std::shared_ptr<Device> create(DeviceType type, const Identifier& id);

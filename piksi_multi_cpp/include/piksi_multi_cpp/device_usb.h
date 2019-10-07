@@ -13,7 +13,7 @@ class DeviceUSB : public Device {
   // List all unique Piksi multi devices using the usb serial number.
   static Identifiers getAllIdentifiers();
   bool open() override;
-  int32_t read(uint8_t* buff, uint32_t n, void* context) override;
+  int32_t read(uint8_t* buff, uint32_t n) override;
   void close() override;
 
  private:

@@ -23,12 +23,7 @@ int main(int argc, char** argv) {
     r.sleep();
   }
 
-  if (driver.close()) {
-    ROS_INFO("Port(s) closed.");
-  } else {
-    ROS_FATAL("Error closing port(s).");
-    exit(1);
-  }
+  driver.close();
 
   return 0;
 }

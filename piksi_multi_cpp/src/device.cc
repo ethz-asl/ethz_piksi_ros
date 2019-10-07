@@ -6,6 +6,13 @@
 
 namespace piksi_multi_cpp {
 
+int32_t Device::read_redirect(uint8_t* buff, uint32_t n, void* context) {
+  // Cast context to instance.
+  Device* instance = static_cast<Device*>(context);
+  // Execute instance's read function.
+  return instance->read(buff, n);
+}
+
 std::shared_ptr<Device> Device::create(DeviceType type, const Identifier& id) {
   if (type == DeviceType::kUSB) {
     return std::shared_ptr<Device>(new DeviceUSB(id));

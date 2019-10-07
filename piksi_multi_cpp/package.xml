@@ -3,6 +3,7 @@
   <version>0.0.1</version>
   <description>A C++ ROS wrapper for Piksi Multi.</description>
 
+  <author email="mpantic@ethz.ch">Michael Pantic</author>
   <author email="brik@ethz.ch">Rik Bähnemann</author>
   <maintainer email="brik@ethz.ch">Rik Bähnemann</maintainer>
 
