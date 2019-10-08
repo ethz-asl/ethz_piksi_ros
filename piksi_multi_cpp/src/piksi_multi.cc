@@ -76,7 +76,12 @@ bool PiksiMulti::open() {
     dev->open();
   }
 
-  return !devices_.empty();
+  if (devices_.empty()) {
+    ROS_ERROR("Cannot open any device.");
+    return false;
+  } else {
+    return true;
+  }
 }
 
 void PiksiMulti::close() {
