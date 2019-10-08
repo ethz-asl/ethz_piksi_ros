@@ -18,7 +18,6 @@ class PiksiMulti {
 
  private:
   void getROSParameters();
-  void advertiseTopics();
 
   // ROS publishers.
   // Every device has its individual sbp message callbacks captured in uint16_t.
@@ -34,12 +33,6 @@ class PiksiMulti {
 
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
-
-  struct Parameters {
-    Parameters() {}
-  };
-
-  Parameters params_;
 
   std::vector<std::shared_ptr<Device>> devices_;
   std::map<std::shared_ptr<Device>, sbp_state_t> states_;

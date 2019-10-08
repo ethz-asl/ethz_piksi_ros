@@ -13,7 +13,6 @@ PiksiMulti::PiksiMulti(const ros::NodeHandle& nh,
                        const ros::NodeHandle& nh_private)
     : nh_(nh), nh_private_(nh_private) {
   getROSParameters();
-  advertiseTopics();
 
   // Create all devices.
   devices_ = Device::createAllDevices();
@@ -42,11 +41,9 @@ PiksiMulti::PiksiMulti(const ros::NodeHandle& nh,
                           &ros_publishers_[dev][SBP_MSG_HEARTBEAT],
                           &heartbeat_callback_nodes_[dev]);
   }
-}  // namespace piksi_multi_cpp
+}
 
 void PiksiMulti::getROSParameters() {}
-
-void PiksiMulti::advertiseTopics() {}
 
 void PiksiMulti::callbackHeartbeat(uint16_t sender_id, uint8_t len,
                                    uint8_t msg[], void* context) {
