@@ -15,7 +15,7 @@ cs_add_library(${PROJECT_NAME}
   src/device_usb.cc
   src/piksi_multi.cc
   src/ros_attitude_receiver.cc
-  src/ros_base_station.cc
+  src/ros_base_station_receiver.cc
   src/ros_position_receiver.cc
   src/ros_receiver.cc
 )

@@ -5,14 +5,14 @@
 
 // Forward declarations
 #include "piksi_multi_cpp/ros_attitude_receiver.h"
-#include "piksi_multi_cpp/ros_base_station.h"
+#include "piksi_multi_cpp/ros_base_station_receiver.h"
 #include "piksi_multi_cpp/ros_position_receiver.h"
 
 namespace piksi_multi_cpp {
 
 std::vector<ROSReceiver::Type> ROSReceiver::kTypeVec =
     std::vector<ROSReceiver::Type>(
-        {kBaseStation, kPositionReceiver, kAttitudeReceiver, kUnknown});
+        {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
 
 ROSReceiver::ROSReceiver(const ros::NodeHandle& nh,
                          const ros::NodeHandle& nh_private,
@@ -25,9 +25,9 @@ std::shared_ptr<ROSReceiver> ROSReceiver::create(
     const ros::NodeHandle& nh_private, const std::shared_ptr<Device>& device,
     const std::string& ns) {
   switch (type) {
-    case Type::kBaseStation:
+    case Type::kBaseStationReceiver:
       return std::shared_ptr<ROSReceiver>(
-          new ROSBaseStation(nh, nh_private, device, ns));
+          new ROSBaseStationReceiver(nh, nh_private, device, ns));
     case Type::kPositionReceiver:
       return std::shared_ptr<ROSReceiver>(
           new ROSPositionReceiver(nh, nh_private, device, ns));
@@ -49,8 +49,8 @@ ROSReceiver::~ROSReceiver() {
 std::string ROSReceiver::createNameSpace(const Type type, const size_t id) {
   std::string type_name = "";
   switch (type) {
-    case Type::kBaseStation:
-      type_name = "base_station";
+    case Type::kBaseStationReceiver:
+      type_name = "base_station_receiver";
       break;
     case Type::kPositionReceiver:
       type_name = "position_receiver";

@@ -1,6 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_ROS_RECEIVER_H_
 #define PIKSI_MULTI_CPP_ROS_RECEIVER_H_
 
+#include <libsbp/sbp.h>
 #include <ros/ros.h>
 #include <memory>
 #include <string>
@@ -15,7 +16,7 @@ class ROSReceiver {
  public:
   /* The three types of receivers are
 
-  kBaseStation: The static base station sending out RTK corrections.
+  kBaseStationReceiver: The static base station sending out RTK corrections.
 
   kPositionReceiver: The moving rover receiving RTK corrections from the
   base station and broadcasting RTK GPS positions.
@@ -24,7 +25,7 @@ class ROSReceiver {
   reference receiver and broadcasting the moving baseline (also referred to as
   heading). */
   enum Type {
-    kBaseStation = 0,
+    kBaseStationReceiver = 0,
     kPositionReceiver,
     kAttitudeReceiver,
     kUnknown
@@ -64,6 +65,9 @@ class ROSReceiver {
 
   // ROS publishers common for every type.
   ros::Publisher heartbeat_pub_;
+
+  // The sbp state.
+  sbp_state_t state_;
 };
 
 }  // namespace piksi_multi_cpp
