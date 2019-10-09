@@ -5,17 +5,19 @@
 
 namespace piksi_multi_cpp {
 
-CallbackHeartbeat::CallbackHeartbeat(
-    const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
-    const std::shared_ptr<sbp_state_t>& state)
+CallbackHeartbeat::CallbackHeartbeat(const ros::NodeHandle& nh,
+                                     const uint16_t sbp_msg_type,
+                                     const std::shared_ptr<sbp_state_t>& state)
     : Callback(nh, sbp_msg_type, state) {
   // Advertise ROS topics.
   relay_pub_ = nh_.advertise<piksi_rtk_msgs::Heartbeat>("heartbeat", kQueueSize,
                                                         kLatchTopic);
 }
 
+// TODO(rikba): Maybe checking subscribers, casting the message and publishing
+// can be unified somehow such that the user only needs to implement the logic.
 void CallbackHeartbeat::callback(uint16_t sender_id, uint8_t len,
-                                  uint8_t msg[]) {
+                                 uint8_t msg[]) {
   // Before doing anything check if anybody is listening.
   // https://answers.ros.org/question/197878/how-expensive-is-getnumsubscribers-of-publisher/
   if (relay_pub_.getNumSubscribers() == 0) return;
