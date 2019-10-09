@@ -9,18 +9,23 @@
 #include "piksi_multi_cpp/receiver_base_station.h"
 #include "piksi_multi_cpp/receiver_position.h"
 
+// SBP message definitions.
+#include <libsbp/system.h>
+
 namespace piksi_multi_cpp {
 
-std::vector<Receiver::Type> Receiver::kTypeVec =
-    std::vector<Receiver::Type>(
-        {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
+std::vector<Receiver::Type> Receiver::kTypeVec = std::vector<Receiver::Type>(
+    {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
 
 Receiver::Receiver(const ros::NodeHandle& nh,
-                         const std::shared_ptr<Device>& device)
+                   const std::shared_ptr<Device>& device)
     : nh_(nh), device_(device) {
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
   sbp_state_init(state_.get());
+
+  // Register callbacks.
+  cb_.push_back(Callback::create(nh, SBP_MSG_HEARTBEAT, state_));
 }
 
 std::shared_ptr<Receiver> Receiver::create(
@@ -28,8 +33,7 @@ std::shared_ptr<Receiver> Receiver::create(
     const Type type) {
   switch (type) {
     case Type::kBaseStationReceiver:
-      return std::shared_ptr<Receiver>(
-          new ReceiverBaseStation(nh, device));
+      return std::shared_ptr<Receiver>(new ReceiverBaseStation(nh, device));
     case Type::kPositionReceiver:
       return std::shared_ptr<Receiver>(new ReceiverPosition(nh, device));
     case Type::kAttitudeReceiver:

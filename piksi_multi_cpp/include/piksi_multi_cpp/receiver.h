@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "piksi_multi_cpp/callback.h"
 #include "piksi_multi_cpp/device.h"
 
 namespace piksi_multi_cpp {
@@ -46,9 +47,9 @@ class Receiver {
 
   // Create receiver by setting node handle, hardware device, and type.
   // Warning: Node handle namespace must be unique for every device.
-  static std::shared_ptr<Receiver> create(
-      const ros::NodeHandle& nh, const std::shared_ptr<Device>& device,
-      const Type type);
+  static std::shared_ptr<Receiver> create(const ros::NodeHandle& nh,
+                                          const std::shared_ptr<Device>& device,
+                                          const Type type);
 
   // Create receiver from node handle and hardware device. Auto infer type from
   // device.
@@ -75,6 +76,9 @@ class Receiver {
 
   // The sbp state.
   std::shared_ptr<sbp_state_t> state_;
+
+  // SBP callbacks common for all receivers.
+  std::vector<std::shared_ptr<Callback>> cb_;
 };
 
 }  // namespace piksi_multi_cpp
