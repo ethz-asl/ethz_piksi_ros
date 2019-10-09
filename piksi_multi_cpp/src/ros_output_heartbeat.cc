@@ -18,6 +18,7 @@ void ROSOutputHeartbeat::callback(uint16_t sender_id, uint8_t len,
                                   uint8_t msg[]) {
   // Before doing anything check if anybody is listening.
   // https://answers.ros.org/question/197878/how-expensive-is-getnumsubscribers-of-publisher/
+  if (relay_pub_.getNumSubscribers() == 0) return;
 
   // Cast message.
   auto sbp_msg_heartbeat = (msg_heartbeat_t*)msg;
