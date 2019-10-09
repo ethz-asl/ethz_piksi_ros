@@ -89,6 +89,7 @@ std::string Receiver::createNameSpace(const Type type, const size_t id) {
       break;
     case Type::kUnknown:
       type_name = "unknown_receiver";
+      break;
     default:
       type_name = "default";
   }
