@@ -52,7 +52,10 @@ ROSReceiver::~ROSReceiver() {
 }
 
 bool ROSReceiver::init() {
-  if (!device_.get()) return false;
+  if (!device_.get()) {
+    ROS_ERROR("Device not set.");
+    return false;
+  }
   return device_->open();
 }
 
@@ -109,10 +112,13 @@ std::vector<std::shared_ptr<ROSReceiver>> ROSReceiver::createAllReceivers(
     counter[type] = counter[type] + 1;
   }
 
+  ROS_WARN_COND(receivers.empty(), "No receiver created.");
   return receivers;
 }
 
 ROSReceiver::Type ROSReceiver::inferType(const std::shared_ptr<Device>& dev) {
+  if (!dev.get()) return Type::kUnknown;
+
   ROS_WARN("inferType not implemented.");
   return Type::kUnknown;
 }

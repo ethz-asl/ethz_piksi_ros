@@ -10,6 +10,10 @@ int main(int argc, char** argv) {
 
   // Autodetect all receivers.
   auto receivers = ROSReceiver::createAllReceivers(nh_private);
+  if (receivers.empty()) {
+    ROS_FATAL("No receivers.");
+    exit(1);
+  }
 
   // Initialization
   for (auto rec : receivers) {
@@ -20,6 +24,7 @@ int main(int argc, char** argv) {
   }
 
   // Process incoming data.
+  // TODO(rikba): Multithreading!
   while (ros::ok()) {
     for (auto rec : receivers) rec->process();
     ros::spinOnce();

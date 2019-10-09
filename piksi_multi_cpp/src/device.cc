@@ -38,6 +38,7 @@ std::vector<std::shared_ptr<Device>> Device::createAllDevices() {
     if (dev.get()) devices.push_back(dev);
   }
 
+  ROS_WARN_COND(devices.empty(), "No device created.");
   return devices;
 }
 
