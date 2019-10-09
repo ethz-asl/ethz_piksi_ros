@@ -91,13 +91,13 @@ bool DeviceUSB::open() {
   }
 
   // Open port.
-  ROS_INFO_STREAM("Opening port: " << sp_get_port_name(port_));
   sp_return result = sp_open(port_, SP_MODE_READ);
   if (result != SP_OK) {
-    ROS_ERROR_STREAM("Cannot open port: " << result);
+    ROS_ERROR("Cannot open port %s: %d", sp_get_port_name(port_), result);
     close();
     return false;
   }
+  ROS_INFO_STREAM("Opened port: " << sp_get_port_name(port_));
 
   // Configuration.
   // https://github.com/swift-nav/libsbp/blob/master/c/example/example.c
@@ -133,7 +133,7 @@ bool DeviceUSB::open() {
   }
   ROS_DEBUG("Configured the number of stop bits.");
 
-  return false;
+  return true;
 }
 
 int32_t DeviceUSB::read(uint8_t* buff, uint32_t n) const {
