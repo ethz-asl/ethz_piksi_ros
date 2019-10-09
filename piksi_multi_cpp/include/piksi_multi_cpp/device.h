@@ -16,7 +16,7 @@ inline bool identifierEqual(const Identifier& a, const Identifier& b) {
 namespace piksi_multi_cpp {
 class Device {
  public:
-  enum Type { kUSB = 0 };
+  enum DeviceType { kUSB = 0 };
 
   Device(const Identifier& id);
   virtual bool open() = 0;
@@ -32,7 +32,7 @@ class Device {
   static int32_t read_redirect(uint8_t* buff, uint32_t n, void* context);
 
   // Factory method to create all devices.
-  static std::shared_ptr<Device> create(Type type, const Identifier& id);
+  static std::shared_ptr<Device> create(DeviceType type, const Identifier& id);
   static std::vector<std::shared_ptr<Device>> createAllDevices();
 
  protected:

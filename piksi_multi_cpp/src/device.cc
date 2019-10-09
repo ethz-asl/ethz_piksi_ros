@@ -20,8 +20,8 @@ int32_t Device::read_redirect(uint8_t* buff, uint32_t n, void* context) {
   return instance->read(buff, n);
 }
 
-std::shared_ptr<Device> Device::create(Type type, const Identifier& id) {
-  if (type == Type::kUSB) {
+std::shared_ptr<Device> Device::create(DeviceType type, const Identifier& id) {
+  if (type == DeviceType::kUSB) {
     return std::shared_ptr<Device>(new DeviceUSB(id));
   } else {
     return nullptr;
@@ -34,7 +34,7 @@ std::vector<std::shared_ptr<Device>> Device::createAllDevices() {
   // Create all USB devices.
   Identifiers usb_ids = DeviceUSB::getAllIdentifiers();
   for (auto id : usb_ids) {
-    auto dev = create(Type::kUSB, id);
+    auto dev = create(DeviceType::kUSB, id);
     if (dev.get()) devices.push_back(dev);
   }
 

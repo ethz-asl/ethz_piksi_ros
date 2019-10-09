@@ -25,13 +25,13 @@ class Receiver {
   kAttitudeReceiver: The moving rover receiving RTK corrections from a moving
   reference receiver and broadcasting the moving baseline (also referred to as
   heading). */
-  enum Type {
+  enum ReceiverType {
     kBaseStationReceiver = 0,
     kPositionReceiver,
     kAttitudeReceiver,
     kUnknown
   };
-  static std::vector<Type> kTypeVec;
+  static std::vector<ReceiverType> kTypeVec;
 
   Receiver(const ros::NodeHandle& nh, const std::shared_ptr<Device>& device);
 
@@ -49,7 +49,7 @@ class Receiver {
   // Warning: Node handle namespace must be unique for every device.
   static std::shared_ptr<Receiver> create(const ros::NodeHandle& nh,
                                           const std::shared_ptr<Device>& device,
-                                          const Type type);
+                                          const ReceiverType type);
 
   // Create receiver from node handle and hardware device. Auto infer type from
   // device.
@@ -71,8 +71,8 @@ class Receiver {
 
  private:
   // Infer receiver type from Piksi firmware settings.
-  static Type inferType(const std::shared_ptr<Device>& dev);
-  static std::string createNameSpace(const Type type, const size_t id);
+  static ReceiverType inferType(const std::shared_ptr<Device>& dev);
+  static std::string createNameSpace(const ReceiverType type, const size_t id);
 
   // The sbp state.
   std::shared_ptr<sbp_state_t> state_;

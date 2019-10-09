@@ -14,8 +14,9 @@
 
 namespace piksi_multi_cpp {
 
-std::vector<Receiver::Type> Receiver::kTypeVec = std::vector<Receiver::Type>(
-    {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
+std::vector<Receiver::ReceiverType> Receiver::kTypeVec =
+    std::vector<Receiver::ReceiverType>(
+        {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
 
 Receiver::Receiver(const ros::NodeHandle& nh,
                    const std::shared_ptr<Device>& device)
@@ -30,15 +31,15 @@ Receiver::Receiver(const ros::NodeHandle& nh,
 
 std::shared_ptr<Receiver> Receiver::create(
     const ros::NodeHandle& nh, const std::shared_ptr<Device>& device,
-    const Type type) {
+    const ReceiverType type) {
   switch (type) {
-    case Type::kBaseStationReceiver:
+    case ReceiverType::kBaseStationReceiver:
       return std::shared_ptr<Receiver>(new ReceiverBaseStation(nh, device));
-    case Type::kPositionReceiver:
+    case ReceiverType::kPositionReceiver:
       return std::shared_ptr<Receiver>(new ReceiverPosition(nh, device));
-    case Type::kAttitudeReceiver:
+    case ReceiverType::kAttitudeReceiver:
       return std::shared_ptr<Receiver>(new ReceiverAttitude(nh, device));
-    case Type::kUnknown:
+    case ReceiverType::kUnknown:
       return std::shared_ptr<Receiver>(new Receiver(nh, device));
     default:
       return nullptr;
@@ -47,7 +48,7 @@ std::shared_ptr<Receiver> Receiver::create(
 
 std::shared_ptr<Receiver> Receiver::create(
     const ros::NodeHandle& nh, const std::shared_ptr<Device>& device) {
-  Type type = inferType(device);
+  ReceiverType type = inferType(device);
   return create(nh, device, type);
 }
 
@@ -75,19 +76,20 @@ void Receiver::process() {
   }
 }
 
-std::string Receiver::createNameSpace(const Type type, const size_t id) {
+std::string Receiver::createNameSpace(const ReceiverType type,
+                                      const size_t id) {
   std::string type_name = "";
   switch (type) {
-    case Type::kBaseStationReceiver:
+    case ReceiverType::kBaseStationReceiver:
       type_name = "base_station_receiver";
       break;
-    case Type::kPositionReceiver:
+    case ReceiverType::kPositionReceiver:
       type_name = "position_receiver";
       break;
-    case Type::kAttitudeReceiver:
+    case ReceiverType::kAttitudeReceiver:
       type_name = "attitude_receiver";
       break;
-    case Type::kUnknown:
+    case ReceiverType::kUnknown:
       type_name = "unknown_receiver";
       break;
     default:
@@ -102,13 +104,13 @@ std::vector<std::shared_ptr<Receiver>> Receiver::createAllReceivers(
   std::vector<std::shared_ptr<Device>> devices = Device::createAllDevices();
 
   // A counter variable to assign unique ids.
-  std::map<Type, size_t> counter;
+  std::map<ReceiverType, size_t> counter;
   for (const auto type : kTypeVec) counter[type] = 0;
 
   // Create one ROS receiver per device.
   std::vector<std::shared_ptr<Receiver>> receivers;
   for (auto dev : devices) {
-    Type type = inferType(dev);
+    ReceiverType type = inferType(dev);
     size_t unique_id = counter[type];
     std::string ns = createNameSpace(type, unique_id);
     ros::NodeHandle nh_private(nh, ns);
@@ -121,11 +123,11 @@ std::vector<std::shared_ptr<Receiver>> Receiver::createAllReceivers(
   return receivers;
 }
 
-Receiver::Type Receiver::inferType(const std::shared_ptr<Device>& dev) {
-  if (!dev.get()) return Type::kUnknown;
+Receiver::ReceiverType Receiver::inferType(const std::shared_ptr<Device>& dev) {
+  if (!dev.get()) return ReceiverType::kUnknown;
 
   ROS_WARN("inferType not implemented.");
-  return Type::kUnknown;
+  return ReceiverType::kUnknown;
 }
 
 }  // namespace piksi_multi_cpp
