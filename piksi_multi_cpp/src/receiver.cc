@@ -1,21 +1,21 @@
-#include "piksi_multi_cpp/ros_receiver.h"
+#include "piksi_multi_cpp/receiver.h"
 
 #include <libsbp/sbp.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
 #include "piksi_multi_cpp/device.h"
 
 // Forward declarations
-#include "piksi_multi_cpp/ros_attitude_receiver.h"
-#include "piksi_multi_cpp/ros_base_station_receiver.h"
-#include "piksi_multi_cpp/ros_position_receiver.h"
+#include "piksi_multi_cpp/receiver_attitude.h"
+#include "piksi_multi_cpp/receiver_base_station.h"
+#include "piksi_multi_cpp/receiver_position.h"
 
 namespace piksi_multi_cpp {
 
-std::vector<ROSReceiver::Type> ROSReceiver::kTypeVec =
-    std::vector<ROSReceiver::Type>(
+std::vector<Receiver::Type> Receiver::kTypeVec =
+    std::vector<Receiver::Type>(
         {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
 
-ROSReceiver::ROSReceiver(const ros::NodeHandle& nh,
+Receiver::Receiver(const ros::NodeHandle& nh,
                          const std::shared_ptr<Device>& device)
     : nh_(nh), device_(device) {
   // Initialize SBP state.
@@ -23,35 +23,35 @@ ROSReceiver::ROSReceiver(const ros::NodeHandle& nh,
   sbp_state_init(state_.get());
 }
 
-std::shared_ptr<ROSReceiver> ROSReceiver::create(
+std::shared_ptr<Receiver> Receiver::create(
     const ros::NodeHandle& nh, const std::shared_ptr<Device>& device,
     const Type type) {
   switch (type) {
     case Type::kBaseStationReceiver:
-      return std::shared_ptr<ROSReceiver>(
-          new ROSBaseStationReceiver(nh, device));
+      return std::shared_ptr<Receiver>(
+          new ReceiverBaseStation(nh, device));
     case Type::kPositionReceiver:
-      return std::shared_ptr<ROSReceiver>(new ROSPositionReceiver(nh, device));
+      return std::shared_ptr<Receiver>(new ReceiverPosition(nh, device));
     case Type::kAttitudeReceiver:
-      return std::shared_ptr<ROSReceiver>(new ROSAttitudeReceiver(nh, device));
+      return std::shared_ptr<Receiver>(new ReceiverAttitude(nh, device));
     case Type::kUnknown:
-      return std::shared_ptr<ROSReceiver>(new ROSReceiver(nh, device));
+      return std::shared_ptr<Receiver>(new Receiver(nh, device));
     default:
       return nullptr;
   }
 }
 
-std::shared_ptr<ROSReceiver> ROSReceiver::create(
+std::shared_ptr<Receiver> Receiver::create(
     const ros::NodeHandle& nh, const std::shared_ptr<Device>& device) {
   Type type = inferType(device);
   return create(nh, device, type);
 }
 
-ROSReceiver::~ROSReceiver() {
+Receiver::~Receiver() {
   if (device_) device_->close();
 }
 
-bool ROSReceiver::init() {
+bool Receiver::init() {
   if (!device_.get()) {
     ROS_ERROR("Device not set.");
     return false;
@@ -59,7 +59,7 @@ bool ROSReceiver::init() {
   return device_->open();
 }
 
-void ROSReceiver::process() {
+void Receiver::process() {
   if (!device_.get()) return;
   // Pass device pointer to process function.
   sbp_state_set_io_context(state_.get(), device_.get());
@@ -71,7 +71,7 @@ void ROSReceiver::process() {
   }
 }
 
-std::string ROSReceiver::createNameSpace(const Type type, const size_t id) {
+std::string Receiver::createNameSpace(const Type type, const size_t id) {
   std::string type_name = "";
   switch (type) {
     case Type::kBaseStationReceiver:
@@ -91,7 +91,7 @@ std::string ROSReceiver::createNameSpace(const Type type, const size_t id) {
   return type_name + "_" + std::to_string(id);
 }
 
-std::vector<std::shared_ptr<ROSReceiver>> ROSReceiver::createAllReceivers(
+std::vector<std::shared_ptr<Receiver>> Receiver::createAllReceivers(
     const ros::NodeHandle& nh) {
   // Create all devices.
   std::vector<std::shared_ptr<Device>> devices = Device::createAllDevices();
@@ -101,7 +101,7 @@ std::vector<std::shared_ptr<ROSReceiver>> ROSReceiver::createAllReceivers(
   for (const auto type : kTypeVec) counter[type] = 0;
 
   // Create one ROS receiver per device.
-  std::vector<std::shared_ptr<ROSReceiver>> receivers;
+  std::vector<std::shared_ptr<Receiver>> receivers;
   for (auto dev : devices) {
     Type type = inferType(dev);
     size_t unique_id = counter[type];
@@ -116,7 +116,7 @@ std::vector<std::shared_ptr<ROSReceiver>> ROSReceiver::createAllReceivers(
   return receivers;
 }
 
-ROSReceiver::Type ROSReceiver::inferType(const std::shared_ptr<Device>& dev) {
+Receiver::Type Receiver::inferType(const std::shared_ptr<Device>& dev) {
   if (!dev.get()) return Type::kUnknown;
 
   ROS_WARN("inferType not implemented.");

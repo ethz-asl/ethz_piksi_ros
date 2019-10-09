@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_ROS_RECEIVER_H_
-#define PIKSI_MULTI_CPP_ROS_RECEIVER_H_
+#ifndef PIKSI_MULTI_CPP_RECEIVER_H_
+#define PIKSI_MULTI_CPP_RECEIVER_H_
 
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
@@ -12,7 +12,7 @@ namespace piksi_multi_cpp {
 
 // This class offers a ROS interface for Piksi Multi receivers. It automatically
 // assigns a type to a device and offers ROS topics and services.
-class ROSReceiver {
+class Receiver {
  public:
   /* The three types of receivers are
 
@@ -32,10 +32,10 @@ class ROSReceiver {
   };
   static std::vector<Type> kTypeVec;
 
-  ROSReceiver(const ros::NodeHandle& nh, const std::shared_ptr<Device>& device);
+  Receiver(const ros::NodeHandle& nh, const std::shared_ptr<Device>& device);
 
   // Closes device.
-  ~ROSReceiver();
+  ~Receiver();
 
   // Open device.
   bool init();
@@ -46,20 +46,20 @@ class ROSReceiver {
 
   // Create receiver by setting node handle, hardware device, and type.
   // Warning: Node handle namespace must be unique for every device.
-  static std::shared_ptr<ROSReceiver> create(
+  static std::shared_ptr<Receiver> create(
       const ros::NodeHandle& nh, const std::shared_ptr<Device>& device,
       const Type type);
 
   // Create receiver from node handle and hardware device. Auto infer type from
   // device.
   // Warning: Node handle namespace must be unique for every device.
-  static std::shared_ptr<ROSReceiver> create(
+  static std::shared_ptr<Receiver> create(
       const ros::NodeHandle& nh, const std::shared_ptr<Device>& device);
 
   // Create all receivers from node handle only. Autodetects connected hardware
   // devices, infers device type from Piksi firmware settings and assigns unique
   // name spaces.
-  static std::vector<std::shared_ptr<ROSReceiver>> createAllReceivers(
+  static std::vector<std::shared_ptr<Receiver>> createAllReceivers(
       const ros::NodeHandle& nh);
 
  protected:
@@ -79,4 +79,4 @@ class ROSReceiver {
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_ROS_RECEIVER_H_
+#endif  // PIKSI_MULTI_CPP_RECEIVER_H_

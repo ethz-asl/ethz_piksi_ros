@@ -14,12 +14,12 @@ cs_add_library(${PROJECT_NAME}
   src/device.cc
   src/device_usb.cc
   src/piksi_multi.cc
-  src/ros_attitude_receiver.cc
-  src/ros_base_station_receiver.cc
+  src/receiver_attitude.cc
+  src/receiver_base_station.cc
+  src/receiver_position.cc
+  src/receiver.cc
   src/ros_output.cc
   src/ros_output_heartbeat.cc
-  src/ros_position_receiver.cc
-  src/ros_receiver.cc
 )
 target_link_libraries(${PROJECT_NAME} serialport)
 
