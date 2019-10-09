@@ -11,7 +11,7 @@ namespace piksi_multi_cpp {
 class ReceiverPosition : public Receiver {
  public:
   ReceiverPosition(const ros::NodeHandle& nh,
-                      const std::shared_ptr<Device>& device);
+                   const std::shared_ptr<Device>& device);
 
  private:
 };

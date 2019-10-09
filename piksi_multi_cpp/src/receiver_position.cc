@@ -3,7 +3,7 @@
 namespace piksi_multi_cpp {
 
 ReceiverPosition::ReceiverPosition(const ros::NodeHandle& nh,
-                                         const std::shared_ptr<Device>& device)
+                                   const std::shared_ptr<Device>& device)
     : Receiver(nh, device) {}
 
 }  // namespace piksi_multi_cpp

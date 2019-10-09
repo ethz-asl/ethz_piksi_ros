@@ -16,7 +16,7 @@ class Callback {
  public:
   // Register callback.
   Callback(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
-            const std::shared_ptr<sbp_state_t>& state);
+           const std::shared_ptr<sbp_state_t>& state);
 
   // Factory method to create callbacks.
   // Add new message types here.
