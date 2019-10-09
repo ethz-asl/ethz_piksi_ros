@@ -15,28 +15,26 @@ std::vector<ROSReceiver::Type> ROSReceiver::kTypeVec =
         {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
 
 ROSReceiver::ROSReceiver(const ros::NodeHandle& nh,
-                         const ros::NodeHandle& nh_private,
-                         const std::shared_ptr<Device>& device,
-                         const std::string& ns)
-    : device_(device), ns_(ns) {}
+                         const std::shared_ptr<Device>& device)
+    : nh_(nh), device_(device) {
+  // Initialize SBP state.
+  state_ = std::make_shared<sbp_state_t>();
+  sbp_state_init(state_.get());
+}
 
 std::shared_ptr<ROSReceiver> ROSReceiver::create(
-    const Type type, const ros::NodeHandle& nh,
-    const ros::NodeHandle& nh_private, const std::shared_ptr<Device>& device,
-    const std::string& ns) {
+    const ros::NodeHandle& nh, const std::shared_ptr<Device>& device,
+    const Type type) {
   switch (type) {
     case Type::kBaseStationReceiver:
       return std::shared_ptr<ROSReceiver>(
-          new ROSBaseStationReceiver(nh, nh_private, device, ns));
+          new ROSBaseStationReceiver(nh, device));
     case Type::kPositionReceiver:
-      return std::shared_ptr<ROSReceiver>(
-          new ROSPositionReceiver(nh, nh_private, device, ns));
+      return std::shared_ptr<ROSReceiver>(new ROSPositionReceiver(nh, device));
     case Type::kAttitudeReceiver:
-      return std::shared_ptr<ROSReceiver>(
-          new ROSAttitudeReceiver(nh, nh_private, device, ns));
+      return std::shared_ptr<ROSReceiver>(new ROSAttitudeReceiver(nh, device));
     case Type::kUnknown:
-      return std::shared_ptr<ROSReceiver>(
-          new ROSReceiver(nh, nh_private, device, ns));
+      return std::shared_ptr<ROSReceiver>(new ROSReceiver(nh, device));
     default:
       return nullptr;
   }
@@ -67,7 +65,7 @@ std::string ROSReceiver::createNameSpace(const Type type, const size_t id) {
 }
 
 std::vector<std::shared_ptr<ROSReceiver>> ROSReceiver::createAllReceivers(
-    const ros::NodeHandle& nh, const ros::NodeHandle& nh_private) {
+    const ros::NodeHandle& nh) {
   // Create all devices.
   std::vector<std::shared_ptr<Device>> devices = Device::createAllDevices();
 
@@ -81,7 +79,9 @@ std::vector<std::shared_ptr<ROSReceiver>> ROSReceiver::createAllReceivers(
     Type type = inferType(dev);
     size_t unique_id = counter[type];
     std::string ns = createNameSpace(type, unique_id);
-    receivers.push_back(create(type, nh, nh_private, dev, ns));
+    ros::NodeHandle nh_private(nh, ns);
+    auto receiver = create(nh_private, dev, type);
+    if (receiver.get()) receivers.push_back(receiver);
     counter[type] = counter[type] + 1;
   }
 

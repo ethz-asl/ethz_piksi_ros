@@ -16,6 +16,7 @@ class DeviceUSB : public Device {
   int32_t read(uint8_t* buff, uint32_t n) const override;
   void close() override;
 
+ protected:
  private:
   static Identifier identifyPiksi(struct sp_port* port);
   static void printDeviceInfo(struct sp_port* port);

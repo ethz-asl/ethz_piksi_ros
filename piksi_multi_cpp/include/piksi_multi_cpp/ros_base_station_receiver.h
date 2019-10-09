@@ -11,9 +11,7 @@ namespace piksi_multi_cpp {
 class ROSBaseStationReceiver : public ROSReceiver {
  public:
   ROSBaseStationReceiver(const ros::NodeHandle& nh,
-                         const ros::NodeHandle& nh_private,
-                         const std::shared_ptr<Device>& device,
-                         const std::string& ns);
+                         const std::shared_ptr<Device>& device);
 
  private:
 };

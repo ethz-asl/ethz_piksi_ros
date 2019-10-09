@@ -3,9 +3,7 @@
 namespace piksi_multi_cpp {
 
 ROSAttitudeReceiver::ROSAttitudeReceiver(const ros::NodeHandle& nh,
-                                         const ros::NodeHandle& nh_private,
-                                         const std::shared_ptr<Device>& device,
-                                         const std::string& ns)
-    : ROSReceiver(nh, nh_private, device, ns) {}
+                                         const std::shared_ptr<Device>& device)
+    : ROSReceiver(nh, device) {}
 
 }  // namespace piksi_multi_cpp
