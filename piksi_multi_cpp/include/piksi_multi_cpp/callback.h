@@ -30,7 +30,7 @@ class Callback {
   // Every callback has at least one default publisher that relays the current
   // message.
   ros::Publisher relay_pub_;
-
+  // A nodehandle with the correct ROS namespace.
   ros::NodeHandle nh_;
 
  private:
