@@ -13,7 +13,6 @@ catkin_simple(ALL_DEPS_REQUIRED)
 cs_add_library(${PROJECT_NAME}
   src/device.cc
   src/device_usb.cc
-  src/piksi_multi.cc
   src/receiver_attitude.cc
   src/receiver_base_station.cc
   src/receiver_position.cc
