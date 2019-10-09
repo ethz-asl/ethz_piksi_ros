@@ -1,20 +1,20 @@
-#include "piksi_multi_cpp/ros_output_heartbeat.h"
+#include "piksi_multi_cpp/callback_heartbeat.h"
 
 #include <libsbp/system.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
 
 namespace piksi_multi_cpp {
 
-ROSOutputHeartbeat::ROSOutputHeartbeat(
+CallbackHeartbeat::CallbackHeartbeat(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state)
-    : ROSOutput(nh, sbp_msg_type, state) {
+    : Callback(nh, sbp_msg_type, state) {
   // Advertise ROS topics.
   relay_pub_ = nh_.advertise<piksi_rtk_msgs::Heartbeat>("heartbeat", kQueueSize,
                                                         kLatchTopic);
 }
 
-void ROSOutputHeartbeat::callback(uint16_t sender_id, uint8_t len,
+void CallbackHeartbeat::callback(uint16_t sender_id, uint8_t len,
                                   uint8_t msg[]) {
   // Before doing anything check if anybody is listening.
   // https://answers.ros.org/question/197878/how-expensive-is-getnumsubscribers-of-publisher/

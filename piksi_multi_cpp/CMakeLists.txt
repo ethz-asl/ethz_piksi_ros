@@ -18,8 +18,8 @@ cs_add_library(${PROJECT_NAME}
   src/receiver_base_station.cc
   src/receiver_position.cc
   src/receiver.cc
-  src/ros_output.cc
-  src/ros_output_heartbeat.cc
+  src/callback.cc
+  src/callback_heartbeat.cc
 )
 target_link_libraries(${PROJECT_NAME} serialport)
 

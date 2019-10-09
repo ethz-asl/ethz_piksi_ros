@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_ROS_OUTPUT_H_
-#define PIKSI_MULTI_CPP_ROS_OUTPUT_H_
+#ifndef PIKSI_MULTI_CPP_CALLBACK_H_
+#define PIKSI_MULTI_CPP_CALLBACK_H_
 
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
@@ -12,15 +12,15 @@ const bool kLatchTopic = true;
 
 // This class handles the callback creation for the different piksi message
 // types.
-class ROSOutput {
+class Callback {
  public:
   // Register callback.
-  ROSOutput(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
+  Callback(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
             const std::shared_ptr<sbp_state_t>& state);
 
   // Factory method to create callbacks.
   // Add new message types here.
-  static std::shared_ptr<ROSOutput> create(
+  static std::shared_ptr<Callback> create(
       const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
       const std::shared_ptr<sbp_state_t>& state);
 
@@ -47,4 +47,4 @@ class ROSOutput {
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_ROS_OUTPUT_H_
+#endif  // PIKSI_MULTI_CPP_CALLBACK_H_
