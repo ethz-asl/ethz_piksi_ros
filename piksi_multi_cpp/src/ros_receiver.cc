@@ -1,5 +1,6 @@
 #include "piksi_multi_cpp/ros_receiver.h"
 
+#include <libsbp/sbp.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
 #include "piksi_multi_cpp/device.h"
 
@@ -40,8 +41,31 @@ std::shared_ptr<ROSReceiver> ROSReceiver::create(
   }
 }
 
+std::shared_ptr<ROSReceiver> ROSReceiver::create(
+    const ros::NodeHandle& nh, const std::shared_ptr<Device>& device) {
+  Type type = inferType(device);
+  return create(nh, device, type);
+}
+
 ROSReceiver::~ROSReceiver() {
   if (device_) device_->close();
+}
+
+bool ROSReceiver::init() {
+  if (!device_.get()) return false;
+  return device_->open();
+}
+
+void ROSReceiver::process() {
+  if (!device_.get()) return;
+  // Pass device pointer to process function.
+  sbp_state_set_io_context(state_.get(), device_.get());
+  // Pass device read function to sbp_process.
+  int result =
+      sbp_process(state_.get(), &piksi_multi_cpp::Device::read_redirect);
+  if (result < 0) {
+    ROS_WARN_STREAM("Error sbp_process: " << result);
+  }
 }
 
 std::string ROSReceiver::createNameSpace(const Type type, const size_t id) {

@@ -42,10 +42,23 @@ class ROSReceiver {
   // Read device and process SBP callbacks.
   void process();
 
-  // Factory method to create all receivers.
+  // Factory methods to create receivers.
+
+  // Create receiver by setting node handle, hardware device, and type.
+  // Warning: Node handle namespace must be unique for every device.
   static std::shared_ptr<ROSReceiver> create(
       const ros::NodeHandle& nh, const std::shared_ptr<Device>& device,
       const Type type);
+
+  // Create receiver from node handle and hardware device. Auto infer type from
+  // device.
+  // Warning: Node handle namespace must be unique for every device.
+  static std::shared_ptr<ROSReceiver> create(
+      const ros::NodeHandle& nh, const std::shared_ptr<Device>& device);
+
+  // Create all receivers from node handle only. Autodetects connected hardware
+  // devices, infers device type from Piksi firmware settings and assigns unique
+  // name spaces.
   static std::vector<std::shared_ptr<ROSReceiver>> createAllReceivers(
       const ros::NodeHandle& nh);
 

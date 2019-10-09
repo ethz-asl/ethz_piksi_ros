@@ -1,26 +1,29 @@
 #include <ros/ros.h>
 
-#include "piksi_multi_cpp/piksi_multi.h"
+#include "piksi_multi_cpp/ros_receiver.h"
+
+using namespace piksi_multi_cpp;
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "piksi_multi");
-  ros::NodeHandle nh;
   ros::NodeHandle nh_private("~");
-  piksi_multi_cpp::PiksiMulti driver(nh, nh_private);
 
-  if (driver.open()) {
-    ROS_INFO("Port(s) opened.");
-  } else {
-    ROS_FATAL("Error opening port(s).");
-    exit(1);
+  // Autodetect all receivers.
+  auto receivers = ROSReceiver::createAllReceivers(nh_private);
+
+  // Initialization
+  for (auto rec : receivers) {
+    if (!rec->init()) {
+      ROS_FATAL("Error initializing receiver.");
+      exit(1);
+    }
   }
 
+  // Process incoming data.
   while (ros::ok()) {
-    driver.read();
+    for (auto rec : receivers) rec->process();
     ros::spinOnce();
   }
-
-  driver.close();
 
   return 0;
 }
