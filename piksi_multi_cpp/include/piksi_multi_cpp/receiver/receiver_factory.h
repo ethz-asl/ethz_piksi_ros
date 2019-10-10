@@ -12,12 +12,28 @@ See also http://www.blackwasp.co.uk/FactoryMethod.aspx for more details on
 factories. */
 class ReceiverFactory {
  public:
+  /* The three types of receivers are
+
+  kBaseStationReceiver: The static base station sending out RTK corrections.
+
+  kPositionReceiver: The moving rover receiving RTK corrections from the
+  base station and broadcasting RTK GPS positions.
+
+  kAttitudeReceiver: The moving rover receiving RTK corrections from a moving
+  reference receiver and broadcasting the moving baseline (also referred to as
+  heading). */
+  enum ReceiverType {
+    kBaseStationReceiver = 0,
+    kPositionReceiver,
+    kAttitudeReceiver,
+    kUnknown
+  };
   // Factory method to create a receiver by setting node handle, hardware
   // device, and receiver type.
   // Warning: Node handle namespace must be unique for every receiver.
   static Receiver::ReceiverPtr createReceiverByNodeHandleDeviceAndReceiverType(
       const ros::NodeHandle& nh, const Device::DevicePtr& device,
-      const Receiver::ReceiverType type);
+      const ReceiverType type);
 
   // Factory method to create a receiver by setting node handle and hardware
   // device. Receiver type is inferred automatically.
@@ -33,9 +49,8 @@ class ReceiverFactory {
 
  private:
   // Infer receiver type from Piksi firmware settings.
-  static Receiver::ReceiverType inferType(const Device::Device::DevicePtr& dev);
-  static std::string createNameSpace(const Receiver::ReceiverType type,
-                                     const size_t id);
+  static ReceiverType inferType(const Device::Device::DevicePtr& dev);
+  static std::string createNameSpace(const ReceiverType type, const size_t id);
 };
 }  // namespace piksi_multi_cpp
 

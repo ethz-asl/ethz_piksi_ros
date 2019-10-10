@@ -18,7 +18,6 @@ inline bool equalSerialNumber(const SerialNumber& a, const SerialNumber& b) {
 class Device {
  public:
   typedef std::shared_ptr<Device> DevicePtr;
-  enum DeviceType { kUSB = 0 };
 
   Device(const SerialNumber& sn);
   virtual bool open() = 0;

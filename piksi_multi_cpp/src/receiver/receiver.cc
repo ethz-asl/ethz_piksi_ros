@@ -9,10 +9,6 @@
 
 namespace piksi_multi_cpp {
 
-std::vector<Receiver::ReceiverType> Receiver::kTypeVec =
-    std::vector<Receiver::ReceiverType>(
-        {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
-
 Receiver::Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device)
     : nh_(nh), device_(device), is_running_(true) {
   // Initialize SBP state.

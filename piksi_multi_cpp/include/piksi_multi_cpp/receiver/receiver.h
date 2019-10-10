@@ -14,28 +14,10 @@
 
 namespace piksi_multi_cpp {
 
-// This class offers a ROS interface for Piksi Multi receivers. It automatically
-// assigns a type to a device and offers ROS topics and services.
+// This class offers a (ROS) interface for Piksi Multi receivers.
 class Receiver {
  public:
   typedef std::shared_ptr<Receiver> ReceiverPtr;
-  /* The three types of receivers are
-
-  kBaseStationReceiver: The static base station sending out RTK corrections.
-
-  kPositionReceiver: The moving rover receiving RTK corrections from the
-  base station and broadcasting RTK GPS positions.
-
-  kAttitudeReceiver: The moving rover receiving RTK corrections from a moving
-  reference receiver and broadcasting the moving baseline (also referred to as
-  heading). */
-  enum ReceiverType {
-    kBaseStationReceiver = 0,
-    kPositionReceiver,
-    kAttitudeReceiver,
-    kUnknown
-  };
-  static std::vector<ReceiverType> kTypeVec;
 
   Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device);
 

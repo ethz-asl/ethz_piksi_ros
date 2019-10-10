@@ -11,15 +11,15 @@ namespace piksi_multi_cpp {
 Receiver::ReceiverPtr
 ReceiverFactory::createReceiverByNodeHandleDeviceAndReceiverType(
     const ros::NodeHandle& nh, const Device::DevicePtr& device,
-    const Receiver::ReceiverType type) {
+    const ReceiverType type) {
   switch (type) {
-    case Receiver::ReceiverType::kBaseStationReceiver:
+    case ReceiverType::kBaseStationReceiver:
       return Receiver::ReceiverPtr(new ReceiverBaseStation(nh, device));
-    case Receiver::ReceiverType::kPositionReceiver:
+    case ReceiverType::kPositionReceiver:
       return Receiver::ReceiverPtr(new ReceiverPosition(nh, device));
-    case Receiver::ReceiverType::kAttitudeReceiver:
+    case ReceiverType::kAttitudeReceiver:
       return Receiver::ReceiverPtr(new ReceiverAttitude(nh, device));
-    case Receiver::ReceiverType::kUnknown:
+    case ReceiverType::kUnknown:
       return Receiver::ReceiverPtr(new Receiver(nh, device));
     default:
       return nullptr;
@@ -28,7 +28,7 @@ ReceiverFactory::createReceiverByNodeHandleDeviceAndReceiverType(
 
 Receiver::ReceiverPtr ReceiverFactory::createReceiverByNodeHandleAndDevice(
     const ros::NodeHandle& nh, const Device::DevicePtr& device) {
-  Receiver::ReceiverType type = inferType(device);
+  ReceiverType type = inferType(device);
   return createReceiverByNodeHandleDeviceAndReceiverType(nh, device, type);
 }
 
@@ -39,40 +39,44 @@ ReceiverFactory::createAllReceiversByAutoDiscoveryAndNaming(
   auto devices = DeviceFactory::createAllDevicesByAutodiscovery();
 
   // A counter variable to assign unique ids.
-  std::map<Receiver::ReceiverType, size_t> counter;
-  for (const auto type : Receiver::kTypeVec) counter[type] = 0;
-
+  std::map<ReceiverType, size_t> counter;
   // Create one ROS receiver per device.
   std::vector<std::shared_ptr<Receiver>> receivers;
   for (auto dev : devices) {
-    Receiver::ReceiverType type = inferType(dev);
-    size_t unique_id = counter[type];
-    std::string ns = createNameSpace(type, unique_id);
+    ReceiverType type = inferType(dev);
+    // Initialize counter
+    if (counter.find(type) == counter.end()) {
+      // Initialize type counter.
+      counter[type] = 0;
+    }
+
+    std::string ns = createNameSpace(type, counter[type]);
     ros::NodeHandle nh_private(nh, ns);
     auto receiver =
         createReceiverByNodeHandleDeviceAndReceiverType(nh_private, dev, type);
     if (receiver.get()) receivers.push_back(receiver);
-    counter[type] = counter[type] + 1;
+    // Increment type counter.
+    counter[type] += 1;
   }
 
   ROS_WARN_COND(receivers.empty(), "No receiver created.");
   return receivers;
 }
 
-std::string ReceiverFactory::createNameSpace(const Receiver::ReceiverType type,
+std::string ReceiverFactory::createNameSpace(const ReceiverType type,
                                              const size_t id) {
   std::string type_name = "";
   switch (type) {
-    case Receiver::ReceiverType::kBaseStationReceiver:
+    case ReceiverType::kBaseStationReceiver:
       type_name = "base_station_receiver";
       break;
-    case Receiver::ReceiverType::kPositionReceiver:
+    case ReceiverType::kPositionReceiver:
       type_name = "position_receiver";
       break;
-    case Receiver::ReceiverType::kAttitudeReceiver:
+    case ReceiverType::kAttitudeReceiver:
       type_name = "attitude_receiver";
       break;
-    case Receiver::ReceiverType::kUnknown:
+    case ReceiverType::kUnknown:
       type_name = "unknown_receiver";
       break;
     default:
@@ -81,12 +85,12 @@ std::string ReceiverFactory::createNameSpace(const Receiver::ReceiverType type,
   return type_name + "_" + std::to_string(id);
 }
 
-Receiver::ReceiverType ReceiverFactory::inferType(
+ReceiverFactory::ReceiverType ReceiverFactory::inferType(
     const Device::DevicePtr& dev) {
-  if (!dev.get()) return Receiver::ReceiverType::kUnknown;
+  if (!dev.get()) return ReceiverType::kUnknown;
 
   ROS_WARN("inferType not implemented.");
-  return Receiver::ReceiverType::kUnknown;
+  return ReceiverType::kUnknown;
 }
 
 }  // namespace piksi_multi_cpp
