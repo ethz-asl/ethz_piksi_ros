@@ -3,8 +3,10 @@
 
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
+#include <atomic>
 #include <memory>
 #include <string>
+#include <thread>
 #include <vector>
 #include "piksi_multi_cpp/device/device.h"
 #include "piksi_multi_cpp/receiver/receiver.h"
@@ -41,8 +43,6 @@ class Receiver {
 
   // Open device.
   bool init();
-  // Read device and process SBP callbacks.
-  void process();
 
   // Factory methods to create receivers.
 
@@ -75,9 +75,16 @@ class Receiver {
   static ReceiverType inferType(const std::shared_ptr<Device>& dev);
   static std::string createNameSpace(const ReceiverType type, const size_t id);
 
+  // Read device and process SBP callbacks.
+  void process();
+  // Start thread that reads device and processes SBP messages. This thread is
+  // terminated when the is_running flag ist set false during object
+  // destruction.
+  std::thread process_thread_;
+  std::atomic_bool thread_exit_requested_;
+
   // The sbp state.
   std::shared_ptr<sbp_state_t> state_;
-
   // SBP callbacks common for all receivers.
   std::vector<std::shared_ptr<SBPCallback>> cb_;
 };

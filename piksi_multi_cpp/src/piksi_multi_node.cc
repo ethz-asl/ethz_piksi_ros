@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  // Initialization
+  // Start all receivers.
   for (auto rec : receivers) {
     if (!rec->init()) {
       ROS_FATAL("Error initializing receiver.");
@@ -23,12 +23,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  // Process incoming data.
-  // TODO(rikba): Multithreading!
-  while (ros::ok()) {
-    for (auto rec : receivers) rec->process();
-    ros::spinOnce();
-  }
+  ros::spin();
 
   return 0;
 }
