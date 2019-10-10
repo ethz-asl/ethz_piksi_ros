@@ -10,7 +10,7 @@
 namespace piksi_multi_cpp {
 
 Receiver::Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device)
-    : nh_(nh), device_(device), thread_exit_requested_(true) {
+    : nh_(nh), device_(device), thread_exit_requested_(false) {
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
   sbp_state_init(state_.get());
