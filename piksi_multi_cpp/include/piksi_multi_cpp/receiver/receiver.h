@@ -36,7 +36,7 @@ class Receiver {
   };
   static std::vector<ReceiverType> kTypeVec;
 
-  Receiver(const ros::NodeHandle& nh, const std::shared_ptr<Device>& device);
+  Receiver(const ros::NodeHandle& nh, const DevicePtr& device);
 
   // Closes device.
   ~Receiver();
@@ -49,14 +49,14 @@ class Receiver {
   // Create receiver by setting node handle, hardware device, and type.
   // Warning: Node handle namespace must be unique for every device.
   static std::shared_ptr<Receiver> create(const ros::NodeHandle& nh,
-                                          const std::shared_ptr<Device>& device,
+                                          const DevicePtr& device,
                                           const ReceiverType type);
 
   // Create receiver from node handle and hardware device. Auto infer type from
   // device.
   // Warning: Node handle namespace must be unique for every device.
-  static std::shared_ptr<Receiver> create(
-      const ros::NodeHandle& nh, const std::shared_ptr<Device>& device);
+  static std::shared_ptr<Receiver> create(const ros::NodeHandle& nh,
+                                          const DevicePtr& device);
 
   // Create all receivers from node handle only. Autodetects connected hardware
   // devices, infers device type from Piksi firmware settings and assigns unique
@@ -68,11 +68,11 @@ class Receiver {
   // ROS node handle in the correct receiver namespace.
   ros::NodeHandle nh_;
   // The actual hardware interface.
-  std::shared_ptr<Device> device_;
+  DevicePtr device_;
 
  private:
   // Infer receiver type from Piksi firmware settings.
-  static ReceiverType inferType(const std::shared_ptr<Device>& dev);
+  static ReceiverType inferType(const DevicePtr& dev);
   static std::string createNameSpace(const ReceiverType type, const size_t id);
 
   // Read device and process SBP callbacks.

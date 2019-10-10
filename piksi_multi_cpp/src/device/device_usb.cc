@@ -7,10 +7,10 @@ const int kInterfaceNumber = 1;
 
 namespace piksi_multi_cpp {
 
-DeviceUSB::DeviceUSB(const Identifier& id) : Device(id), port_(nullptr) {}
+DeviceUSB::DeviceUSB(const SerialNumber& sn) : Device(sn), port_(nullptr) {}
 
-Identifiers DeviceUSB::getAllIdentifiers() {
-  Identifiers identifiers;
+SerialNumbers DeviceUSB::discoverAllSerialNumbers() {
+  SerialNumbers identifiers;
 
   // Get list of all ports.
   struct sp_port** ports;
@@ -24,10 +24,10 @@ Identifiers DeviceUSB::getAllIdentifiers() {
   // Identify Piksi Multi among ports.
   for (int i = 0; ports[i]; i++) {
     // Check if port belongs to a Piksi Multi and get serial number.
-    Identifier id = identifyPiksi(ports[i]);
+    SerialNumber sn = identifyPiksiAndGetSerialNumber(ports[i]);
     // Add serial to identifier set.
-    if (!id.empty()) {
-      identifiers.insert(id);
+    if (!sn.empty()) {
+      identifiers.insert(sn);
     }
   }
 
@@ -51,7 +51,7 @@ void DeviceUSB::printPorts() {
 }
 
 bool DeviceUSB::allocatePort() {
-  // Find any serial port with id.
+  // Find any serial port with serial number.
   struct sp_port** ports;
   sp_return result = sp_list_ports(&ports);
   if (result < 0) {
@@ -60,8 +60,8 @@ bool DeviceUSB::allocatePort() {
   }
 
   for (int i = 0; ports[i]; i++) {
-    Identifier id_query = identifyPiksi(ports[i]);
-    if (identifierEqual(id_query, id_)) {
+    auto sn_query = identifyPiksiAndGetSerialNumber(ports[i]);
+    if (equalSerialNumber(sn_query, serial_number_)) {
       result = sp_copy_port(ports[i], &port_);
       if (result == SP_OK) {
         break;
@@ -77,8 +77,8 @@ bool DeviceUSB::allocatePort() {
     ROS_ERROR("Failed to allocate port.");
     return false;
   } else {
-    ROS_INFO_STREAM(
-        "Allocated USB port for Piksi Multi with serial number: " << id_);
+    ROS_INFO_STREAM("Allocated USB port for Piksi Multi with serial number: "
+                    << serial_number_);
     return true;
   }
 }
@@ -156,10 +156,10 @@ void DeviceUSB::close() {
   }
 }
 
-Identifier DeviceUSB::identifyPiksi(struct sp_port* port) {
-  if (!port) return Identifier();
+SerialNumber DeviceUSB::identifyPiksiAndGetSerialNumber(struct sp_port* port) {
+  if (!port) return SerialNumber();
 
-  // Get vendor and product ID to identify Piksi Multi.
+  // Get vendor and product id to identify Piksi Multi.
   int usb_vid = -1;
   int usb_pid = -1;
   sp_return result = sp_get_port_usb_vid_pid(port, &usb_vid, &usb_pid);
@@ -175,9 +175,9 @@ Identifier DeviceUSB::identifyPiksi(struct sp_port* port) {
   if (usb_vid == kIDVendor && usb_pid == kIDProduct) {
     // Get serial number as a unique identifier.
     char* serial_number = sp_get_port_usb_serial(port);
-    return Identifier(serial_number);
+    return SerialNumber(serial_number);
   } else {
-    return Identifier();
+    return SerialNumber();
   }
 }
 

@@ -8,16 +8,16 @@ namespace piksi_multi_cpp {
 
 class DeviceUSB : public Device {
  public:
-  DeviceUSB(const Identifier& id);
+  DeviceUSB(const SerialNumber& id);
 
   // List all unique Piksi multi devices using the usb serial number.
-  static Identifiers getAllIdentifiers();
+  static SerialNumbers discoverAllSerialNumbers();
   bool open() override;
   int32_t read(uint8_t* buff, uint32_t n) const override;
   void close() override;
 
  private:
-  static Identifier identifyPiksi(struct sp_port* port);
+  static SerialNumber identifyPiksiAndGetSerialNumber(struct sp_port* port);
   static void printDeviceInfo(struct sp_port* port);
   static void printPorts();
   bool allocatePort();

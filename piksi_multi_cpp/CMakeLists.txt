@@ -12,6 +12,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 #############
 cs_add_library(${PROJECT_NAME}
   src/device/device.cc
+  src/device/device_factory.cc
   src/device/device_usb.cc
   src/receiver/receiver_attitude.cc
   src/receiver/receiver_base_station.cc

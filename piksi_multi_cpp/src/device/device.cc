@@ -7,7 +7,7 @@
 
 namespace piksi_multi_cpp {
 
-Device::Device(const Identifier& id) : id_(id) {}
+Device::Device(const SerialNumber& sn) : serial_number_(sn) {}
 
 int32_t Device::read_redirect(uint8_t* buff, uint32_t n, void* context) {
   if (!context) {
@@ -18,28 +18,6 @@ int32_t Device::read_redirect(uint8_t* buff, uint32_t n, void* context) {
   Device* instance = static_cast<Device*>(context);
   // Execute instance's read function.
   return instance->read(buff, n);
-}
-
-std::shared_ptr<Device> Device::create(DeviceType type, const Identifier& id) {
-  if (type == DeviceType::kUSB) {
-    return std::shared_ptr<Device>(new DeviceUSB(id));
-  } else {
-    return nullptr;
-  }
-}
-
-std::vector<std::shared_ptr<Device>> Device::createAllDevices() {
-  std::vector<std::shared_ptr<Device>> devices;
-
-  // Create all USB devices.
-  Identifiers usb_ids = DeviceUSB::getAllIdentifiers();
-  for (auto id : usb_ids) {
-    auto dev = create(DeviceType::kUSB, id);
-    if (dev.get()) devices.push_back(dev);
-  }
-
-  ROS_WARN_COND(devices.empty(), "No device created.");
-  return devices;
 }
 
 }  // namespace piksi_multi_cpp

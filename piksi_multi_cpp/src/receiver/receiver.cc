@@ -2,7 +2,7 @@
 
 #include <libsbp/sbp.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
-#include "piksi_multi_cpp/device/device.h"
+#include "piksi_multi_cpp/device/device_factory.h"
 
 // Forward declarations
 #include "piksi_multi_cpp/receiver/receiver_attitude.h"
@@ -18,8 +18,7 @@ std::vector<Receiver::ReceiverType> Receiver::kTypeVec =
     std::vector<Receiver::ReceiverType>(
         {kBaseStationReceiver, kPositionReceiver, kAttitudeReceiver, kUnknown});
 
-Receiver::Receiver(const ros::NodeHandle& nh,
-                   const std::shared_ptr<Device>& device)
+Receiver::Receiver(const ros::NodeHandle& nh, const DevicePtr& device)
     : nh_(nh), device_(device), is_running_(true) {
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
@@ -29,9 +28,9 @@ Receiver::Receiver(const ros::NodeHandle& nh,
   cb_.push_back(SBPCallback::create(nh, SBP_MSG_HEARTBEAT, state_));
 }
 
-std::shared_ptr<Receiver> Receiver::create(
-    const ros::NodeHandle& nh, const std::shared_ptr<Device>& device,
-    const ReceiverType type) {
+std::shared_ptr<Receiver> Receiver::create(const ros::NodeHandle& nh,
+                                           const DevicePtr& device,
+                                           const ReceiverType type) {
   switch (type) {
     case ReceiverType::kBaseStationReceiver:
       return std::shared_ptr<Receiver>(new ReceiverBaseStation(nh, device));
@@ -46,8 +45,8 @@ std::shared_ptr<Receiver> Receiver::create(
   }
 }
 
-std::shared_ptr<Receiver> Receiver::create(
-    const ros::NodeHandle& nh, const std::shared_ptr<Device>& device) {
+std::shared_ptr<Receiver> Receiver::create(const ros::NodeHandle& nh,
+                                           const DevicePtr& device) {
   ReceiverType type = inferType(device);
   return create(nh, device, type);
 }
@@ -116,7 +115,8 @@ std::string Receiver::createNameSpace(const ReceiverType type,
 std::vector<std::shared_ptr<Receiver>> Receiver::createAllReceivers(
     const ros::NodeHandle& nh) {
   // Create all devices.
-  std::vector<std::shared_ptr<Device>> devices = Device::createAllDevices();
+  std::vector<DevicePtr> devices =
+      DeviceFactory::createAllDevicesByAutodiscovery();
 
   // A counter variable to assign unique ids.
   std::map<ReceiverType, size_t> counter;
@@ -138,7 +138,7 @@ std::vector<std::shared_ptr<Receiver>> Receiver::createAllReceivers(
   return receivers;
 }
 
-Receiver::ReceiverType Receiver::inferType(const std::shared_ptr<Device>& dev) {
+Receiver::ReceiverType Receiver::inferType(const DevicePtr& dev) {
   if (!dev.get()) return ReceiverType::kUnknown;
 
   ROS_WARN("inferType not implemented.");
