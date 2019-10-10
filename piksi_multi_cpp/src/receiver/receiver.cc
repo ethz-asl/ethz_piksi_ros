@@ -20,7 +20,7 @@ std::vector<Receiver::ReceiverType> Receiver::kTypeVec =
 
 Receiver::Receiver(const ros::NodeHandle& nh,
                    const std::shared_ptr<Device>& device)
-    : nh_(nh), device_(device) {
+    : nh_(nh), device_(device), is_running_(true) {
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
   sbp_state_init(state_.get());
@@ -53,6 +53,10 @@ std::shared_ptr<Receiver> Receiver::create(
 }
 
 Receiver::~Receiver() {
+  // Close thread.
+  is_running_.store(false);
+  process_thread_.join();
+
   if (device_) device_->close();
 }
 
@@ -61,18 +65,29 @@ bool Receiver::init() {
     ROS_ERROR("Device not set.");
     return false;
   }
-  return device_->open();
+
+  // Open attached device.
+  if (!device_->open()) {
+    ROS_ERROR("Cannot open device.");
+    return false;
+  }
+
+  process_thread_ = std::thread(&Receiver::process, this);
+
+  return true;
 }
 
 void Receiver::process() {
-  if (!device_.get()) return;
-  // Pass device pointer to process function.
-  sbp_state_set_io_context(state_.get(), device_.get());
-  // Pass device read function to sbp_process.
-  int result =
-      sbp_process(state_.get(), &piksi_multi_cpp::Device::read_redirect);
-  if (result < 0) {
-    ROS_WARN_STREAM("Error sbp_process: " << result);
+  while (is_running_.load()) {
+    if (!device_.get()) return;
+    // Pass device pointer to process function.
+    sbp_state_set_io_context(state_.get(), device_.get());
+    // Pass device read function to sbp_process.
+    int result =
+        sbp_process(state_.get(), &piksi_multi_cpp::Device::read_redirect);
+    if (result < 0) {
+      ROS_WARN_STREAM("Error sbp_process: " << result);
+    }
   }
 }
 
