@@ -34,9 +34,11 @@ std::vector<std::shared_ptr<Device>> Device::createAllDevices() {
   // Create all USB devices.
   Identifiers usb_ids = DeviceUSB::getAllIdentifiers();
   for (auto id : usb_ids) {
-    devices.push_back(create(DeviceType::kUSB, id));
+    auto dev = create(DeviceType::kUSB, id);
+    if (dev.get()) devices.push_back(dev);
   }
 
+  ROS_WARN_COND(devices.empty(), "No device created.");
   return devices;
 }
 

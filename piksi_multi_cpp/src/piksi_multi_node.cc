@@ -1,26 +1,34 @@
 #include <ros/ros.h>
 
-#include "piksi_multi_cpp/piksi_multi.h"
+#include "piksi_multi_cpp/receiver.h"
+
+using namespace piksi_multi_cpp;
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "piksi_multi");
-  ros::NodeHandle nh;
   ros::NodeHandle nh_private("~");
-  piksi_multi_cpp::PiksiMulti driver(nh, nh_private);
 
-  if (driver.open()) {
-    ROS_INFO("Port(s) opened.");
-  } else {
-    ROS_FATAL("Error opening port(s).");
+  // Autodetect all receivers.
+  auto receivers = Receiver::createAllReceivers(nh_private);
+  if (receivers.empty()) {
+    ROS_FATAL("No receivers.");
     exit(1);
   }
 
-  while (ros::ok()) {
-    driver.read();
-    ros::spinOnce();
+  // Initialization
+  for (auto rec : receivers) {
+    if (!rec->init()) {
+      ROS_FATAL("Error initializing receiver.");
+      exit(1);
+    }
   }
 
-  driver.close();
+  // Process incoming data.
+  // TODO(rikba): Multithreading!
+  while (ros::ok()) {
+    for (auto rec : receivers) rec->process();
+    ros::spinOnce();
+  }
 
   return 0;
 }
