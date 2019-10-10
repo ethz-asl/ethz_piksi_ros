@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_CALLBACK_H_
-#define PIKSI_MULTI_CPP_CALLBACK_H_
+#ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_H_
+#define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_H_
 
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
@@ -47,4 +47,4 @@ class SBPCallback {
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_CALLBACK_H_
+#endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_H_

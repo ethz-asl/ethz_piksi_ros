@@ -1,9 +1,9 @@
-#ifndef PIKSI_MULTI_CPP_CALLBACK_HEARTBEAT_H_
-#define PIKSI_MULTI_CPP_CALLBACK_HEARTBEAT_H_
+#ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_HEARTBEAT_H_
+#define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_HEARTBEAT_H_
 
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
-#include "piksi_multi_cpp/sbp_callback/sbp_callback.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
 namespace piksi_multi_cpp {
 
@@ -18,4 +18,4 @@ class SBPCallbackHeartbeat : public SBPCallback {
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_CALLBACK_HEARTBEAT_H_
+#endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_HEARTBEAT_H_

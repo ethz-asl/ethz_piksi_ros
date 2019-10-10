@@ -1,10 +1,10 @@
-#include "piksi_multi_cpp/sbp_callback/sbp_callback.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
 #include <ros/console.h>
 
 // Forward declaration.
 #include <libsbp/system.h>
-#include "piksi_multi_cpp/sbp_callback/sbp_callback_heartbeat.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_heartbeat.h"
 
 namespace piksi_multi_cpp {
 

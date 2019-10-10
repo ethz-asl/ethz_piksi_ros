@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_RECEIVER_H_
-#define PIKSI_MULTI_CPP_RECEIVER_H_
+#ifndef PIKSI_MULTI_CPP_RECEIVER_RECEIVER_H_
+#define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_H_
 
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
@@ -8,7 +8,7 @@
 #include <vector>
 #include "piksi_multi_cpp/device/device.h"
 #include "piksi_multi_cpp/receiver/receiver.h"
-#include "piksi_multi_cpp/sbp_callback/sbp_callback.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
 namespace piksi_multi_cpp {
 
@@ -84,4 +84,4 @@ class Receiver {
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_RECEIVER_H_
+#endif  // PIKSI_MULTI_CPP_RECEIVER_RECEIVER_H_

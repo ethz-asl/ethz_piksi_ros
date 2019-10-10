@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_RECEIVER_ATTITUDE_H_
-#define PIKSI_MULTI_CPP_RECEIVER_ATTITUDE_H_
+#ifndef PIKSI_MULTI_CPP_RECEIVER_RECEIVER_ATTITUDE_H_
+#define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_ATTITUDE_H_
 
 #include <ros/ros.h>
 #include <string>
@@ -20,4 +20,4 @@ class ReceiverAttitude : public Receiver {
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_RECEIVER_ATTITUDE_H_
+#endif  // PIKSI_MULTI_CPP_RECEIVER_RECEIVER_ATTITUDE_H_

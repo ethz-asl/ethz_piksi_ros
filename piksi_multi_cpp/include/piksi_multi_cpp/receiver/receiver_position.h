@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_RECEIVER_POSITION_H_
-#define PIKSI_MULTI_CPP_RECEIVER_POSITION_H_
+#ifndef PIKSI_MULTI_CPP_RECEIVER_RECEIVER_BASE_POSITION_H_
+#define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_BASE_POSITION_H_
 
 #include <ros/ros.h>
 #include <string>
@@ -18,4 +18,4 @@ class ReceiverPosition : public Receiver {
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_RECEIVER_POSITION_H_
+#endif  // PIKSI_MULTI_CPP_RECEIVER_RECEIVER_BASE_POSITION_H_

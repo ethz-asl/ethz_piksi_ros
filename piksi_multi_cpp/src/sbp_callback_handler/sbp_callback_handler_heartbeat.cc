@@ -1,4 +1,4 @@
-#include "piksi_multi_cpp/sbp_callback/sbp_callback_heartbeat.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_heartbeat.h"
 
 #include <libsbp/system.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
