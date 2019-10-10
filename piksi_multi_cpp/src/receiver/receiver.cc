@@ -22,8 +22,8 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device)
 
 Receiver::~Receiver() {
   // Close thread.
-  is_running_.store(false);
-  process_thread_.join();
+  thread_exit_requested_.store(true);
+  if (process_thread_.joinable()) process_thread_.join();
 
   if (device_) device_->close();
 }
@@ -46,7 +46,8 @@ bool Receiver::init() {
 }
 
 void Receiver::process() {
-  while (is_running_.load()) {
+  // Setting thread_exit_requested_ will terminate the thread.
+  while (!thread_exit_requested_.load()) {
     if (!device_.get()) return;
     // Pass device pointer to process function.
     sbp_state_set_io_context(state_.get(), device_.get());
