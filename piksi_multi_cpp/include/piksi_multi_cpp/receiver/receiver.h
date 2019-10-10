@@ -81,7 +81,7 @@ class Receiver {
   // terminated when the is_running flag ist set false during object
   // destruction.
   std::thread process_thread_;
-  std::atomic_bool is_running_;
+  std::atomic_bool thread_exit_requested_;
 
   // The sbp state.
   std::shared_ptr<sbp_state_t> state_;
