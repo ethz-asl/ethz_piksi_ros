@@ -1,6 +1,7 @@
 #include "piksi_multi_cpp/receiver/receiver.h"
 
 #include <libsbp/sbp.h>
+#include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
 
 // SBP message definitions.
@@ -19,7 +20,8 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device)
   sbp_state_init(state_.get());
 
   // Register callbacks.
-  cb_.push_back(SBPCallback::create(nh, SBP_MSG_HEARTBEAT, state_));
+  cb_.push_back(SBPCallbackHandlerFactory::createSBPRelayCallbackBySBPMsgType(
+      nh, SBP_MSG_HEARTBEAT, state_));
 }
 
 Receiver::~Receiver() {

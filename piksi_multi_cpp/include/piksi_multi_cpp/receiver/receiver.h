@@ -63,7 +63,7 @@ class Receiver {
   // The sbp state.
   std::shared_ptr<sbp_state_t> state_;
   // SBP callbacks common for all receivers.
-  std::vector<std::shared_ptr<SBPCallback>> cb_;
+  std::vector<SBPCallbackHandler::SBPCallbackHandlerPtr> cb_;
 };
 
 }  // namespace piksi_multi_cpp

@@ -20,6 +20,7 @@ cs_add_library(${PROJECT_NAME}
   src/receiver/receiver_position.cc
   src/receiver/receiver.cc
   src/sbp_callback_handler/sbp_callback_handler.cc
+  src/sbp_callback_handler/sbp_callback_handler_factory.cc
   src/sbp_callback_handler/sbp_callback_handler_heartbeat.cc
 )
 target_link_libraries(${PROJECT_NAME} serialport)
