@@ -1,8 +1,8 @@
-#ifndef PIKSI_MULTI_CPP_DEVICE_USB_H_
-#define PIKSI_MULTI_CPP_DEVICE_USB_H_
+#ifndef PIKSI_MULTI_CPP_DEVICE_DEVICE_USB_H_
+#define PIKSI_MULTI_CPP_DEVICE_DEVICE_USB_H_
 
 #include <libserialport.h>
-#include "piksi_multi_cpp/device.h"
+#include "piksi_multi_cpp/device/device.h"
 
 namespace piksi_multi_cpp {
 
@@ -26,4 +26,4 @@ class DeviceUSB : public Device {
 };
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_DEVICE_USB_H_
+#endif  // PIKSI_MULTI_CPP_DEVICE_DEVICE_USB_H_

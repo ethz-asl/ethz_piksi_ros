@@ -1,13 +1,13 @@
-#include "piksi_multi_cpp/receiver.h"
+#include "piksi_multi_cpp/receiver/receiver.h"
 
 #include <libsbp/sbp.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
-#include "piksi_multi_cpp/device.h"
+#include "piksi_multi_cpp/device/device.h"
 
 // Forward declarations
-#include "piksi_multi_cpp/receiver_attitude.h"
-#include "piksi_multi_cpp/receiver_base_station.h"
-#include "piksi_multi_cpp/receiver_position.h"
+#include "piksi_multi_cpp/receiver/receiver_attitude.h"
+#include "piksi_multi_cpp/receiver/receiver_base_station.h"
+#include "piksi_multi_cpp/receiver/receiver_position.h"
 
 // SBP message definitions.
 #include <libsbp/system.h>
@@ -26,7 +26,7 @@ Receiver::Receiver(const ros::NodeHandle& nh,
   sbp_state_init(state_.get());
 
   // Register callbacks.
-  cb_.push_back(Callback::create(nh, SBP_MSG_HEARTBEAT, state_));
+  cb_.push_back(SBPCallback::create(nh, SBP_MSG_HEARTBEAT, state_));
 }
 
 std::shared_ptr<Receiver> Receiver::create(

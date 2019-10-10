@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include "piksi_multi_cpp/receiver.h"
+#include "piksi_multi_cpp/receiver/receiver.h"
 
 using namespace piksi_multi_cpp;
 

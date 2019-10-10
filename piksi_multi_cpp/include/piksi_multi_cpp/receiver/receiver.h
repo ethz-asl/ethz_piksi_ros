@@ -1,13 +1,14 @@
-#ifndef PIKSI_MULTI_CPP_RECEIVER_H_
-#define PIKSI_MULTI_CPP_RECEIVER_H_
+#ifndef PIKSI_MULTI_CPP_RECEIVER_RECEIVER_H_
+#define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_H_
 
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
 #include <memory>
 #include <string>
 #include <vector>
-#include "piksi_multi_cpp/callback.h"
-#include "piksi_multi_cpp/device.h"
+#include "piksi_multi_cpp/device/device.h"
+#include "piksi_multi_cpp/receiver/receiver.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
 namespace piksi_multi_cpp {
 
@@ -78,9 +79,9 @@ class Receiver {
   std::shared_ptr<sbp_state_t> state_;
 
   // SBP callbacks common for all receivers.
-  std::vector<std::shared_ptr<Callback>> cb_;
+  std::vector<std::shared_ptr<SBPCallback>> cb_;
 };
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_RECEIVER_H_
+#endif  // PIKSI_MULTI_CPP_RECEIVER_RECEIVER_H_

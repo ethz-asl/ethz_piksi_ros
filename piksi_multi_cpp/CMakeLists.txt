@@ -11,14 +11,14 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # LIBRARIES #
 #############
 cs_add_library(${PROJECT_NAME}
-  src/device.cc
-  src/device_usb.cc
-  src/receiver_attitude.cc
-  src/receiver_base_station.cc
-  src/receiver_position.cc
-  src/receiver.cc
-  src/callback.cc
-  src/callback_heartbeat.cc
+  src/device/device.cc
+  src/device/device_usb.cc
+  src/receiver/receiver_attitude.cc
+  src/receiver/receiver_base_station.cc
+  src/receiver/receiver_position.cc
+  src/receiver/receiver.cc
+  src/sbp_callback_handler/sbp_callback_handler.cc
+  src/sbp_callback_handler/sbp_callback_handler_heartbeat.cc
 )
 target_link_libraries(${PROJECT_NAME} serialport)
 

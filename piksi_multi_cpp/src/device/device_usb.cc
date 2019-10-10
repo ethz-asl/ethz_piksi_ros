@@ -1,4 +1,4 @@
-#include "piksi_multi_cpp/device_usb.h"
+#include "piksi_multi_cpp/device/device_usb.h"
 
 #include <libserialport.h>
 #include <ros/console.h>

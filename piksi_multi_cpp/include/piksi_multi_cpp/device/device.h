@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_DEVICE_H_
-#define PIKSI_MULTI_CPP_DEVICE_H_
+#ifndef PIKSI_MULTI_CPP_DEVICE_DEVICE_H_
+#define PIKSI_MULTI_CPP_DEVICE_DEVICE_H_
 
 #include <cstdint>
 #include <memory>
@@ -40,4 +40,4 @@ class Device {
 };
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_DEVICE_H_
+#endif  // PIKSI_MULTI_CPP_DEVICE_DEVICE_H_
