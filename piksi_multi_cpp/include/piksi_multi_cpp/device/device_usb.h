@@ -2,7 +2,7 @@
 #define PIKSI_MULTI_CPP_DEVICE_USB_H_
 
 #include <libserialport.h>
-#include "piksi_multi_cpp/device.h"
+#include "piksi_multi_cpp/device/device.h"
 
 namespace piksi_multi_cpp {
 

@@ -6,8 +6,9 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "piksi_multi_cpp/callback.h"
-#include "piksi_multi_cpp/device.h"
+#include "piksi_multi_cpp/device/device.h"
+#include "piksi_multi_cpp/receiver/receiver.h"
+#include "piksi_multi_cpp/sbp_callback/sbp_callback.h"
 
 namespace piksi_multi_cpp {
 
@@ -78,7 +79,7 @@ class Receiver {
   std::shared_ptr<sbp_state_t> state_;
 
   // SBP callbacks common for all receivers.
-  std::vector<std::shared_ptr<Callback>> cb_;
+  std::vector<std::shared_ptr<SBPCallback>> cb_;
 };
 
 }  // namespace piksi_multi_cpp

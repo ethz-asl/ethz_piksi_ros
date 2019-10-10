@@ -12,15 +12,15 @@ const bool kLatchTopic = true;
 
 // This class handles the callback creation for the different piksi message
 // types.
-class Callback {
+class SBPCallback {
  public:
   // Register callback.
-  Callback(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
+  SBPCallback(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
            const std::shared_ptr<sbp_state_t>& state);
 
   // Factory method to create callbacks.
   // Add new message types here.
-  static std::shared_ptr<Callback> create(
+  static std::shared_ptr<SBPCallback> create(
       const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
       const std::shared_ptr<sbp_state_t>& state);
 

@@ -1,4 +1,4 @@
-#include "piksi_multi_cpp/receiver_base_station.h"
+#include "piksi_multi_cpp/receiver/receiver_base_station.h"
 
 namespace piksi_multi_cpp {
 

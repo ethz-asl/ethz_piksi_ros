@@ -3,8 +3,8 @@
 
 #include <ros/ros.h>
 #include <string>
-#include "piksi_multi_cpp/device.h"
-#include "piksi_multi_cpp/receiver.h"
+#include "piksi_multi_cpp/device/device.h"
+#include "piksi_multi_cpp/receiver/receiver.h"
 
 namespace piksi_multi_cpp {
 
