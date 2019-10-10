@@ -16,6 +16,7 @@ cs_add_library(${PROJECT_NAME}
   src/device/device_usb.cc
   src/receiver/receiver_attitude.cc
   src/receiver/receiver_base_station.cc
+  src/receiver/receiver_factory.cc
   src/receiver/receiver_position.cc
   src/receiver/receiver.cc
   src/sbp_callback_handler/sbp_callback_handler.cc

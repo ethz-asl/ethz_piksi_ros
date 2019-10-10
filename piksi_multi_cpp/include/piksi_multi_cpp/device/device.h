@@ -17,6 +17,7 @@ inline bool equalSerialNumber(const SerialNumber& a, const SerialNumber& b) {
 
 class Device {
  public:
+  typedef std::shared_ptr<Device> DevicePtr;
   enum DeviceType { kUSB = 0 };
 
   Device(const SerialNumber& sn);
@@ -36,7 +37,6 @@ class Device {
   SerialNumber serial_number_;
 };
 
-typedef std::shared_ptr<Device> DevicePtr;
 }  // namespace piksi_multi_cpp
 
 #endif  // PIKSI_MULTI_CPP_DEVICE_DEVICE_H_

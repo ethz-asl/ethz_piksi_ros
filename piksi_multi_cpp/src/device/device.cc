@@ -3,7 +3,6 @@
 #include <ros/console.h>
 #include <memory>
 #include <vector>
-#include "piksi_multi_cpp/device/device_usb.h"
 
 namespace piksi_multi_cpp {
 

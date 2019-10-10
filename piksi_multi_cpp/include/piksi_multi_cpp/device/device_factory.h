@@ -12,11 +12,11 @@ factories. */
 class DeviceFactory {
  public:
   // Factory method to create a device given DeviceType and Serialnumber.
-  static DevicePtr createByDeviceTypeAndSerialNumber(
+  static Device::DevicePtr createByDeviceTypeAndSerialNumber(
       const Device::DeviceType type, const SerialNumber& sn);
   // Factory method to create all devices autodiscovering all Piksis on all
   // interfaces.
-  static std::vector<DevicePtr> createAllDevicesByAutodiscovery();
+  static std::vector<Device::DevicePtr> createAllDevicesByAutodiscovery();
 };
 }  // namespace piksi_multi_cpp
 

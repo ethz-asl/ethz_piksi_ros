@@ -18,6 +18,7 @@ namespace piksi_multi_cpp {
 // assigns a type to a device and offers ROS topics and services.
 class Receiver {
  public:
+  typedef std::shared_ptr<Receiver> ReceiverPtr;
   /* The three types of receivers are
 
   kBaseStationReceiver: The static base station sending out RTK corrections.
@@ -36,7 +37,7 @@ class Receiver {
   };
   static std::vector<ReceiverType> kTypeVec;
 
-  Receiver(const ros::NodeHandle& nh, const DevicePtr& device);
+  Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device);
 
   // Closes device.
   ~Receiver();
@@ -44,37 +45,13 @@ class Receiver {
   // Open device.
   bool init();
 
-  // Factory methods to create receivers.
-
-  // Create receiver by setting node handle, hardware device, and type.
-  // Warning: Node handle namespace must be unique for every device.
-  static std::shared_ptr<Receiver> create(const ros::NodeHandle& nh,
-                                          const DevicePtr& device,
-                                          const ReceiverType type);
-
-  // Create receiver from node handle and hardware device. Auto infer type from
-  // device.
-  // Warning: Node handle namespace must be unique for every device.
-  static std::shared_ptr<Receiver> create(const ros::NodeHandle& nh,
-                                          const DevicePtr& device);
-
-  // Create all receivers from node handle only. Autodetects connected hardware
-  // devices, infers device type from Piksi firmware settings and assigns unique
-  // name spaces.
-  static std::vector<std::shared_ptr<Receiver>> createAllReceivers(
-      const ros::NodeHandle& nh);
-
  protected:
   // ROS node handle in the correct receiver namespace.
   ros::NodeHandle nh_;
   // The actual hardware interface.
-  DevicePtr device_;
+  Device::DevicePtr device_;
 
  private:
-  // Infer receiver type from Piksi firmware settings.
-  static ReceiverType inferType(const DevicePtr& dev);
-  static std::string createNameSpace(const ReceiverType type, const size_t id);
-
   // Read device and process SBP callbacks.
   void process();
   // Start thread that reads device and processes SBP messages. This thread is
