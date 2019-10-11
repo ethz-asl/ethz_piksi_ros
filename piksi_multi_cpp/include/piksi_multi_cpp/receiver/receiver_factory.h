@@ -31,14 +31,14 @@ class ReceiverFactory {
   // Factory method to create a receiver by setting node handle, hardware
   // device, and receiver type.
   // Warning: Node handle namespace must be unique for every receiver.
-  static Receiver::ReceiverPtr createReceiverByNodeHandleDeviceAndReceiverType(
+  static Receiver::ReceiverPtr createReceiverByReceiverType(
       const ros::NodeHandle& nh, const Device::DevicePtr& device,
       const ReceiverType type);
 
   // Factory method to create a receiver by setting node handle and hardware
   // device. Receiver type is inferred automatically.
   // Warning: Node handle namespace must be unique for every receiver.
-  static Receiver::ReceiverPtr createReceiverByNodeHandleAndDevice(
+  static Receiver::ReceiverPtr createReceiverByDevice(
       const ros::NodeHandle& nh, const Device::DevicePtr& device);
 
   // Create all receivers from node handle only. Autodetects connected hardware

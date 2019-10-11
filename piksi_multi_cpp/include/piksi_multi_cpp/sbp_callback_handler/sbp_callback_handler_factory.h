@@ -13,7 +13,7 @@ class SBPCallbackHandlerFactory {
  public:
   // Factory method to create a callback that relays a specified sbp_msg_type.
   static SBPCallbackHandler::SBPCallbackHandlerPtr
-  createSBPRelayCallbackBySBPMsgType(const ros::NodeHandle& nh,
+  createRelayCallbackBySBPMsgType(const ros::NodeHandle& nh,
                                      const uint16_t sbp_msg_type,
                                      const std::shared_ptr<sbp_state_t>& state);
 

@@ -8,8 +8,7 @@
 
 namespace piksi_multi_cpp {
 
-Receiver::ReceiverPtr
-ReceiverFactory::createReceiverByNodeHandleDeviceAndReceiverType(
+Receiver::ReceiverPtr ReceiverFactory::createReceiverByReceiverType(
     const ros::NodeHandle& nh, const Device::DevicePtr& device,
     const ReceiverType type) {
   switch (type) {
@@ -26,10 +25,10 @@ ReceiverFactory::createReceiverByNodeHandleDeviceAndReceiverType(
   }
 }
 
-Receiver::ReceiverPtr ReceiverFactory::createReceiverByNodeHandleAndDevice(
+Receiver::ReceiverPtr ReceiverFactory::createReceiverByDevice(
     const ros::NodeHandle& nh, const Device::DevicePtr& device) {
   ReceiverType type = inferType(device);
-  return createReceiverByNodeHandleDeviceAndReceiverType(nh, device, type);
+  return createReceiverByReceiverType(nh, device, type);
 }
 
 std::vector<Receiver::ReceiverPtr>
@@ -52,8 +51,7 @@ ReceiverFactory::createAllReceiversByAutoDiscoveryAndNaming(
 
     std::string ns = createNameSpace(type, counter[type]);
     ros::NodeHandle nh_private(nh, ns);
-    auto receiver =
-        createReceiverByNodeHandleDeviceAndReceiverType(nh_private, dev, type);
+    auto receiver = createReceiverByReceiverType(nh_private, dev, type);
     if (receiver.get()) receivers.push_back(receiver);
     // Increment type counter.
     counter[type] += 1;
