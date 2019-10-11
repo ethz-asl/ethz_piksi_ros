@@ -1,4 +1,4 @@
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay_heartbeat.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_heartbeat.h"
 
 namespace piksi_multi_cpp {
 

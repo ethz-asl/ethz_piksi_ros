@@ -1,4 +1,4 @@
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay_imu_raw.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu_raw.h"
 
 namespace piksi_multi_cpp {
 // Define ROS and SBP message types.

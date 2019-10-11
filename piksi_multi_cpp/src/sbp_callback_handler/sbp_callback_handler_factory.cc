@@ -1,8 +1,8 @@
 #include <ros/console.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay_heartbeat.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay_imu_raw.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_heartbeat.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu_raw.h"
 
 #include <libsbp/ext_events.h>
 #include <libsbp/imu.h>

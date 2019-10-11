@@ -3,7 +3,7 @@
 
 #include <libsbp/imu.h>
 #include <piksi_rtk_msgs/ImuRawMulti.h>
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
 
 namespace piksi_multi_cpp {
 
@@ -17,7 +17,8 @@ class SBPCallbackHandlerRelayImuRaw
 
  private:
   // Specialize the message conversion.
-  piksi_rtk_msgs::ImuRawMulti convertSBPMsgToROSMsg(const msg_imu_raw_t& sbp_msg) override;
+  piksi_rtk_msgs::ImuRawMulti convertSBPMsgToROSMsg(
+      const msg_imu_raw_t& sbp_msg) override;
 };
 
 }  // namespace piksi_multi_cpp
