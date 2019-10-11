@@ -23,6 +23,7 @@ cs_add_library(${PROJECT_NAME}
   src/sbp_callback_handler/sbp_callback_handler_factory.cc
   src/sbp_callback_handler/sbp_callback_handler_relay.cc
   src/sbp_callback_handler/sbp_callback_handler_relay_heartbeat.cc
+  src/sbp_callback_handler/sbp_callback_handler_relay_imu_raw.cc
 )
 target_link_libraries(${PROJECT_NAME} serialport)
 

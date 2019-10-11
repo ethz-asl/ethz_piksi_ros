@@ -2,17 +2,21 @@
 
 namespace piksi_multi_cpp {
 
+// Define ROS and SBP message types.
+typedef piksi_rtk_msgs::Heartbeat ROSMSgType;
+typedef msg_heartbeat_t SBPMSgType;
+const std::string kTopic = "heartbeat";
+
 // Here we define the topic name.
 SBPCallbackHandlerRelayHeartbeat::SBPCallbackHandlerRelayHeartbeat(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state)
-    : SBPCallbackHandlerRelay(nh, sbp_msg_type, state, "heartbeat") {}
+    : SBPCallbackHandlerRelay(nh, sbp_msg_type, state, kTopic) {}
 
 // The SBP message is translated into a ROS message here.
-piksi_rtk_msgs::Heartbeat
-SBPCallbackHandlerRelayHeartbeat::convertSBPMsgToROSMsg(
-    const msg_heartbeat_t& sbp_msg) {
-  piksi_rtk_msgs::Heartbeat ros_msg;
+ROSMSgType SBPCallbackHandlerRelayHeartbeat::convertSBPMsgToROSMsg(
+    const SBPMSgType& sbp_msg) {
+  ROSMSgType ros_msg;
   ros_msg.header.stamp = ros::Time::now();
 
   // How to shift and mask bits: https://stackoverflow.com/a/27592777

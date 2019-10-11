@@ -14,10 +14,8 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device)
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
   sbp_state_init(state_.get());
-
-  // Register callbacks.
-  cb_.push_back(SBPCallbackHandlerFactory::createSBPRelayCallbackBySBPMsgType(
-      nh, SBP_MSG_HEARTBEAT, state_));
+  // Register all relay callbacks.
+  relay_cbs_ = SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
 }
 
 Receiver::~Receiver() {

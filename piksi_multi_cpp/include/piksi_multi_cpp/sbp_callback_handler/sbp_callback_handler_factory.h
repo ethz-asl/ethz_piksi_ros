@@ -16,6 +16,11 @@ class SBPCallbackHandlerFactory {
   createSBPRelayCallbackBySBPMsgType(const ros::NodeHandle& nh,
                                      const uint16_t sbp_msg_type,
                                      const std::shared_ptr<sbp_state_t>& state);
+
+  // Factory method to create all implemented SBP message relays.
+  static std::vector<SBPCallbackHandler::SBPCallbackHandlerPtr>
+  createAllSBPMessageRelays(const ros::NodeHandle& nh,
+                            const std::shared_ptr<sbp_state_t>& state);
 };
 }  // namespace piksi_multi_cpp
 
