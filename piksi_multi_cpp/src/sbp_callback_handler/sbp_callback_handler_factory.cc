@@ -7,7 +7,7 @@
 namespace piksi_multi_cpp {
 
 SBPCallbackHandler::SBPCallbackHandlerPtr
-SBPCallbackHandlerFactory::createSBPRelayCallbackBySBPMsgType(
+SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state) {
   switch (sbp_msg_type) {

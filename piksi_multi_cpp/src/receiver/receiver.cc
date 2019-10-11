@@ -16,7 +16,7 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device)
   sbp_state_init(state_.get());
 
   // Register callbacks.
-  cb_.push_back(SBPCallbackHandlerFactory::createSBPRelayCallbackBySBPMsgType(
+  cb_.push_back(SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
       nh, SBP_MSG_HEARTBEAT, state_));
 }
 
