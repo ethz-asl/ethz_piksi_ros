@@ -1,10 +1,8 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_HEARTBEAT_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_HEARTBEAT_H_
 
-#include <libsbp/sbp.h>
 #include <libsbp/system.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
-#include <ros/ros.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay.h"
 
 namespace piksi_multi_cpp {

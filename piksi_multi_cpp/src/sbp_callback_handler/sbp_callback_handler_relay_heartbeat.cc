@@ -1,7 +1,5 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay_heartbeat.h"
 
-#include <libsbp/system.h>
-
 namespace piksi_multi_cpp {
 
 // Here we define the topic name.
