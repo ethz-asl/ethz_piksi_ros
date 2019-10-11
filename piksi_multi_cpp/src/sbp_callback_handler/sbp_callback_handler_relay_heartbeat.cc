@@ -10,6 +10,7 @@ SBPCallbackHandlerRelayHeartbeat::SBPCallbackHandlerRelayHeartbeat(
     const std::shared_ptr<sbp_state_t>& state)
     : SBPCallbackHandlerRelay(nh, sbp_msg_type, state, "heartbeat") {}
 
+// The SBP message is translated into a ROS message here.
 piksi_rtk_msgs::Heartbeat
 SBPCallbackHandlerRelayHeartbeat::convertSBPMsgToROSMsg(
     const msg_heartbeat_t& sbp_msg) {

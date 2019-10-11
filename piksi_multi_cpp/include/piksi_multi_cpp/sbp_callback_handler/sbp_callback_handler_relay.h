@@ -8,7 +8,8 @@
 namespace piksi_multi_cpp {
 
 // This class handles all SBP messages and simply relays them to the ROS
-// network.
+// network. The concrete message relay needs to specifify the ROS message type,
+// the SBP message class, set a topic name and implement the message conversion.
 template <class ROSMsgType, class SBPMsgStruct>
 class SBPCallbackHandlerRelay : public SBPCallbackHandler {
  public:
