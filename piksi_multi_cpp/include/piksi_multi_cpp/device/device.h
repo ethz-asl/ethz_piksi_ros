@@ -16,7 +16,7 @@ inline bool identifierEqual(const Identifier& a, const Identifier& b) {
 namespace piksi_multi_cpp {
 class Device {
  public:
-  enum DeviceType { kUSB = 0 };
+  enum DeviceType { kUSB = 0, kTCP };
 
   Device(const Identifier& id);
   virtual bool open() = 0;

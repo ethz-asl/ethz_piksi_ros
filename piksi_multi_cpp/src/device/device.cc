@@ -1,5 +1,6 @@
 #include "piksi_multi_cpp/device/device_usb.h"
 
+#include <piksi_multi_cpp/device/device_tcp.h>
 #include <ros/console.h>
 #include <memory>
 #include <vector>
@@ -37,6 +38,11 @@ std::vector<std::shared_ptr<Device>> Device::createAllDevices() {
     auto dev = create(DeviceType::kUSB, id);
     if (dev.get()) devices.push_back(dev);
   }
+
+  // for now, create a fixed TCP device
+  Identifier tcp_string = "tcp://192.168.1.222:55555";
+  auto dev = std::shared_ptr<Device>(new DeviceTCP(tcp_string));
+  devices.push_back(dev);
 
   ROS_WARN_COND(devices.empty(), "No device created.");
   return devices;
