@@ -6,7 +6,7 @@
 
 namespace piksi_multi_cpp {
 
-Device::Device(const SerialNumber& sn) : serial_number_(sn) {}
+Device::Device(const Identifier& id) : id_(id) {}
 
 int32_t Device::read_redirect(uint8_t* buff, uint32_t n, void* context) {
   if (!context) {
