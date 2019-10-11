@@ -7,7 +7,7 @@
 
 namespace piksi_multi_cpp {
 
-class SBPCallbackHeartbeat : public SBPCallback {
+class SBPCallbackHeartbeat : public SBPCallbackHandler {
  public:
   SBPCallbackHeartbeat(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
                        const std::shared_ptr<sbp_state_t>& state);

@@ -7,16 +7,17 @@
 #include <string>
 #include <vector>
 
+namespace piksi_multi_cpp {
+
 typedef std::string Identifier;
 typedef std::set<Identifier> Identifiers;
 inline bool identifierEqual(const Identifier& a, const Identifier& b) {
   return a.compare(b) == 0;
 }
 
-namespace piksi_multi_cpp {
 class Device {
  public:
-  enum DeviceType { kUSB = 0 };
+  typedef std::shared_ptr<Device> DevicePtr;
 
   Device(const Identifier& id);
   virtual bool open() = 0;
@@ -31,13 +32,10 @@ class Device {
   // WARNING: Requires sbp_state_set_io_context to be called first.
   static int32_t read_redirect(uint8_t* buff, uint32_t n, void* context);
 
-  // Factory method to create all devices.
-  static std::shared_ptr<Device> create(DeviceType type, const Identifier& id);
-  static std::vector<std::shared_ptr<Device>> createAllDevices();
-
  protected:
   Identifier id_;
 };
+
 }  // namespace piksi_multi_cpp
 
 #endif  // PIKSI_MULTI_CPP_DEVICE_DEVICE_H_

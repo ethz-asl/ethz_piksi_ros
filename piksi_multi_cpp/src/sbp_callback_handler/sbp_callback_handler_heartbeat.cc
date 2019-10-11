@@ -8,7 +8,7 @@ namespace piksi_multi_cpp {
 SBPCallbackHeartbeat::SBPCallbackHeartbeat(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state)
-    : SBPCallback(nh, sbp_msg_type, state) {
+    : SBPCallbackHandler(nh, sbp_msg_type, state) {
   // Advertise ROS topics.
   relay_pub_ = nh_.advertise<piksi_rtk_msgs::Heartbeat>("heartbeat", kQueueSize,
                                                         kLatchTopic);
