@@ -1,7 +1,6 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_H_
 
-#include <libsbp/sbp.h>
 #include <ros/ros.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
