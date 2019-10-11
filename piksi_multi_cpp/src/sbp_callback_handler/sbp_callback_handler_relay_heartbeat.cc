@@ -1,14 +1,14 @@
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_heartbeat.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay_heartbeat.h"
 
 #include <libsbp/system.h>
 #include <piksi_rtk_msgs/Heartbeat.h>
 
 namespace piksi_multi_cpp {
 
-SBPCallbackHeartbeat::SBPCallbackHeartbeat(
+SBPCallbackHandlerRelayHeartbeat::SBPCallbackHandlerRelayHeartbeat(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state)
-    : SBPCallbackHandler(nh, sbp_msg_type, state) {
+    : SBPCallbackHandlerRelay(nh, sbp_msg_type, state) {
   // Advertise ROS topics.
   relay_pub_ = nh_.advertise<piksi_rtk_msgs::Heartbeat>("heartbeat", kQueueSize,
                                                         kLatchTopic);
@@ -16,8 +16,8 @@ SBPCallbackHeartbeat::SBPCallbackHeartbeat(
 
 // TODO(rikba): Maybe checking subscribers, casting the message and publishing
 // can be unified somehow such that the user only needs to implement the logic.
-void SBPCallbackHeartbeat::callback(uint16_t sender_id, uint8_t len,
-                                    uint8_t msg[]) {
+void SBPCallbackHandlerRelayHeartbeat::callback(uint16_t sender_id, uint8_t len,
+                                                uint8_t msg[]) {
   // Before doing anything check if anybody is listening.
   // https://answers.ros.org/question/197878/how-expensive-is-getnumsubscribers-of-publisher/
   if (relay_pub_.getNumSubscribers() == 0) return;

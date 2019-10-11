@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_H_
-#define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_H_
+#ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_H_
+#define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_H_
 
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
@@ -22,9 +22,6 @@ class SBPCallbackHandler {
  protected:
   // Implement the specific callback here.
   virtual void callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) = 0;
-  // Every callback has at least one default publisher that relays the current
-  // message.
-  ros::Publisher relay_pub_;
   // A nodehandle with the correct ROS namespace.
   ros::NodeHandle nh_;
 
@@ -42,4 +39,4 @@ class SBPCallbackHandler {
 
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_CALLBACK_HANDLER_H_
+#endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_H_

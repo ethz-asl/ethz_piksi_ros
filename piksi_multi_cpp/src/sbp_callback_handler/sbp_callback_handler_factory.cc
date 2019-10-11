@@ -2,7 +2,7 @@
 #include <ros/console.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_heartbeat.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay_heartbeat.h"
 
 namespace piksi_multi_cpp {
 
@@ -13,7 +13,7 @@ SBPCallbackHandlerFactory::createSBPRelayCallbackBySBPMsgType(
   switch (sbp_msg_type) {
     case SBP_MSG_HEARTBEAT:
       return SBPCallbackHandler::SBPCallbackHandlerPtr(
-          new SBPCallbackHeartbeat(nh, SBP_MSG_HEARTBEAT, state));
+          new SBPCallbackHandlerRelayHeartbeat(nh, SBP_MSG_HEARTBEAT, state));
     default:
       ROS_ERROR("Message type %u not implemented.", sbp_msg_type);
       return nullptr;
