@@ -1,18 +1,14 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay_heartbeat.h"
 
 #include <libsbp/system.h>
-#include <piksi_rtk_msgs/Heartbeat.h>
 
 namespace piksi_multi_cpp {
 
+// Here we define the topic name.
 SBPCallbackHandlerRelayHeartbeat::SBPCallbackHandlerRelayHeartbeat(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state)
-    : SBPCallbackHandlerRelay(nh, sbp_msg_type, state) {
-  // Advertise ROS topics.
-  relay_pub_ = nh_.advertise<piksi_rtk_msgs::Heartbeat>("heartbeat", kQueueSize,
-                                                        kLatchTopic);
-}
+    : SBPCallbackHandlerRelay(nh, sbp_msg_type, state, "heartbeat") {}
 
 // TODO(rikba): Maybe checking subscribers, casting the message and publishing
 // can be unified somehow such that the user only needs to implement the logic.

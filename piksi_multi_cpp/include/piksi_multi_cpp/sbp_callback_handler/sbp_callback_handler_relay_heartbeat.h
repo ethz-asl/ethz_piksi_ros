@@ -2,12 +2,14 @@
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_HEARTBEAT_H_
 
 #include <libsbp/sbp.h>
+#include <piksi_rtk_msgs/Heartbeat.h>
 #include <ros/ros.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay.h"
 
 namespace piksi_multi_cpp {
 
-class SBPCallbackHandlerRelayHeartbeat : public SBPCallbackHandlerRelay {
+class SBPCallbackHandlerRelayHeartbeat
+    : public SBPCallbackHandlerRelay<piksi_rtk_msgs::Heartbeat> {
  public:
   SBPCallbackHandlerRelayHeartbeat(const ros::NodeHandle& nh,
                                    const uint16_t sbp_msg_type,

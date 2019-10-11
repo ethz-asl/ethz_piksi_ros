@@ -9,13 +9,19 @@ namespace piksi_multi_cpp {
 
 // This class handles all SBP messages and simply relays them to the ROS
 // network.
+template <class ROSMsgType>
 class SBPCallbackHandlerRelay : public SBPCallbackHandler {
  public:
   // Registers a relay callback. There is a one to one mapping between
   // sbp_msg_type and publisher.
-  SBPCallbackHandlerRelay(const ros::NodeHandle& nh,
-                          const uint16_t sbp_msg_type,
-                          const std::shared_ptr<sbp_state_t>& state);
+  inline SBPCallbackHandlerRelay(const ros::NodeHandle& nh,
+                                 const uint16_t sbp_msg_type,
+                                 const std::shared_ptr<sbp_state_t>& state,
+                                 const std::string& topic)
+      : SBPCallbackHandler(nh, sbp_msg_type, state) {
+    // Advertise ROS topics.
+    relay_pub_ = nh_.advertise<ROSMsgType>(topic, kQueueSize, kLatchTopic);
+  }
 
  protected:
   // This publisher relays the incoming SBP message.
