@@ -17,9 +17,9 @@ namespace piksi_multi_cpp {
 // This class offers a (ROS) interface for Piksi Multi receivers.
 class Receiver {
  public:
-  typedef std::shared_ptr<Receiver> ReceiverPtr;
+  typedef std::shared_ptr<Receiver> Ptr;
 
-  Receiver(const ros::NodeHandle& nh, const Device::DevicePtr& device);
+  Receiver(const ros::NodeHandle& nh, const Device::Ptr& device);
 
   // Closes device.
   ~Receiver();
@@ -31,7 +31,7 @@ class Receiver {
   // ROS node handle in the correct receiver namespace.
   ros::NodeHandle nh_;
   // The actual hardware interface.
-  Device::DevicePtr device_;
+  Device::Ptr device_;
 
  private:
   // Read device and process SBP callbacks.

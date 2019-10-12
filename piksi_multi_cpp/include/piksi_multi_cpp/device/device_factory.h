@@ -13,11 +13,11 @@ class DeviceFactory {
  public:
   enum DeviceType { kUSB = 0 };
   // Factory method to create a device given DeviceType and Serialnumber.
-  static Device::DevicePtr createByDeviceTypeAndSerialNumber(
-      const DeviceType type, const Identifier& id);
+  static Device::Ptr createByDeviceTypeAndSerialNumber(const DeviceType type,
+                                                       const Identifier& id);
   // Factory method to create all devices autodiscovering all Piksis on all
   // interfaces.
-  static std::vector<Device::DevicePtr> createAllDevicesByAutodiscovery();
+  static std::vector<Device::Ptr> createAllDevicesByAutodiscovery();
 };
 }  // namespace piksi_multi_cpp
 
