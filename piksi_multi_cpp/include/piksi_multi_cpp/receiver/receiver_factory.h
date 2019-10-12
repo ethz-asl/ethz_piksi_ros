@@ -31,25 +31,25 @@ class ReceiverFactory {
   // Factory method to create a receiver by setting node handle, hardware
   // device, and receiver type.
   // Warning: Node handle namespace must be unique for every receiver.
-  static Receiver::ReceiverPtr createReceiverByNodeHandleDeviceAndReceiverType(
-      const ros::NodeHandle& nh, const Device::DevicePtr& device,
-      const ReceiverType type);
+  static Receiver::Ptr createReceiverByReceiverType(const ros::NodeHandle& nh,
+                                                    const Device::Ptr& device,
+                                                    const ReceiverType type);
 
   // Factory method to create a receiver by setting node handle and hardware
   // device. Receiver type is inferred automatically.
   // Warning: Node handle namespace must be unique for every receiver.
-  static Receiver::ReceiverPtr createReceiverByNodeHandleAndDevice(
-      const ros::NodeHandle& nh, const Device::DevicePtr& device);
+  static Receiver::Ptr createReceiverByDevice(const ros::NodeHandle& nh,
+                                              const Device::Ptr& device);
 
   // Create all receivers from node handle only. Autodetects connected hardware
   // devices, infers device type from Piksi firmware settings and assigns unique
   // name spaces.
-  static std::vector<Receiver::ReceiverPtr>
-  createAllReceiversByAutoDiscoveryAndNaming(const ros::NodeHandle& nh);
+  static std::vector<Receiver::Ptr> createAllReceiversByAutoDiscoveryAndNaming(
+      const ros::NodeHandle& nh);
 
  private:
   // Infer receiver type from Piksi firmware settings.
-  static ReceiverType inferType(const Device::Device::DevicePtr& dev);
+  static ReceiverType inferType(const Device::Device::Ptr& dev);
   static std::string createNameSpace(const ReceiverType type, const size_t id);
 };
 }  // namespace piksi_multi_cpp

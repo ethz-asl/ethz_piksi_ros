@@ -14,7 +14,7 @@ const bool kLatchTopic = true;
 // types.
 class SBPCallbackHandler {
  public:
-  typedef std::shared_ptr<SBPCallbackHandler> SBPCallbackHandlerPtr;
+  typedef std::shared_ptr<SBPCallbackHandler> Ptr;
   // Register callback.
   SBPCallbackHandler(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
                      const std::shared_ptr<sbp_state_t>& state);

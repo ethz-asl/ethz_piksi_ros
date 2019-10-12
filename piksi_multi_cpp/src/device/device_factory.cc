@@ -5,18 +5,17 @@
 
 namespace piksi_multi_cpp {
 
-Device::DevicePtr DeviceFactory::createByDeviceTypeAndSerialNumber(
+Device::Ptr DeviceFactory::createByDeviceTypeAndSerialNumber(
     DeviceType type, const Identifier& id) {
   if (type == DeviceType::kUSB) {
-    return Device::DevicePtr(new DeviceUSB(id));
+    return Device::Ptr(new DeviceUSB(id));
   } else {
     return nullptr;
   }
 }
 
-std::vector<Device::DevicePtr>
-DeviceFactory::createAllDevicesByAutodiscovery() {
-  std::vector<Device::DevicePtr> devices;
+std::vector<Device::Ptr> DeviceFactory::createAllDevicesByAutodiscovery() {
+  std::vector<Device::Ptr> devices;
 
   // Create all USB devices.
   Identifiers ids = DeviceUSB::discoverAllSerialNumbers();
