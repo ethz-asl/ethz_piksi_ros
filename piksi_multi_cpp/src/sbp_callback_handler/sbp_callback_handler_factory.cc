@@ -10,16 +10,16 @@
 
 namespace piksi_multi_cpp {
 
-SBPCallbackHandler::SBPCallbackHandlerPtr
+SBPCallbackHandler::Ptr
 SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state) {
   switch (sbp_msg_type) {
     case SBP_MSG_IMU_RAW:
-      return SBPCallbackHandler::SBPCallbackHandlerPtr(
+      return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayImuRaw(nh, SBP_MSG_IMU_RAW, state));
     case SBP_MSG_HEARTBEAT:
-      return SBPCallbackHandler::SBPCallbackHandlerPtr(
+      return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayHeartbeat(nh, SBP_MSG_HEARTBEAT, state));
     default:
       ROS_WARN("Message type %u not implemented.", sbp_msg_type);
@@ -28,10 +28,10 @@ SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
 }
 
 // Factory method to create all implemented SBP message relays.
-std::vector<SBPCallbackHandler::SBPCallbackHandlerPtr>
+std::vector<SBPCallbackHandler::Ptr>
 SBPCallbackHandlerFactory::createAllSBPMessageRelays(
     const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state) {
-  std::vector<SBPCallbackHandler::SBPCallbackHandlerPtr> cbs;
+  std::vector<SBPCallbackHandler::Ptr> cbs;
   // Ext Event
   cbs.push_back(createRelayCallbackBySBPMsgType(nh, SBP_MSG_EXT_EVENT, state));
   // Imu
@@ -46,11 +46,9 @@ SBPCallbackHandlerFactory::createAllSBPMessageRelays(
   cbs.push_back(createRelayCallbackBySBPMsgType(nh, SBP_MSG_INS_STATUS, state));
 
   // Remove all invalid (nullptr) callbacks.
-  cbs.erase(
-      std::remove_if(cbs.begin(), cbs.end(),
-                     [](const SBPCallbackHandler::SBPCallbackHandlerPtr& cb) {
-                       return cb.get() == nullptr;
-                     }));
+  cbs.erase(std::remove_if(
+      cbs.begin(), cbs.end(),
+      [](const SBPCallbackHandler::Ptr& cb) { return cb.get() == nullptr; }));
 
   return cbs;
 }
