@@ -12,5 +12,5 @@ std_msgs/UInt8  seconds           # seconds of minute (range 0-60) rounded down
 std_msgs/UInt32 ns                # nanoseconds of second (range 0-999999999)
 
 uint8 TIME_SOURCE_NONE          = 0 # invalid
-uint8 TIME_SOURCE_GNSS_SOLUTION = 0
-uint8 TIME_SOURCE_PROPAGATED    = 0
+uint8 TIME_SOURCE_GNSS_SOLUTION = 1
+uint8 TIME_SOURCE_PROPAGATED    = 2

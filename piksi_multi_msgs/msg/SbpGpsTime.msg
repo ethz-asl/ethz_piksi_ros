@@ -6,5 +6,5 @@ std_msgs/Int32  ns_residual # Nanosecond residual of millisecond-rounded TOW (ra
 std_msgs/UInt8  time_source # Status flags (reserved)
 
 uint8 TIME_SOURCE_NONE          = 0 # invalid
-uint8 TIME_SOURCE_GNSS_SOLUTION = 0
-uint8 TIME_SOURCE_PROPAGATED    = 0
+uint8 TIME_SOURCE_GNSS_SOLUTION = 1
+uint8 TIME_SOURCE_PROPAGATED    = 2
