@@ -33,22 +33,22 @@ SBPCallbackHandlerFactory::createAllSBPMessageRelays(
     const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state) {
   std::vector<SBPCallbackHandler::SBPCallbackHandlerPtr> cbs;
   // Ext Event
-  auto cb = createSBPRelayCallbackBySBPMsgType(nh, SBP_MSG_EXT_EVENT, state);
+  auto cb = createRelayCallbackBySBPMsgType(nh, SBP_MSG_EXT_EVENT, state);
   if (cb.get()) cbs.push_back(cb);
   // Imu
-  cb = createSBPRelayCallbackBySBPMsgType(nh, SBP_MSG_IMU_RAW, state);
+  cb = createRelayCallbackBySBPMsgType(nh, SBP_MSG_IMU_RAW, state);
   if (cb.get()) cbs.push_back(cb);
-  cb = createSBPRelayCallbackBySBPMsgType(nh, SBP_MSG_IMU_AUX, state);
+  cb = createRelayCallbackBySBPMsgType(nh, SBP_MSG_IMU_AUX, state);
   if (cb.get()) cbs.push_back(cb);
   // TODO(rikba): Implement all other callbacks.
   // System
-  cb = createSBPRelayCallbackBySBPMsgType(nh, SBP_MSG_STARTUP, state);
+  cb = createRelayCallbackBySBPMsgType(nh, SBP_MSG_STARTUP, state);
   if (cb.get()) cbs.push_back(cb);
-  cb = createSBPRelayCallbackBySBPMsgType(nh, SBP_MSG_DGNSS_STATUS, state);
+  cb = createRelayCallbackBySBPMsgType(nh, SBP_MSG_DGNSS_STATUS, state);
   if (cb.get()) cbs.push_back(cb);
-  cb = createSBPRelayCallbackBySBPMsgType(nh, SBP_MSG_HEARTBEAT, state);
+  cb = createRelayCallbackBySBPMsgType(nh, SBP_MSG_HEARTBEAT, state);
   if (cb.get()) cbs.push_back(cb);
-  cb = createSBPRelayCallbackBySBPMsgType(nh, SBP_MSG_INS_STATUS, state);
+  cb = createRelayCallbackBySBPMsgType(nh, SBP_MSG_INS_STATUS, state);
   if (cb.get()) cbs.push_back(cb);
 
   return cbs;
