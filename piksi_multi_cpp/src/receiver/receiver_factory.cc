@@ -8,30 +8,30 @@
 
 namespace piksi_multi_cpp {
 
-Receiver::ReceiverPtr ReceiverFactory::createReceiverByReceiverType(
-    const ros::NodeHandle& nh, const Device::DevicePtr& device,
+Receiver::Ptr ReceiverFactory::createReceiverByReceiverType(
+    const ros::NodeHandle& nh, const Device::Ptr& device,
     const ReceiverType type) {
   switch (type) {
     case ReceiverType::kBaseStationReceiver:
-      return Receiver::ReceiverPtr(new ReceiverBaseStation(nh, device));
+      return Receiver::Ptr(new ReceiverBaseStation(nh, device));
     case ReceiverType::kPositionReceiver:
-      return Receiver::ReceiverPtr(new ReceiverPosition(nh, device));
+      return Receiver::Ptr(new ReceiverPosition(nh, device));
     case ReceiverType::kAttitudeReceiver:
-      return Receiver::ReceiverPtr(new ReceiverAttitude(nh, device));
+      return Receiver::Ptr(new ReceiverAttitude(nh, device));
     case ReceiverType::kUnknown:
-      return Receiver::ReceiverPtr(new Receiver(nh, device));
+      return Receiver::Ptr(new Receiver(nh, device));
     default:
       return nullptr;
   }
 }
 
-Receiver::ReceiverPtr ReceiverFactory::createReceiverByDevice(
-    const ros::NodeHandle& nh, const Device::DevicePtr& device) {
+Receiver::Ptr ReceiverFactory::createReceiverByDevice(
+    const ros::NodeHandle& nh, const Device::Ptr& device) {
   ReceiverType type = inferType(device);
   return createReceiverByReceiverType(nh, device, type);
 }
 
-std::vector<Receiver::ReceiverPtr>
+std::vector<Receiver::Ptr>
 ReceiverFactory::createAllReceiversByAutoDiscoveryAndNaming(
     const ros::NodeHandle& nh) {
   // Create all devices.
@@ -84,7 +84,7 @@ std::string ReceiverFactory::createNameSpace(const ReceiverType type,
 }
 
 ReceiverFactory::ReceiverType ReceiverFactory::inferType(
-    const Device::DevicePtr& dev) {
+    const Device::Ptr& dev) {
   if (!dev.get()) return ReceiverType::kUnknown;
 
   ROS_WARN("inferType not implemented.");

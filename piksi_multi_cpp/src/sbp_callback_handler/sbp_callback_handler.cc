@@ -2,20 +2,15 @@
 
 #include <ros/console.h>
 
-// Forward declaration.
-#include <libsbp/system.h>
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_heartbeat.h"
-
 namespace piksi_multi_cpp {
 
 SBPCallbackHandler::SBPCallbackHandler(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state)
     : nh_(nh), state_(state) {
-  sbp_register_callback(
-      state.get(), sbp_msg_type,
-      &piksi_multi_cpp::SBPCallbackHeartbeat::callback_redirect, this,
-      &sbp_msg_callback_node_);
+  sbp_register_callback(state.get(), sbp_msg_type,
+                        &piksi_multi_cpp::SBPCallbackHandler::callback_redirect,
+                        this, &sbp_msg_callback_node_);
 }
 
 void SBPCallbackHandler::callback_redirect(uint16_t sender_id, uint8_t len,

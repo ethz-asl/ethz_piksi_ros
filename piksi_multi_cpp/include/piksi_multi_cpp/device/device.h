@@ -17,7 +17,7 @@ inline bool identifierEqual(const Identifier& a, const Identifier& b) {
 
 class Device {
  public:
-  typedef std::shared_ptr<Device> DevicePtr;
+  typedef std::shared_ptr<Device> Ptr;
 
   Device(const Identifier& id);
   virtual bool open() = 0;
