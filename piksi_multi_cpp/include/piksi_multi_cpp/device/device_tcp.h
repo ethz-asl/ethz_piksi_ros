@@ -15,7 +15,7 @@ namespace piksi_multi_cpp {
 class DeviceTCP : public Device {
  public:
   /*
-   * Identifier is expected to be of type "tcp://<ip>:<port>"
+   * Identifier is expected to be of type "<ip>:<port>"
    */
   DeviceTCP(const Identifier& id) : Device(id) {
     // we don't do anything else here, leave the parsing to the open method.
@@ -28,7 +28,7 @@ class DeviceTCP : public Device {
   void close() override;
 
  private:
-  int socket_fd_;  // socket file descriptor
+  int socket_fd_;     // socket file descriptor
   uint tcp_port_;     // TCP port.
   std::string host_;  // hostname or IP as string
 };

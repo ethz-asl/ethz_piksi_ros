@@ -8,7 +8,7 @@
 namespace piksi_multi_cpp {
 
 bool DeviceTCP::parseId() {
-  std::regex rgx("^tcp:\\/\\/(.+):(\\d{2,5})$");
+  std::regex rgx("^(.+):(\\d{2,5})$");
 
   std::smatch match;
   if (std::regex_search(id_, match, rgx) && match.size() > 1) {
@@ -72,21 +72,12 @@ bool DeviceTCP::openSocket() {
 }
 
 bool DeviceTCP::open() {
-  if (!parseId()) {
-    return false;
-  }
-
-  if (!openSocket()) {
-    return false;
-  }
-
-  // we have a valid connection!
-  return true;
+  // this opens the TCP connection.
+  return parseId() && openSocket();
 }
 
 int32_t DeviceTCP::read(uint8_t* buff, uint32_t n) const {
-  // todo: add wait until a package is received.
-
+  // todo optional: add wait blocking until a package is received.
   ssize_t received_length =
       recvfrom(socket_fd_, (void*)buff, n, 0, nullptr, nullptr);
 
@@ -100,6 +91,10 @@ int32_t DeviceTCP::read(uint8_t* buff, uint32_t n) const {
   }
 }
 
-void DeviceTCP::close() { ::close(socket_fd_); }
+void DeviceTCP::close() {
+  // execute non-namespaced C-interface file descriptor close method to close
+  // the device
+  ::close(socket_fd_);
+}
 
 }

@@ -44,8 +44,8 @@ class ReceiverFactory {
   // Create all receivers from node handle only. Autodetects connected hardware
   // devices, infers device type from Piksi firmware settings and assigns unique
   // name spaces.
-  static std::vector<Receiver::Ptr> createAllReceiversByAutoDiscoveryAndNaming(
-      const ros::NodeHandle& nh);
+  static std::vector<Receiver::Ptr> createAllReceiversByIdentifiersAndNaming(
+      const ros::NodeHandle& nh, const Identifiers& id);
 
  private:
   // Infer receiver type from Piksi firmware settings.

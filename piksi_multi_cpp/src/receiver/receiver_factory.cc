@@ -1,9 +1,9 @@
+#include "piksi_multi_cpp/receiver/receiver_factory.h"
 #include <ros/console.h>
 #include "piksi_multi_cpp/device/device_factory.h"
 #include "piksi_multi_cpp/receiver/receiver.h"
 #include "piksi_multi_cpp/receiver/receiver_attitude.h"
 #include "piksi_multi_cpp/receiver/receiver_base_station.h"
-#include "piksi_multi_cpp/receiver/receiver_factory.h"
 #include "piksi_multi_cpp/receiver/receiver_position.h"
 
 namespace piksi_multi_cpp {
@@ -32,10 +32,10 @@ Receiver::Ptr ReceiverFactory::createReceiverByDevice(
 }
 
 std::vector<Receiver::Ptr>
-ReceiverFactory::createAllReceiversByAutoDiscoveryAndNaming(
-    const ros::NodeHandle& nh) {
+ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
+    const ros::NodeHandle& nh, const Identifiers& id) {
   // Create all devices.
-  auto devices = DeviceFactory::createAllDevicesByAutodiscovery();
+  auto devices = DeviceFactory::createByIdentifiers(id);
 
   // A counter variable to assign unique ids.
   std::map<ReceiverType, size_t> counter;
