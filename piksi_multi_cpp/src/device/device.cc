@@ -4,7 +4,6 @@
 #include <ros/console.h>
 #include <memory>
 #include <vector>
-#include "piksi_multi_cpp/device/device_usb.h"
 
 namespace piksi_multi_cpp {
 
@@ -19,33 +18,6 @@ int32_t Device::read_redirect(uint8_t* buff, uint32_t n, void* context) {
   Device* instance = static_cast<Device*>(context);
   // Execute instance's read function.
   return instance->read(buff, n);
-}
-
-std::shared_ptr<Device> Device::create(DeviceType type, const Identifier& id) {
-  if (type == DeviceType::kUSB) {
-    return std::shared_ptr<Device>(new DeviceUSB(id));
-  } else {
-    return nullptr;
-  }
-}
-
-std::vector<std::shared_ptr<Device>> Device::createAllDevices() {
-  std::vector<std::shared_ptr<Device>> devices;
-
-  // Create all USB devices.
-  Identifiers usb_ids = DeviceUSB::getAllIdentifiers();
-  for (auto id : usb_ids) {
-    auto dev = create(DeviceType::kUSB, id);
-    if (dev.get()) devices.push_back(dev);
-  }
-
-  // for now, create a fixed TCP device
-  Identifier tcp_string = "tcp://192.168.1.222:55555";
-  auto dev = std::shared_ptr<Device>(new DeviceTCP(tcp_string));
-  devices.push_back(dev);
-
-  ROS_WARN_COND(devices.empty(), "No device created.");
-  return devices;
 }
 
 }  // namespace piksi_multi_cpp

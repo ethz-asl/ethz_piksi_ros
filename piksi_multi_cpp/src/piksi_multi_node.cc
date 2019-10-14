@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include "piksi_multi_cpp/receiver/receiver.h"
+#include "piksi_multi_cpp/receiver/receiver_factory.h"
 
 using namespace piksi_multi_cpp;
 
@@ -9,13 +9,14 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh_private("~");
 
   // Autodetect all receivers.
-  auto receivers = Receiver::createAllReceivers(nh_private);
+  auto receivers =
+      ReceiverFactory::createAllReceiversByAutoDiscoveryAndNaming(nh_private);
   if (receivers.empty()) {
     ROS_FATAL("No receivers.");
     exit(1);
   }
 
-  // Initialization
+  // Start all receivers.
   for (auto rec : receivers) {
     if (!rec->init()) {
       ROS_FATAL("Error initializing receiver.");
@@ -23,12 +24,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  // Process incoming data.
-  // TODO(rikba): Multithreading!
-  while (ros::ok()) {
-    for (auto rec : receivers) rec->process();
-    ros::spinOnce();
-  }
+  ros::spin();
 
   return 0;
 }
