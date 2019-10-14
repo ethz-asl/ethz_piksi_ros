@@ -26,8 +26,8 @@ class SBPCallbackHandlerRelayImuRaw
     piksi_multi_msgs::ImuRaw ros_msg;
     ros_msg.tow =
         piksi_multi_msgs::convertSbpGpsTowToRos(sbp_msg.tow, sbp_msg.tow_f);
-    piksi_multi_msgs::convertSbpVector3IntToRos(sbp_msg.acc_x, sbp_msg.acc_y,
-                                                sbp_msg.acc_z);
+    ros_msg.acc = piksi_multi_msgs::convertSbpVector3IntToRos(
+        sbp_msg.acc_x, sbp_msg.acc_y, sbp_msg.acc_z);
     ros_msg.gyr = piksi_multi_msgs::convertSbpVector3IntToRos(
         sbp_msg.gyr_x, sbp_msg.gyr_y, sbp_msg.gyr_z);
 
