@@ -16,7 +16,6 @@ class DeviceSerial : public Device {
 
  protected:
   virtual bool allocatePort();
-
   struct sp_port* port_;
 
  private:
