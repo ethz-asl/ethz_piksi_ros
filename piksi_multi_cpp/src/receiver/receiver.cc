@@ -34,7 +34,7 @@ bool Receiver::init() {
 
   // Open attached device.
   if (!device_->open()) {
-    ROS_ERROR("Cannot open device.");
+    ROS_ERROR_STREAM("Cannot open device with id " << device_->getID());
     return false;
   }
 
@@ -42,6 +42,8 @@ bool Receiver::init() {
 
   return true;
 }
+
+bool Receiver::isRunning() const { return process_thread_.joinable(); }
 
 void Receiver::process() {
   // Setting thread_exit_requested_ will terminate the thread.

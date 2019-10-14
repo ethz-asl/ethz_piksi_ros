@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 
+#include <boost/algorithm/string.hpp>
 #include "piksi_multi_cpp/receiver/receiver_factory.h"
 
 using namespace piksi_multi_cpp;
@@ -8,9 +9,15 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "piksi_multi");
   ros::NodeHandle nh_private("~");
 
-  // Autodetect all receivers.
-  auto receivers =
-      ReceiverFactory::createAllReceiversByAutoDiscoveryAndNaming(nh_private);
+  // By default, autodetect all usb devices.
+  auto device_ids = nh_private.param<std::string>("device_ids", "usb://*");
+
+  // split device_ids by ";" to get multiple identifiers
+  Identifiers ids;
+  boost::algorithm::split(ids, device_ids, boost::is_any_of(";"));
+
+  auto receivers = ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
+      nh_private, ids);
   if (receivers.empty()) {
     ROS_FATAL("No receivers.");
     exit(1);
@@ -19,9 +26,21 @@ int main(int argc, char** argv) {
   // Start all receivers.
   for (auto rec : receivers) {
     if (!rec->init()) {
-      ROS_FATAL("Error initializing receiver.");
-      exit(1);
+      ROS_FATAL("Error initializing receiver");
     }
+  }
+
+  // check how many are running.
+  int running_receivers = std::count_if(
+      receivers.begin(), receivers.end(),
+      [](auto receiver) { return receiver.get() && receiver->isRunning(); });
+
+  if (running_receivers < 1) {
+    ROS_FATAL("No receivers initialized. stopping.");
+    exit(1);
+  } else {
+    ROS_INFO_STREAM("Found and initialized " << running_receivers
+                                             << " Receivers");
   }
 
   ros::spin();

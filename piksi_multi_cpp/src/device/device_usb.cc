@@ -24,7 +24,7 @@ Identifiers DeviceUSB::discoverAllSerialNumbers() {
   // Identify Piksi Multi among ports.
   for (int i = 0; ports[i]; i++) {
     // Check if port belongs to a Piksi Multi and get serial number.
-    Identifier id = identifyPiksiAndGetSerialNumber(ports[i]);
+    Identifier id = "usb://" + identifyPiksiAndGetSerialNumber(ports[i]);
     // Add serial to identifier set.
     if (!id.empty()) {
       identifiers.insert(id);
