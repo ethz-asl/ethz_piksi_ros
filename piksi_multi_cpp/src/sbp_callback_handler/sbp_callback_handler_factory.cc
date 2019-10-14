@@ -5,6 +5,8 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_logging.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_mag.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_navigation.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_observation.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_system.h"
 
 #include <libsbp/acquisition.h>
@@ -31,22 +33,73 @@ SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state) {
   switch (sbp_msg_type) {
+    // Ext events.
     case SBP_MSG_EXT_EVENT:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayExtEvent(nh, state));
+    // Imu.
     case SBP_MSG_IMU_RAW:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayImuRaw(nh, state));
     case SBP_MSG_IMU_AUX:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayImuAux(nh, state));
+    // Logging.
     case SBP_MSG_LOG:
       return SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayLog(nh, state));
     case SBP_MSG_FWD:
       return SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayFwd(nh, state));
+    // Mag.
     case SBP_MSG_MAG_RAW:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayMagRaw(nh, state));
+      // Navigation.
+    case SBP_MSG_GPS_TIME:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayGpsTime(nh, state));
+    case SBP_MSG_UTC_TIME:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayUtcTime(nh, state));
+    case SBP_MSG_DOPS:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayDops(nh, state));
+    case SBP_MSG_POS_ECEF:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayPosEcef(nh, state));
+    case SBP_MSG_POS_ECEF_COV:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayPosEcefCov(nh, state));
+    case SBP_MSG_POS_LLH_COV:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayPosLlhCov(nh, state));
+    case SBP_MSG_BASELINE_ECEF:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayBaselineEcef(nh, state));
+    case SBP_MSG_BASELINE_NED:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayBaselineNed(nh, state));
+    case SBP_MSG_VEL_ECEF:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayVelEcef(nh, state));
+    case SBP_MSG_VEL_ECEF_COV:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayVelEcefCov(nh, state));
+    case SBP_MSG_VEL_NED:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayVelNed(nh, state));
+    case SBP_MSG_VEL_NED_COV:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayVelNedCov(nh, state));
+    case SBP_MSG_VEL_BODY:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayVelBody(nh, state));
+    case SBP_MSG_AGE_CORRECTIONS:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayAgeCorrections(nh, state));
+    // Observation
+    case SBP_MSG_OBS:
+      return SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayObs(nh, state));
+    // System.
     case SBP_MSG_HEARTBEAT:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayHeartbeat(nh, state));

@@ -102,6 +102,23 @@ CovTangentNed convertSbpCovTangentNedToRos(const float n_n, const float n_e,
                                            const float n_d, const float e_e,
                                            const float e_d, const float d_d);
 Gpio convertSbpGpioToRos(const uint8_t pin, const bool value);
+
+// GPS observation.
+GpsObservation convertSbpGpsObservationToRos(
+    const PseudoRange& pseudo_range,
+    const CarrierPhaseCycles& carrier_phase_cycles, const Doppler& doppler,
+    const CarrierToNoise& cn, const uint8_t lock, const bool raim_exclusion,
+    const SatelliteIdentifier& sid);
+PseudoRange convertSbpPseudoRangeToRos(const uint32_t range, const bool valid);
+CarrierPhaseCycles convertSbpCarrierPhaseCyclesToRos(
+    const int32_t i, const int32_t f, const bool valid,
+    const bool half_cycle_ambiguity_resolved);
+Doppler convertSbpDopplerToRos(const int32_t i, const int32_t f,
+                               const bool valid);
+CarrierToNoise convertSbpCarrierToNoiseToRos(const uint8_t density);
+SatelliteIdentifier convertSbpSatelliteIdentifierToRos(const uint8_t sat,
+                                                       const uint8_t code);
+
 GpsTimeValue convertSbpGpsTimeValueToRos(const uint16_t wn, const uint32_t tow,
                                          const int32_t ns_residual);
 GpsTow convertSbpGpsTowToRos(const uint32_t tow, const uint8_t tow_f);

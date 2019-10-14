@@ -21,7 +21,7 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
                                  const std::string& topic)
       : SBPCallbackHandler(nh, sbp_msg_type, state) {
     // Advertise ROS topics.
-    relay_pub_ = nh_.advertise<ROSMsgType>(topic, kQueueSize, kLatchTopic);
+    relay_pub_ = nh_.advertise<ROSMsgType>("relay/" + topic, kQueueSize, kLatchTopic);
   }
 
  private:

@@ -60,6 +60,50 @@ Gpio piksi_multi_msgs::convertSbpGpioToRos(const uint8_t pin,
   return gpio;
 }
 
+PseudoRange piksi_multi_msgs::convertSbpPseudoRangeToRos(const uint32_t range,
+                                                         const bool valid) {
+  PseudoRange pseudo_range;
+  pseudo_range.range.data = range;
+  pseudo_range.valid.data = valid;
+  return pseudo_range;
+}
+
+CarrierPhaseCycles piksi_multi_msgs::convertSbpCarrierPhaseCyclesToRos(
+    const int32_t i, const int32_t f, const bool valid,
+    const bool half_cycle_ambiguity_resolved) {
+  CarrierPhaseCycles cpc;
+  cpc.i.data = i;
+  cpc.f.data = f;
+  cpc.valid.data = valid;
+  cpc.half_cycle_ambiguity_resolved.data = half_cycle_ambiguity_resolved;
+  return cpc;
+}
+
+Doppler piksi_multi_msgs::convertSbpDopplerToRos(const int32_t i,
+                                                 const int32_t f,
+                                                 const bool valid) {
+  Doppler doppler;
+  doppler.i.data = i;
+  doppler.f.data = f;
+  doppler.valid.data = valid;
+  return doppler;
+}
+
+CarrierToNoise piksi_multi_msgs::convertSbpCarrierToNoiseToRos(
+    const uint8_t density) {
+  CarrierToNoise cn;
+  cn.density.data = density;
+  return cn;
+}
+
+SatelliteIdentifier piksi_multi_msgs::convertSbpSatelliteIdentifierToRos(
+    const uint8_t sat, const uint8_t code) {
+  SatelliteIdentifier sid;
+  sid.sat.data = sat;
+  sid.code.data = code;
+  return sid;
+}
+
 GpsTimeValue piksi_multi_msgs::convertSbpGpsTimeValueToRos(
     const uint16_t wn, const uint32_t tow, const int32_t ns_residual) {
   GpsTimeValue gps_time_value;
@@ -399,6 +443,22 @@ Obs piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_obs_t& sbp_msg) {
   ros_msg.time = convertSbpGpsTimeValueToRos(
       sbp_msg.header.t.wn, sbp_msg.header.t.tow, sbp_msg.header.t.ns_residual);
   ros_msg.n_obs.data = sbp_msg.header.n_obs;
+  for (size_t i = 0; i < ros_msg.n_obs.data; ++i) {
+    GpsObservation gps_obs;
+    gps_obs.P = convertSbpPseudoRangeToRos(sbp_msg.obs[i].P,
+                                           (sbp_msg.obs[i].flags >> 0) & 0x1);
+    gps_obs.L = convertSbpCarrierPhaseCyclesToRos(
+        sbp_msg.obs[i].L.i, sbp_msg.obs[i].L.f,
+        (sbp_msg.obs[i].flags >> 1) & 0x1, (sbp_msg.obs[i].flags >> 2) & 0x1);
+    gps_obs.D = convertSbpDopplerToRos(sbp_msg.obs[i].D.i, sbp_msg.obs[i].D.f,
+                                       (sbp_msg.obs[i].flags >> 3) & 0x1);
+    gps_obs.cn0 = convertSbpCarrierToNoiseToRos(sbp_msg.obs[i].cn0);
+    gps_obs.lock.data = sbp_msg.obs[i].lock;
+    gps_obs.raim_exclusion.data = (sbp_msg.obs[i].flags >> 7) & 0x1;
+    gps_obs.sid = convertSbpSatelliteIdentifierToRos(sbp_msg.obs[i].sid.sat,
+                                                     sbp_msg.obs[i].sid.code);
+    ros_msg.obs.push_back(gps_obs);
+  }
 
   return ros_msg;
 }
