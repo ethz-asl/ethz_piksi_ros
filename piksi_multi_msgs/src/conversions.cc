@@ -394,6 +394,15 @@ AgeCorrections piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 // Observation
+Obs piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_obs_t& sbp_msg) {
+  Obs ros_msg;
+  ros_msg.time = convertSbpGpsTimeValueToRos(
+      sbp_msg.header.t.wn, sbp_msg.header.t.tow, sbp_msg.header.t.ns_residual);
+  ros_msg.n_obs.data = sbp_msg.header.n_obs;
+
+  return ros_msg;
+}
+
 // System
 Heartbeat piksi_multi_msgs::convertSbpMsgToRosMsg(
     const msg_heartbeat_t& sbp_msg) {

@@ -1,10 +1,11 @@
 #include <ros/console.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_ext_event.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_heartbeat.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu_aux.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu_raw.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_ext_events.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_logging.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_mag.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_system.h"
 
 #include <libsbp/acquisition.h>
 #include <libsbp/ext_events.h>
@@ -39,6 +40,13 @@ SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
     case SBP_MSG_IMU_AUX:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayImuAux(nh, state));
+    case SBP_MSG_LOG:
+      return SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayLog(nh, state));
+    case SBP_MSG_FWD:
+      return SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayFwd(nh, state));
+    case SBP_MSG_MAG_RAW:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayMagRaw(nh, state));
     case SBP_MSG_HEARTBEAT:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayHeartbeat(nh, state));
