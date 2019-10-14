@@ -14,5 +14,5 @@
 
   <depend>libsbp_catkin</depend>
   <depend>roscpp</depend>
-  <depend>piksi_rtk_msgs</depend>
+  <depend>piksi_multi_msgs</depend>
 </package>
