@@ -1,6 +1,7 @@
 #include <ros/console.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_ext_event.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_heartbeat.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu_raw.h"
 
@@ -28,6 +29,9 @@ SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state) {
   switch (sbp_msg_type) {
+    case SBP_MSG_EXT_EVENT:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayExtEvent(nh, SBP_MSG_EXT_EVENT, state));
     case SBP_MSG_IMU_RAW:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayImuRaw(nh, SBP_MSG_IMU_RAW, state));
