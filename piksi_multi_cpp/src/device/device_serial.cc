@@ -120,7 +120,7 @@ int32_t DeviceSerial::read(uint8_t* buff, uint32_t n) const {
     return 0;
   }
 
-  return sp_blocking_read(port_, buff, n, 0);
+  return sp_blocking_read(port_, buff, n, 10000);
 }
 
 void DeviceSerial::close() {
