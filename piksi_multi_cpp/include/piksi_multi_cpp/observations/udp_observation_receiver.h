@@ -9,6 +9,14 @@
 
 namespace piksi_multi_cpp {
 
+/*
+ * Class that receives corrections via UDP and can write them to a
+ * ObservationsConsumer.
+ *
+ * Together with ObservationsConsumer, This implements a visitor pattern,
+ * https://en.wikipedia.org/wiki/Visitor_pattern
+ *
+ */
 class UDPObservationReceiver {
  public:
   explicit UDPObservationReceiver(ObservationsConsumer::Ptr consumer);
@@ -29,7 +37,6 @@ class UDPObservationReceiver {
   std::thread process_thread_;
   std::mutex consumers_lock_;
   std::vector<ObservationsConsumer::Ptr> consumers_;
-
 
   int fd_socket_{0};  // file descriptor for socket
   uint64_t received_packets_{0};

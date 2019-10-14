@@ -10,6 +10,7 @@ namespace piksi_multi_cpp {
 /*
  * Defines an interface to <something> that can handle raw observation sbp
  * packages.
+ *
  */
 
 // Raw Observations is supposed to hold valid SBP messages.
