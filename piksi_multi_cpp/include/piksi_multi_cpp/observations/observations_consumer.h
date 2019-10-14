@@ -1,7 +1,6 @@
 #ifndef PIKSI_MULTI_CPP_OBSERVATIONS_OBSERVATIONS_CONSUMER_H_
 #define PIKSI_MULTI_CPP_OBSERVATIONS_OBSERVATIONS_CONSUMER_H_
-#include <libsbp/observation.h>
-#include <libsbp/system.h>
+
 #include <vector>
 #include <memory>
 
