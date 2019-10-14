@@ -16,8 +16,10 @@ cs_add_library(${PROJECT_NAME}
         src/device/device_usb.cc
         src/device/device_serial.cc
         src/device/device_tcp.cc
-        src/observations/udp_observation_receiver.cpp
-        src/observations/udp_observation_sender.cpp
+        src/observations/udp_observation_receiver.cc
+        src/observations/raw_observation_handler.cc
+        src/observations/udp_observation_sender.cc
+        src/observations/file_observation_logger.cc
         src/receiver/receiver_attitude.cc
         src/receiver/receiver_base_station.cc
         src/receiver/receiver_factory.cc
