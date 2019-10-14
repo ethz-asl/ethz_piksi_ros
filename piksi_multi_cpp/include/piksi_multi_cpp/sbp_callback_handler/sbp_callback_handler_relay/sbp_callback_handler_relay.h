@@ -1,6 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_H_
 
+#include <piksi_multi_msgs/conversions.h>
 #include <ros/ros.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
@@ -9,7 +10,7 @@ namespace piksi_multi_cpp {
 // This class handles all SBP messages and simply relays them to the ROS
 // network. The concrete message relay needs to specifify the ROS message type,
 // the SBP message class, set a topic name and implement the message conversion.
-template <class ROSMsgType, class SBPMsgStruct>
+template <class SBPMsgType, class ROSMsgType>
 class SBPCallbackHandlerRelay : public SBPCallbackHandler {
  public:
   // Registers a relay callback. There is a one to one mapping between
@@ -23,10 +24,6 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
     relay_pub_ = nh_.advertise<ROSMsgType>(topic, kQueueSize, kLatchTopic);
   }
 
- protected:
-  // Concrete relays have to parse the struct into a ROS msg.
-  virtual ROSMsgType convertSBPMsgToROSMsg(const SBPMsgStruct& sbp_msg) = 0;
-
  private:
   // Overwrites callback method to check number of subscribers, cast SBP message
   // and publish ROS msg.
@@ -37,14 +34,14 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
     if (relay_pub_.getNumSubscribers() == 0) return;
 
     // Cast message.
-    auto sbp_msg = (SBPMsgStruct*)msg;
+    auto sbp_msg = (SBPMsgType*)msg;
     if (!sbp_msg) {
       ROS_WARN("Cannot cast SBP message.");
       return;
     }
 
     // Convert SBP message.
-    ROSMsgType ros_msg = convertSBPMsgToROSMsg(*sbp_msg);
+    ROSMsgType ros_msg = piksi_multi_msgs::convertSbpMsgToRosMsg(*sbp_msg);
 
     // Publish ROS msg.
     relay_pub_.publish(ros_msg);

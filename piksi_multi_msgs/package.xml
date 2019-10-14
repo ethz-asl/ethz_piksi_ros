@@ -16,6 +16,7 @@
   <buildtool_depend>catkin_simple</buildtool_depend>
 
   <depend>std_msgs</depend>
+  <depend>libsbp_catkin</depend>
 
   <depend>message_generation</depend>
   <depend>message_runtime</depend>
