@@ -16,10 +16,12 @@ class DeviceSerial : public Device {
 
  protected:
   virtual bool allocatePort();
+  virtual bool parseId();
+  virtual bool setBaudRate();
+  virtual bool setPortDefaults();
   struct sp_port* port_;
 
  private:
-  bool parseId();
   std::string portname_;
   uint baudrate_;
 };

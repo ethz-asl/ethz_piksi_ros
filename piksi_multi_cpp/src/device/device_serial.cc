@@ -27,7 +27,11 @@ bool DeviceSerial::allocatePort() {
     return false;
   }
 
-  result = sp_set_baudrate(port_, baudrate_);
+  return true;
+}
+
+bool DeviceSerial::setBaudRate() {
+  sp_return result = sp_set_baudrate(port_, baudrate_);
   if (result != SP_OK) {
     ROS_ERROR_STREAM("Cannot set baud rate: " << result);
     return false;
@@ -36,29 +40,10 @@ bool DeviceSerial::allocatePort() {
   return true;
 }
 
-bool DeviceSerial::open() {
-  if (!parseId()) {
-    return false;
-  }
-
-  // Allocate port.
-  if (!allocatePort()) {
-    close();
-    return false;
-  }
-
-  // Open port.
-  sp_return result = sp_open(port_, SP_MODE_READ);
-  if (result != SP_OK) {
-    ROS_ERROR("Cannot open port %s: %d", sp_get_port_name(port_), result);
-    close();
-    return false;
-  }
-  ROS_INFO_STREAM("Opened port: " << sp_get_port_name(port_));
-
+bool DeviceSerial::setPortDefaults() {
   // Configuration.
   // https://github.com/swift-nav/libsbp/blob/master/c/example/example.c
-  result = sp_set_flowcontrol(port_, SP_FLOWCONTROL_NONE);
+  sp_return result = sp_set_flowcontrol(port_, SP_FLOWCONTROL_NONE);
   if (result != SP_OK) {
     ROS_ERROR_STREAM("Cannot set flow control: " << result);
     close();
@@ -89,6 +74,42 @@ bool DeviceSerial::open() {
     return false;
   }
   ROS_DEBUG("Configured the number of stop bits.");
+  return true;
+}
+
+bool DeviceSerial::open() {
+  if (!parseId()) {
+    return false;
+  }
+
+  // Allocate port.
+  if (!allocatePort()) {
+    close();
+    return false;
+  }
+
+  // Open port.
+  sp_return result = sp_open(port_, SP_MODE_READ);
+  if (result != SP_OK) {
+    ROS_ERROR("Cannot open port %s: %d", sp_get_port_name(port_), result);
+    close();
+    return false;
+  }
+  ROS_INFO_STREAM("Opened port: " << sp_get_port_name(port_));
+
+  // set Baudrate
+  if (!setPortDefaults()) {
+    close();
+    ROS_ERROR_STREAM("Cannot set port defaults on port "
+                     << sp_get_port_name(port_));
+    return false;
+  }
+
+  if (!setBaudRate()) {
+    close();
+    ROS_ERROR_STREAM("Cannot set baudrate on port " << sp_get_port_name(port_));
+    return false;
+  }
 
   return true;
 }

@@ -19,6 +19,8 @@ class DeviceUSB : public DeviceSerial {
   static void printDeviceInfo(struct sp_port* port);
   static void printPorts();
   bool allocatePort() override ;
+  bool parseId() override ;
+  bool setBaudRate() override;
 
 };
 }  // namespace piksi_multi_cpp

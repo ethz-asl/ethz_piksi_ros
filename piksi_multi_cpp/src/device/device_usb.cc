@@ -9,6 +9,16 @@ namespace piksi_multi_cpp {
 
 DeviceUSB::DeviceUSB(const Identifier& id) : DeviceSerial(id) {}
 
+bool DeviceUSB::parseId() {
+  // not much to check with USB ids.
+  return true;
+}
+
+bool DeviceUSB::setBaudRate() {
+  // not necessary.
+  return true;
+}
+
 Identifiers DeviceUSB::discoverAllSerialNumbers() {
   Identifiers identifiers;
 
@@ -51,6 +61,7 @@ void DeviceUSB::printPorts() {
 }
 
 bool DeviceUSB::allocatePort() {
+  std::cout << "allocate USB" << std::endl;
   // Find any serial port with serial number.
   struct sp_port** ports;
   sp_return result = sp_list_ports(&ports);
