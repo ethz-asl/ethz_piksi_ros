@@ -88,10 +88,27 @@
 
 namespace piksi_multi_msgs {
 // Functions to create specific ROS message types.
+AccuracyTangentPlane convertSbpAccuracyTangentPlaneToRos(
+    const uint16_t h_accuracy, const uint16_t v_accuracy);
+AccuracyQuaternion convertSbpAccuracyQuaternionPlaneToRos(
+    const uint16_t w_accuracy, const uint16_t x_accuracy,
+    const uint16_t y_accuracy, const uint16_t z_accuracy);
+CovCartesian convertSbpCovCartesianToRos(const float x_x, const float x_y,
+                                         const float x_z, const float y_y,
+                                         const float y_z, const float z_z);
+CovTangentNed convertSbpCovTangentNedToRos(const float n_n, const float n_e,
+                                           const float n_d, const float e_e,
+                                           const float e_d, const float d_d);
 Gpio convertSbpGpioToRos(const uint8_t pin, const bool value);
 GpsTimeValue convertSbpGpsTimeValueToRos(const uint16_t wn, const uint32_t tow,
                                          const int32_t ns_residual);
 GpsTow convertSbpGpsTowToRos(const uint32_t tow, const uint8_t tow_f);
+PointEcef convertSbpPointEcefToRos(const double x, const double y,
+                                   const double z);
+PointNed convertSbpPointNedToRos(const int32_t n, const int32_t e,
+                                 const int32_t d);
+PointWgs84 convertSbpPointWgs84ToRos(const double lat, const double lon,
+                                     const double height);
 Vector3Int convertSbpVector3IntToRos(const int16_t x, const int16_t y,
                                      const int16_t z);
 
@@ -183,20 +200,21 @@ DeviceMonitor convertSbpMsgToRosMsg(const msg_device_monitor_t& sbp_msg);
 // Sbas
 SbasRaw convertSbpMsgToRosMsg(const msg_sbas_raw_t& sbp_msg);
 // Ssr
-//SsrRaw convertSbpMsgToRosMsg(const msg_ssr_raw_t& sbp_msg);
-//SsrCodeBiases convertSbpMsgToRosMsg(const msg_ssr_code_biases_t& sbp_msg);
-//SsrPhaseBiases convertSbpMsgToRosMsg(const msg_ssr_phase_biases_t& sbp_msg);
-//SsrStecCorrection convertSbpMsgToRosMsg(const msg_ssr_stec_correction_t& sbp_msg);
-//SsrGriddedCorrection convertSbpMsgToRosMsg(const msg_ssr_gridded_correction_t& sbp_msg);
-//SsrGridDefinition convertSbpMsgToRosMsg(const msg_ssr_grid_definition_t& sbp_msg);
+// SsrRaw convertSbpMsgToRosMsg(const msg_ssr_raw_t& sbp_msg);
+// SsrCodeBiases convertSbpMsgToRosMsg(const msg_ssr_code_biases_t& sbp_msg);
+// SsrPhaseBiases convertSbpMsgToRosMsg(const msg_ssr_phase_biases_t& sbp_msg);
+// SsrStecCorrection convertSbpMsgToRosMsg(const msg_ssr_stec_correction_t&
+// sbp_msg); SsrGriddedCorrection convertSbpMsgToRosMsg(const
+// msg_ssr_gridded_correction_t& sbp_msg); SsrGridDefinition
+// convertSbpMsgToRosMsg(const msg_ssr_grid_definition_t& sbp_msg);
 // Tracking
 TrackingStates convertSbpMsgToRosMsg(const msg_tracking_state_t& sbp_msg);
 MeasurementStates convertSbpMsgToRosMsg(const msg_measurement_state_t& sbp_msg);
-//TrackingIq convertSbpMsgToRosMsg(const msg_tracking_iq_t& sbp_msg);
+// TrackingIq convertSbpMsgToRosMsg(const msg_tracking_iq_t& sbp_msg);
 // User
-//UserData convertSbpMsgToRosMsg(const msg_user_data_t& sbp_msg);
+// UserData convertSbpMsgToRosMsg(const msg_user_data_t& sbp_msg);
 // Vehicle
-//Odometry convertSbpMsgToRosMsg(const msg_odometry_t& sbp_msg);
+// Odometry convertSbpMsgToRosMsg(const msg_odometry_t& sbp_msg);
 
 // Overloaded functions to convert ROS messages to SBP msgs. Sorted by SBP
 // documentation occurance.
