@@ -12,6 +12,7 @@ class DeviceSerial : public Device {
 
   bool open() override;
   int32_t read(uint8_t* buff, uint32_t n) const override;
+  void write(std::vector<uint8_t> buff) const override;
   void close() override;
 
  protected:
