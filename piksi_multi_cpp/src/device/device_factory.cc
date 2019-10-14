@@ -1,9 +1,9 @@
-#include "piksi_multi_cpp/device/device_factory.h"
+#include <piksi_multi_cpp/device/device.h>
+#include <piksi_multi_cpp/device/device_factory.h>
 #include <piksi_multi_cpp/device/device_tcp.h>
+#include <piksi_multi_cpp/device/device_usb.h>
 #include <ros/console.h>
 #include <regex>
-#include "piksi_multi_cpp/device/device.h"
-#include "piksi_multi_cpp/device/device_usb.h"
 
 namespace piksi_multi_cpp {
 

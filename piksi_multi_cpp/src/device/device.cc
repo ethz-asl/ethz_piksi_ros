@@ -1,6 +1,5 @@
-#include "piksi_multi_cpp/device/device_usb.h"
-
 #include <piksi_multi_cpp/device/device_tcp.h>
+#include <piksi_multi_cpp/device/device_usb.h>
 #include <ros/console.h>
 #include <memory>
 #include <vector>
