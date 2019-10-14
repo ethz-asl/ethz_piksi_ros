@@ -69,6 +69,8 @@
 #include "piksi_multi_msgs/VelNedCov.h"
 #include "piksi_multi_msgs/VelocityMode.h"
 
+#include "geometry_msgs/Vector3.h"
+
 #include <libsbp/acquisition.h>
 #include <libsbp/ext_events.h>
 #include <libsbp/imu.h>
@@ -111,6 +113,11 @@ PointWgs84 convertSbpPointWgs84ToRos(const double lat, const double lon,
                                      const double height);
 Vector3Int convertSbpVector3IntToRos(const int16_t x, const int16_t y,
                                      const int16_t z);
+geometry_msgs::Vector3 convertSbpVectorCartesianToRos(const int32_t x,
+                                                      const int32_t y,
+                                                      const int32_t z);
+VectorNed convertSbpVectorNedToRos(const int32_t n, const int32_t e,
+                                   const int32_t d);
 
 // Overloaded functions to convert SBP messages to ROS msgs. Sorted by SBP
 // documentation occurance.

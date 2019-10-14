@@ -119,6 +119,25 @@ Vector3Int piksi_multi_msgs::convertSbpVector3IntToRos(const int16_t x,
   return vector_3_int;
 }
 
+geometry_msgs::Vector3 piksi_multi_msgs::convertSbpVectorCartesianToRos(
+    const int32_t x, const int32_t y, const int32_t z) {
+  geometry_msgs::Vector3 vec;
+  vec.x = kFromMilli * x;
+  vec.y = kFromMilli * y;
+  vec.z = kFromMilli * z;
+  return vec;
+}
+
+VectorNed piksi_multi_msgs::convertSbpVectorNedToRos(const int32_t n,
+                                                     const int32_t e,
+                                                     const int32_t d) {
+  VectorNed vec;
+  vec.n.data = kFromMilli * n;
+  vec.e.data = kFromMilli * e;
+  vec.d.data = kFromMilli * d;
+  return vec;
+}
+
 // Ext Events.
 ExtEvent piksi_multi_msgs::convertSbpMsgToRosMsg(
     const msg_ext_event_t& sbp_msg) {
@@ -294,6 +313,83 @@ BaselineNed piksi_multi_msgs::convertSbpMsgToRosMsg(
                                                          sbp_msg.v_accuracy);
   ros_msg.n_sats.data = sbp_msg.n_sats;
   ros_msg.fix_mode.fix_mode.data = (sbp_msg.flags >> 0) & 0x7;
+  return ros_msg;
+}
+
+VelEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ecef_t& sbp_msg) {
+  VelEcef ros_msg;
+  ros_msg.tow.data = sbp_msg.tow;
+  ros_msg.velocity_ecef =
+      convertSbpVectorCartesianToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+  ros_msg.accuracy.data = kFromMilli * sbp_msg.accuracy;
+  ros_msg.n_sats.data = sbp_msg.n_sats;
+  ros_msg.velocity_mode.velocity_mode.data = (sbp_msg.flags >> 0) & 0x7;
+  ros_msg.ins_mode.ins_mode.data = (sbp_msg.flags >> 3) & 0x3;
+  return ros_msg;
+}
+
+VelEcefCov piksi_multi_msgs::convertSbpMsgToRosMsg(
+    const msg_vel_ecef_cov_t& sbp_msg) {
+  VelEcefCov ros_msg;
+  ros_msg.tow.data = sbp_msg.tow;
+  ros_msg.velocity_ecef =
+      convertSbpVectorCartesianToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+  ros_msg.cov = convertSbpCovCartesianToRos(sbp_msg.cov_x_x, sbp_msg.cov_x_y,
+                                            sbp_msg.cov_x_z, sbp_msg.cov_y_y,
+                                            sbp_msg.cov_y_z, sbp_msg.cov_z_z);
+  ros_msg.n_sats.data = sbp_msg.n_sats;
+  ros_msg.velocity_mode.velocity_mode.data = (sbp_msg.flags >> 0) & 0x7;
+  ros_msg.ins_mode.ins_mode.data = (sbp_msg.flags >> 3) & 0x3;
+  return ros_msg;
+}
+
+VelNed piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ned_t& sbp_msg) {
+  VelNed ros_msg;
+  ros_msg.tow.data = sbp_msg.tow;
+  ros_msg.velocity_ned =
+      convertSbpVectorNedToRos(sbp_msg.n, sbp_msg.e, sbp_msg.d);
+  ros_msg.accuracy = convertSbpAccuracyTangentPlaneToRos(sbp_msg.h_accuracy,
+                                                         sbp_msg.v_accuracy);
+  ros_msg.n_sats.data = sbp_msg.n_sats;
+  ros_msg.velocity_mode.velocity_mode.data = (sbp_msg.flags >> 0) & 0x7;
+  ros_msg.ins_mode.ins_mode.data = (sbp_msg.flags >> 3) & 0x3;
+  return ros_msg;
+}
+
+VelNedCov piksi_multi_msgs::convertSbpMsgToRosMsg(
+    const msg_vel_ned_cov_t& sbp_msg) {
+  VelNedCov ros_msg;
+  ros_msg.tow.data = sbp_msg.tow;
+  ros_msg.velocity_ned =
+      convertSbpVectorNedToRos(sbp_msg.n, sbp_msg.e, sbp_msg.d);
+  ros_msg.cov = convertSbpCovTangentNedToRos(sbp_msg.cov_n_n, sbp_msg.cov_n_e,
+                                             sbp_msg.cov_n_d, sbp_msg.cov_e_e,
+                                             sbp_msg.cov_e_d, sbp_msg.cov_d_d);
+  ros_msg.n_sats.data = sbp_msg.n_sats;
+  ros_msg.velocity_mode.velocity_mode.data = (sbp_msg.flags >> 0) & 0x7;
+  ros_msg.ins_mode.ins_mode.data = (sbp_msg.flags >> 3) & 0x3;
+  return ros_msg;
+}
+
+VelBody piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_body_t& sbp_msg) {
+  VelBody ros_msg;
+  ros_msg.tow.data = sbp_msg.tow;
+  ros_msg.velocity_body =
+      convertSbpVectorCartesianToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+  ros_msg.cov = convertSbpCovCartesianToRos(sbp_msg.cov_x_x, sbp_msg.cov_x_y,
+                                            sbp_msg.cov_x_z, sbp_msg.cov_y_y,
+                                            sbp_msg.cov_y_z, sbp_msg.cov_z_z);
+  ros_msg.n_sats.data = sbp_msg.n_sats;
+  ros_msg.velocity_mode.velocity_mode.data = (sbp_msg.flags >> 0) & 0x7;
+  ros_msg.ins_mode.ins_mode.data = (sbp_msg.flags >> 3) & 0x3;
+  return ros_msg;
+}
+
+AgeCorrections piksi_multi_msgs::convertSbpMsgToRosMsg(
+    const msg_age_corrections_t& sbp_msg) {
+  AgeCorrections ros_msg;
+  ros_msg.tow.data = sbp_msg.tow;
+  ros_msg.age.data = sbp_msg.age;
   return ros_msg;
 }
 
