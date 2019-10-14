@@ -14,9 +14,8 @@ class SBPCallbackHandlerRelayImuRaw
  public:
   // Here we define the topic name.
   inline SBPCallbackHandlerRelayImuRaw(
-      const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
-      const std::shared_ptr<sbp_state_t>& state)
-      : SBPCallbackHandlerRelay(nh, sbp_msg_type, state, "imu_raw") {}
+      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state)
+      : SBPCallbackHandlerRelay(nh, SBP_MSG_IMU_RAW, state, "imu_raw") {}
 };
 
 }  // namespace piksi_multi_cpp

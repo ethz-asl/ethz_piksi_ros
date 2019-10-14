@@ -31,13 +31,13 @@ SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
   switch (sbp_msg_type) {
     case SBP_MSG_EXT_EVENT:
       return SBPCallbackHandler::Ptr(
-          new SBPCallbackHandlerRelayExtEvent(nh, SBP_MSG_EXT_EVENT, state));
+          new SBPCallbackHandlerRelayExtEvent(nh, state));
     case SBP_MSG_IMU_RAW:
       return SBPCallbackHandler::Ptr(
-          new SBPCallbackHandlerRelayImuRaw(nh, SBP_MSG_IMU_RAW, state));
+          new SBPCallbackHandlerRelayImuRaw(nh, state));
     case SBP_MSG_HEARTBEAT:
       return SBPCallbackHandler::Ptr(
-          new SBPCallbackHandlerRelayHeartbeat(nh, SBP_MSG_HEARTBEAT, state));
+          new SBPCallbackHandlerRelayHeartbeat(nh, state));
     default:
       // TODO(rikba): Implement all other callbacks.
       ROS_WARN("Message type %u not implemented.", sbp_msg_type);

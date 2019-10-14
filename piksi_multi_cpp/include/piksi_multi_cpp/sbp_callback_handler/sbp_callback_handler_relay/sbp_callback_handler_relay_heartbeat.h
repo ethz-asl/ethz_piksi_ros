@@ -12,9 +12,8 @@ class SBPCallbackHandlerRelayHeartbeat
                                      piksi_multi_msgs::Heartbeat> {
  public:
   inline SBPCallbackHandlerRelayHeartbeat(
-      const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
-      const std::shared_ptr<sbp_state_t>& state)
-      : SBPCallbackHandlerRelay(nh, sbp_msg_type, state, "heartbeat") {}
+      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state)
+      : SBPCallbackHandlerRelay(nh, SBP_MSG_HEARTBEAT, state, "heartbeat") {}
 };
 
 }  // namespace piksi_multi_cpp
