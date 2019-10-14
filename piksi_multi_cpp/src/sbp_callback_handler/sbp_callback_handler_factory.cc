@@ -3,6 +3,7 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_ext_event.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_heartbeat.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu_aux.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu_raw.h"
 
 #include <libsbp/acquisition.h>
@@ -35,6 +36,9 @@ SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
     case SBP_MSG_IMU_RAW:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayImuRaw(nh, state));
+    case SBP_MSG_IMU_AUX:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayImuAux(nh, state));
     case SBP_MSG_HEARTBEAT:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayHeartbeat(nh, state));

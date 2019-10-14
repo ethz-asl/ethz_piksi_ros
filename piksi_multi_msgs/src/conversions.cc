@@ -1,5 +1,7 @@
 #include "piksi_multi_msgs/conversions.h"
 
+#include <cmath>
+
 using namespace piksi_multi_msgs;
 // How to shift and mask bits: https://stackoverflow.com/a/27592777
 
@@ -50,17 +52,17 @@ ExtEvent piksi_multi_msgs::convertSbpMsgToRosMsg(
   return ros_msg;
 }
 
-Heartbeat piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_heartbeat_t& sbp_msg) {
-  Heartbeat ros_msg;
-
-  ros_msg.system_error.data = (sbp_msg.flags >> 0) & 0x1;
-  ros_msg.io_error.data = (sbp_msg.flags >> 1) & 0x1;
-  ros_msg.swift_nap_error.data = (sbp_msg.flags >> 2) & 0x1;
-  ros_msg.sbp_minor_version.data = (sbp_msg.flags >> 8) & 0xFF;
-  ros_msg.sbp_major_version.data = (sbp_msg.flags >> 16) & 0xFF;
-  ros_msg.short_detected.data = (sbp_msg.flags >> 30) & 0x1;
-  ros_msg.external_antenna_present.data = (sbp_msg.flags >> 31) & 0x1;
+ImuAux piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_imu_aux_t& sbp_msg) {
+  ImuAux ros_msg;
+  ros_msg.imu_type.data = sbp_msg.imu_type;
+  // TODO(rikba): Convert temperature to unit.
+  ros_msg.temp.data = sbp_msg.temp;
+  // Convert accelerometer range (lower four bits).
+  uint8_t acc_conf = (sbp_msg.imu_conf >> 0) & 0xF;
+  ros_msg.accelerometer_range.data = std::pow(2, (acc_conf + 1));
+  // Convert gyro range (upper four bits).
+  uint8_t gyro_conf = (sbp_msg.imu_conf >> 4) & 0xF;
+  ros_msg.gyroscope_range.data = 2000 / std::pow(2, (gyro_conf));
 
   return ros_msg;
 }
@@ -72,6 +74,21 @@ ImuRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_imu_raw_t& sbp_msg) {
       convertSbpVector3IntToRos(sbp_msg.acc_x, sbp_msg.acc_y, sbp_msg.acc_z);
   ros_msg.gyr =
       convertSbpVector3IntToRos(sbp_msg.gyr_x, sbp_msg.gyr_y, sbp_msg.gyr_z);
+
+  return ros_msg;
+}
+
+Heartbeat piksi_multi_msgs::convertSbpMsgToRosMsg(
+    const msg_heartbeat_t& sbp_msg) {
+  Heartbeat ros_msg;
+
+  ros_msg.system_error.data = (sbp_msg.flags >> 0) & 0x1;
+  ros_msg.io_error.data = (sbp_msg.flags >> 1) & 0x1;
+  ros_msg.swift_nap_error.data = (sbp_msg.flags >> 2) & 0x1;
+  ros_msg.sbp_minor_version.data = (sbp_msg.flags >> 8) & 0xFF;
+  ros_msg.sbp_major_version.data = (sbp_msg.flags >> 16) & 0xFF;
+  ros_msg.short_detected.data = (sbp_msg.flags >> 30) & 0x1;
+  ros_msg.external_antenna_present.data = (sbp_msg.flags >> 31) & 0x1;
 
   return ros_msg;
 }
