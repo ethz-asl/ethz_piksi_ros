@@ -25,7 +25,7 @@ class Receiver {
   ~Receiver();
 
   // Open device.
-  bool init();
+  virtual bool init();
 
   // Checks if thread is running
   bool isRunning() const;
