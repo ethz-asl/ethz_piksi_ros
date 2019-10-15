@@ -3,6 +3,13 @@
 #define PIKSI_MULTI_CPP_OBSERVATIONS_UDP_OBSERVATION_SENDER_H_
 #include <piksi_multi_cpp/observations/cb_to_raw_obs_converter.h>
 namespace piksi_multi_cpp {
+
+/*
+ * Class that forwards raw observations via UDP. To be used by the base station.
+ *
+ * Does consume raw observations for forwarding and thus has
+ * RawObservationsInterface.
+ */
 class UDPObservationSender : public RawObservationInterface {
  public:
   UDPObservationSender() {}

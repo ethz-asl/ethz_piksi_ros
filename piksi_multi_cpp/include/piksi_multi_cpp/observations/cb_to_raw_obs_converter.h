@@ -1,5 +1,5 @@
-#ifndef PIKSI_MULTI_CPP_OBSERVATIONS_RAW_OBSERVATIONS_HANDLER_H_
-#define PIKSI_MULTI_CPP_OBSERVATIONS_RAW_OBSERVATIONS_HANDLER_H_
+#ifndef PIKSI_MULTI_CPP_OBSERVATIONS_CB_TO_RAW_OBS_CONVERTER_H_
+#define PIKSI_MULTI_CPP_OBSERVATIONS_CB_TO_RAW_OBS_CONVERTER_H_
 #include <piksi_multi_cpp/observations/callback_observation_interface.h>
 #include <piksi_multi_cpp/observations/raw_observation_interface.h>
 #include <vector>
@@ -44,4 +44,4 @@ class CBtoRawObsConverter : public CallbackObservationInterface {
   std::vector<RawObservationInterface::Ptr> raw_consumers_;
 };
 }  // namespace piksi_multi_cpp
-#endif  // PIKSI_MULTI_CPP_OBSERVATIONS_RAW_OBSERVATIONS_HANDLER_H_
+#endif  // PIKSI_MULTI_CPP_OBSERVATIONS_CB_TO_RAW_OBS_CONVERTER_H_

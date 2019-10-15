@@ -10,11 +10,12 @@
 namespace piksi_multi_cpp {
 
 /*
- * Class that receives corrections via UDP and can write them to a
- * RawObservationsConsumer.
+ * Class that receives corrections via UDP and can write them to a class that
+ * implements RawObservationsInterface
  *
- * Together with RawObservationsConsumer, This implements a visitor pattern,
+ * Together with RawObservationsInterface, This implements a visitor pattern,
  * https://en.wikipedia.org/wiki/Visitor_pattern
+ *
  *
  */
 class UDPObservationReceiver {

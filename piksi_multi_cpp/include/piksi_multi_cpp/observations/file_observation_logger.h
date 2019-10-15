@@ -7,6 +7,8 @@ namespace piksi_multi_cpp {
 /*
  * Logger that writes Raw observations into file such that it can be used
  * for ppk.
+ *
+ * Consumes Raw Observations, thus has interface RawObservationInterface
  */
 class FileObservationLogger : public RawObservationInterface {
  public:
