@@ -3,8 +3,12 @@
 #include <libsbp/observation.h>
 #include <libsbp/sbp.h>
 #include <libsbp/system.h>
+#include <memory>
+
 namespace piksi_multi_cpp {
 class ObservationCallbackInterface {
+ public:
+  typedef std::shared_ptr<ObservationCallbackInterface> Ptr;
   virtual void observationCallback(msg_base_pos_ecef_t msg) = 0;
   virtual void observationCallback(msg_glo_biases_t msg) = 0;
   virtual void observationCallback(msg_obs_t msg) = 0;

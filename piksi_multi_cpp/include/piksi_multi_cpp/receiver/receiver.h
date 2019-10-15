@@ -11,6 +11,7 @@
 #include "piksi_multi_cpp/device/device.h"
 #include "piksi_multi_cpp/receiver/receiver.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
+#include <piksi_multi_cpp/sbp_callback_handler/sbp_observation_callback_handler.h>
 
 namespace piksi_multi_cpp {
 
@@ -36,6 +37,9 @@ class Receiver {
   // The actual hardware interface.
   Device::Ptr device_;
 
+  // Observation callbackhandlers
+  std::unique_ptr<SBPObservationCallbackHandler> obs_cbs_;
+
  private:
   // Read device and process SBP callbacks.
   void process();
@@ -47,8 +51,11 @@ class Receiver {
 
   // The sbp state.
   std::shared_ptr<sbp_state_t> state_;
+
   // Relaying all SBP messages. Common for all receivers.
   std::vector<SBPCallbackHandler::Ptr> relay_cbs_;
+
+
 };
 
 }  // namespace piksi_multi_cpp

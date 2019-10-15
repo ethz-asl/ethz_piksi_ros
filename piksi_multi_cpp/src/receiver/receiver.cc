@@ -6,6 +6,7 @@
 
 // SBP message definitions.
 #include <libsbp/system.h>
+#include <piksi_multi_cpp/observations/file_observation_logger.h>
 
 namespace piksi_multi_cpp {
 
@@ -14,8 +15,16 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::Ptr& device)
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
   sbp_state_init(state_.get());
+
   // Register all relay callbacks.
   relay_cbs_ = SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
+
+  // Register observation callbacks if needed
+  obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
+  if (/*write to file*/ 1) {
+    obs_cbs_->addObservationCallbackListener(
+        std::make_shared<FileObservationLogger>());
+  }
 }
 
 Receiver::~Receiver() {
