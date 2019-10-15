@@ -1,4 +1,3 @@
-
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_LAMBDA_CALLBACK_HANDLER_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_LAMBDA_CALLBACK_HANDLER_H_
 #include <libsbp/sbp.h>
@@ -8,6 +7,13 @@
 
 namespace piksi_multi_cpp {
 
+/*
+ * Callback Handler that can be redirected to a lambda expression
+ * or std::bind expression.
+ *
+ * Implementation of methods have to be in the header (we don't want to do
+ * explicit template instantiation)
+ */
 template <class SBPMsgStruct>
 class SBPLambdaCallbackHandler : SBPCallbackHandler {
  public:
@@ -15,9 +21,8 @@ class SBPLambdaCallbackHandler : SBPCallbackHandler {
 
   SBPLambdaCallbackHandler(const CallbackFn func, const uint16_t msg_id,
                            const std::shared_ptr<sbp_state_t>& state)
-      : callback_redirect_(func),
-        SBPCallbackHandler(ros::NodeHandle(), msg_id, state)
-  {}
+      : SBPCallbackHandler(ros::NodeHandle(), msg_id, state),
+        callback_redirect_(func) {}
 
  private:
   // Disable copy / assignement constructors.
