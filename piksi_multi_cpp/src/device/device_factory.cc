@@ -34,6 +34,8 @@ std::vector<Device::Ptr> DeviceFactory::createByIdentifier(
       } else {                            // Specific USB device
         return {Device::Ptr(new DeviceUSB(protocol_address))};
       }
+    } else if (protocol == "serial") {
+      return {Device::Ptr(new DeviceSerial(protocol_address))};
     } else if (protocol == "tcp") {  // Specific TCP device
       return {Device::Ptr(new DeviceTCP(protocol_address))};
     } else {
