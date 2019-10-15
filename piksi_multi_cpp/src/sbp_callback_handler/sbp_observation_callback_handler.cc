@@ -7,7 +7,7 @@ SBPObservationCallbackHandler::SBPObservationCallbackHandler(
     : state_(state) {}
 
 void SBPObservationCallbackHandler::addObservationCallbackListener(
-    const ObservationCallbackInterface::Ptr& listener) {
+    const CallbackObservationInterface::Ptr& listener) {
   if (listener.get()) {
     listeners_.push_back(listener);
   }

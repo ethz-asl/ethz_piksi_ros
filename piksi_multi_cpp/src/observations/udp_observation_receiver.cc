@@ -12,15 +12,8 @@
 
 namespace piksi_multi_cpp {
 UDPObservationReceiver::UDPObservationReceiver(
-    ObservationsConsumer::Ptr consumer)
-    : consumers_({consumer}) {}
-
-void UDPObservationReceiver::addConsumer(
-    piksi_multi_cpp::ObservationsConsumer::Ptr consumer) {
-  std::lock_guard lock(consumers_lock_);  // obtain lock on consumers.
-  consumers_.push_back(consumer);
-  // lock is automatically released.
-}
+    const RawObservationInterface::Ptr& consumer)
+    : consumer_(consumer) {}
 
 void UDPObservationReceiver::start(int port) {
   // set up socket
@@ -64,12 +57,8 @@ void UDPObservationReceiver::process() {
 
     if (recvfrom(fd_socket_, buffer.data(), buffer.size(), 0, (sockaddr*)&addr,
                  &fromlen)) {
-      std::lock_guard lock(consumers_lock_);  // get lock on consumers
-
-      // visit all consumers and insert data.
-      for (auto consumer : consumers_) {
-        consumer->insertObservation(buffer);
-      }
+      // visit consumer and insert data.
+      consumer_->insertObservation(buffer);
 
       // lock is released once it gets out of scope here.
     }

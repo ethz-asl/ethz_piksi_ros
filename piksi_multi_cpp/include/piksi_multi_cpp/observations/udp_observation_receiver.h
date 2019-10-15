@@ -1,7 +1,7 @@
 
 #ifndef PIKSI_MULTI_CPP_OBSERVATIONS_UDP_OBSERVATIONS_RECEIVER_H_
 #define PIKSI_MULTI_CPP_OBSERVATIONS_UDP_OBSERVATIONS_RECEIVER_H_
-#include <piksi_multi_cpp/observations/observations_consumer.h>
+#include <piksi_multi_cpp/observations/raw_observation_consumer.h>
 #include <atomic>
 #include <mutex>
 #include <thread>
@@ -11,16 +11,15 @@ namespace piksi_multi_cpp {
 
 /*
  * Class that receives corrections via UDP and can write them to a
- * ObservationsConsumer.
+ * RawObservationsConsumer.
  *
- * Together with ObservationsConsumer, This implements a visitor pattern,
+ * Together with RawObservationsConsumer, This implements a visitor pattern,
  * https://en.wikipedia.org/wiki/Visitor_pattern
  *
  */
 class UDPObservationReceiver {
  public:
-  explicit UDPObservationReceiver(ObservationsConsumer::Ptr consumer);
-  void addConsumer(ObservationsConsumer::Ptr consumer);
+  explicit UDPObservationReceiver(const RawObservationInterface::Ptr&);
   void start(int port);
   void stop();
 
@@ -35,8 +34,8 @@ class UDPObservationReceiver {
 
   void process();
   std::thread process_thread_;
-  std::mutex consumers_lock_;
-  std::vector<ObservationsConsumer::Ptr> consumers_;
+
+  RawObservationInterface::Ptr consumer_;
 
   int fd_socket_{0};  // file descriptor for socket
   uint64_t received_packets_{0};

@@ -6,10 +6,9 @@ namespace piksi_multi_cpp {
 ReceiverBaseStation::ReceiverBaseStation(const ros::NodeHandle& nh,
                                          const std::shared_ptr<Device>& device)
     : Receiver(nh, device) {
-
   // Base station has a observation sender.
   obs_cbs_->addObservationCallbackListener(
-      std::make_shared<UDPObservationSender>());
+      CBtoRawObsConverter::createFor(udp_sender_));
 }
 
 }  // namespace piksi_multi_cpp

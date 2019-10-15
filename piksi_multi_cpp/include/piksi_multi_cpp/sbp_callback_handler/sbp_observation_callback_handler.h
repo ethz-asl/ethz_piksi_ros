@@ -25,7 +25,7 @@ class SBPObservationCallbackHandler {
                                 const std::shared_ptr<sbp_state_t>& state);
 
   void addObservationCallbackListener(
-      const ObservationCallbackInterface::Ptr& listener);
+      const CallbackObservationInterface::Ptr& listener);
 
  private:
   /*
@@ -71,7 +71,7 @@ class SBPObservationCallbackHandler {
       getCallback<msg_heartbeat_t>(), SBP_MSG_HEARTBEAT, state_};
 
   std::shared_ptr<sbp_state_t> state_;
-  std::vector<ObservationCallbackInterface::Ptr> listeners_;
+  std::vector<CallbackObservationInterface::Ptr> listeners_;
 };
 }  // namespace piksi_multi_cpp
 #endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_OBSERVATION_CALLBACK_HANDLER_H_

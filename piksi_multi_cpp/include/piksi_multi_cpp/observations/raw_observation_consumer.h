@@ -1,8 +1,8 @@
 #ifndef PIKSI_MULTI_CPP_OBSERVATIONS_OBSERVATIONS_CONSUMER_H_
 #define PIKSI_MULTI_CPP_OBSERVATIONS_OBSERVATIONS_CONSUMER_H_
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace piksi_multi_cpp {
 
@@ -15,10 +15,10 @@ namespace piksi_multi_cpp {
 // Raw Observations is supposed to hold valid SBP messages.
 typedef std::vector<uint8_t> RawObservation;
 
-class ObservationsConsumer {
+class RawObservationInterface {
  public:
-  typedef std::shared_ptr<ObservationsConsumer> Ptr;
-  virtual void insertObservation(RawObservation& data) = 0;
+  typedef std::shared_ptr<RawObservationInterface> Ptr;
+  virtual void insertObservation(const RawObservation& data) = 0;
 };
 
 }  // namespace piksi_multi_cpp
