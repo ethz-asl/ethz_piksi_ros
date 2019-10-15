@@ -11,10 +11,15 @@ See also http://www.blackwasp.co.uk/FactoryMethod.aspx for more details on
 factories. */
 class DeviceFactory {
  public:
-  enum DeviceType { kUSB = 0 };
-  // Factory method to create a device given DeviceType and Serialnumber.
-  static Device::Ptr createByDeviceTypeAndSerialNumber(const DeviceType type,
-                                                       const Identifier& id);
+  enum DeviceType { kUSB = 0, kTCP };
+
+  // Method to create a device by Identifier String.
+  static std::vector<Device::Ptr> createByIdentifier(const Identifier& id);
+
+  // Method for multiple devices.
+  static std::vector<Device::Ptr> createByIdentifiers(const Identifiers& id);
+
+
   // Factory method to create all devices autodiscovering all Piksis on all
   // interfaces.
   static std::vector<Device::Ptr> createAllDevicesByAutodiscovery();

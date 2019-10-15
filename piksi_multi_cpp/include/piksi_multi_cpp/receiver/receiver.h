@@ -27,6 +27,9 @@ class Receiver {
   // Open device.
   bool init();
 
+  // Checks if thread is running
+  bool isRunning() const;
+
  protected:
   // ROS node handle in the correct receiver namespace.
   ros::NodeHandle nh_;
