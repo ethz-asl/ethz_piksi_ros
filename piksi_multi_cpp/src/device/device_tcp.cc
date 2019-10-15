@@ -76,6 +76,10 @@ bool DeviceTCP::open() {
   return parseId() && openSocket();
 }
 
+void DeviceTCP::write(std::vector<uint8_t> buff) const {
+  send(socket_fd_, buff.data(), buff.size(), 0);
+}
+
 int32_t DeviceTCP::read(uint8_t* buff, uint32_t n) const {
   // todo optional: add wait blocking until a package is received.
   ssize_t received_length =
