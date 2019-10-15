@@ -21,7 +21,8 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
                                  const std::string& topic)
       : SBPCallbackHandler(nh, sbp_msg_type, state) {
     // Advertise ROS topics.
-    relay_pub_ = nh_.advertise<ROSMsgType>("relay/" + topic, kQueueSize, kLatchTopic);
+    relay_pub_ =
+        nh_.advertise<ROSMsgType>("relay/" + topic, kQueueSize, kLatchTopic);
   }
 
  private:
@@ -41,7 +42,7 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
     }
 
     // Convert SBP message.
-    ROSMsgType ros_msg = piksi_multi_msgs::convertSbpMsgToRosMsg(*sbp_msg);
+    ROSMsgType ros_msg = piksi_multi_msgs::convertSbpMsgToRosMsg(*sbp_msg, len);
 
     // Publish ROS msg.
     relay_pub_.publish(ros_msg);

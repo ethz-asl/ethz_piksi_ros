@@ -201,8 +201,8 @@ VectorNed piksi_multi_msgs::convertSbpVectorNedToRos(const int32_t n,
 }
 
 // Ext Events.
-ExtEvent piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_ext_event_t& sbp_msg) {
+ExtEvent piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_ext_event_t& sbp_msg,
+                                                 const uint8_t len) {
   ExtEvent ros_msg;
   ros_msg.time =
       convertSbpGpsTimeValueToRos(sbp_msg.wn, sbp_msg.tow, sbp_msg.ns_residual);
@@ -213,7 +213,8 @@ ExtEvent piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 // Imu
-ImuAux piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_imu_aux_t& sbp_msg) {
+ImuAux piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_imu_aux_t& sbp_msg,
+                                               const uint8_t len) {
   ImuAux ros_msg;
   ros_msg.imu_type = sbp_msg.imu_type;
   // TODO(rikba): Convert temperature to unit.
@@ -228,7 +229,8 @@ ImuAux piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_imu_aux_t& sbp_msg) {
   return ros_msg;
 }
 
-ImuRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_imu_raw_t& sbp_msg) {
+ImuRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_imu_raw_t& sbp_msg,
+                                               const uint8_t len) {
   ImuRaw ros_msg;
   ros_msg.tow = convertSbpGpsTowToRos(sbp_msg.tow, sbp_msg.tow_f);
   ros_msg.acc =
@@ -240,14 +242,16 @@ ImuRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_imu_raw_t& sbp_msg) {
 }
 
 // Logging
-Log piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_log_t& sbp_msg) {
+Log piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_log_t& sbp_msg,
+                                            const uint8_t len) {
   Log ros_msg;
   ros_msg.level = sbp_msg.level;
   ros_msg.text = sbp_msg.text;
   return ros_msg;
 }
 
-Fwd piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_fwd_t& sbp_msg) {
+Fwd piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_fwd_t& sbp_msg,
+                                            const uint8_t len) {
   Fwd ros_msg;
   ros_msg.source = sbp_msg.source;
   ros_msg.protocol = sbp_msg.protocol;
@@ -256,7 +260,8 @@ Fwd piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_fwd_t& sbp_msg) {
 }
 
 // Mag
-MagRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_mag_raw_t& sbp_msg) {
+MagRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_mag_raw_t& sbp_msg,
+                                               const uint8_t len) {
   MagRaw ros_msg;
   ros_msg.tow = convertSbpGpsTowToRos(sbp_msg.tow, sbp_msg.tow_f);
   ros_msg.mag =
@@ -265,7 +270,8 @@ MagRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_mag_raw_t& sbp_msg) {
 }
 
 // Navigation
-GpsTime piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_gps_time_t& sbp_msg) {
+GpsTime piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_gps_time_t& sbp_msg,
+                                                const uint8_t len) {
   GpsTime ros_msg;
   ros_msg.time =
       convertSbpGpsTimeValueToRos(sbp_msg.wn, sbp_msg.tow, sbp_msg.ns_residual);
@@ -273,7 +279,8 @@ GpsTime piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_gps_time_t& sbp_msg) {
   return ros_msg;
 }
 
-UtcTime piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_utc_time_t& sbp_msg) {
+UtcTime piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_utc_time_t& sbp_msg,
+                                                const uint8_t len) {
   UtcTime ros_msg;
   ros_msg.time_source.source = (sbp_msg.flags >> 0) & 0x7;
   ros_msg.offset_source = (sbp_msg.flags >> 0) & 0x3;
@@ -287,7 +294,8 @@ UtcTime piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_utc_time_t& sbp_msg) {
   return ros_msg;
 }
 
-Dops piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_dops_t& sbp_msg) {
+Dops piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_dops_t& sbp_msg,
+                                             const uint8_t len) {
   Dops ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.gdop = sbp_msg.gdop;
@@ -300,7 +308,8 @@ Dops piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_dops_t& sbp_msg) {
   return ros_msg;
 }
 
-PosEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_pos_ecef_t& sbp_msg) {
+PosEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_pos_ecef_t& sbp_msg,
+                                                const uint8_t len) {
   PosEcef ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.coordinate_ecef =
@@ -313,7 +322,7 @@ PosEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_pos_ecef_t& sbp_msg) {
 }
 
 PosEcefCov piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_pos_ecef_cov_t& sbp_msg) {
+    const msg_pos_ecef_cov_t& sbp_msg, const uint8_t len) {
   PosEcefCov ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.coordinate_ecef =
@@ -327,7 +336,8 @@ PosEcefCov piksi_multi_msgs::convertSbpMsgToRosMsg(
   return ros_msg;
 }
 
-PosLlh piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_pos_llh_t& sbp_msg) {
+PosLlh piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_pos_llh_t& sbp_msg,
+                                               const uint8_t len) {
   PosLlh ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.coordinate_wgs84 =
@@ -341,7 +351,7 @@ PosLlh piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_pos_llh_t& sbp_msg) {
 }
 
 PosLlhCov piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_pos_llh_cov_t& sbp_msg) {
+    const msg_pos_llh_cov_t& sbp_msg, const uint8_t len) {
   PosLlhCov ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.coordinate_wgs84 =
@@ -356,7 +366,7 @@ PosLlhCov piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 BaselineEcef piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_baseline_ecef_t& sbp_msg) {
+    const msg_baseline_ecef_t& sbp_msg, const uint8_t len) {
   BaselineEcef ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.baseline_ecef =
@@ -368,7 +378,7 @@ BaselineEcef piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 BaselineNed piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_baseline_ned_t& sbp_msg) {
+    const msg_baseline_ned_t& sbp_msg, const uint8_t len) {
   BaselineNed ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.baseline_ned =
@@ -380,7 +390,8 @@ BaselineNed piksi_multi_msgs::convertSbpMsgToRosMsg(
   return ros_msg;
 }
 
-VelEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ecef_t& sbp_msg) {
+VelEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ecef_t& sbp_msg,
+                                                const uint8_t len) {
   VelEcef ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.velocity_ecef =
@@ -393,7 +404,7 @@ VelEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ecef_t& sbp_msg) {
 }
 
 VelEcefCov piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_vel_ecef_cov_t& sbp_msg) {
+    const msg_vel_ecef_cov_t& sbp_msg, const uint8_t len) {
   VelEcefCov ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.velocity_ecef =
@@ -407,7 +418,8 @@ VelEcefCov piksi_multi_msgs::convertSbpMsgToRosMsg(
   return ros_msg;
 }
 
-VelNed piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ned_t& sbp_msg) {
+VelNed piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ned_t& sbp_msg,
+                                               const uint8_t len) {
   VelNed ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.velocity_ned =
@@ -421,7 +433,7 @@ VelNed piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ned_t& sbp_msg) {
 }
 
 VelNedCov piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_vel_ned_cov_t& sbp_msg) {
+    const msg_vel_ned_cov_t& sbp_msg, const uint8_t len) {
   VelNedCov ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.velocity_ned =
@@ -435,7 +447,8 @@ VelNedCov piksi_multi_msgs::convertSbpMsgToRosMsg(
   return ros_msg;
 }
 
-VelBody piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_body_t& sbp_msg) {
+VelBody piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_body_t& sbp_msg,
+                                                const uint8_t len) {
   VelBody ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.velocity_body =
@@ -450,7 +463,7 @@ VelBody piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_body_t& sbp_msg) {
 }
 
 AgeCorrections piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_age_corrections_t& sbp_msg) {
+    const msg_age_corrections_t& sbp_msg, const uint8_t len) {
   AgeCorrections ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.age = sbp_msg.age;
@@ -458,25 +471,26 @@ AgeCorrections piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 // Observation
-Obs piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_obs_t& sbp_msg) {
+Obs piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_obs_t& sbp_msg,
+                                            const uint8_t len) {
   Obs ros_msg;
   ros_msg.time = convertSbpGpsTimeValueToRos(
       sbp_msg.header.t.wn, sbp_msg.header.t.tow, sbp_msg.header.t.ns_residual);
   ros_msg.n_obs = sbp_msg.header.n_obs;
-  for (size_t i = 0; i < sizeof(sbp_msg.obs) / sizeof(*sbp_msg.obs); ++i) {
+
+  const uint8_t kN = (len - 11) / 17;
+  for (int i = 0; i < kN; ++i) {
+    const auto& obs = sbp_msg.obs[i];
     GpsObservation gps_obs;
-    gps_obs.P = convertSbpPseudoRangeToRos(sbp_msg.obs[i].P,
-                                           (sbp_msg.obs[i].flags >> 0) & 0x1);
+    gps_obs.P = convertSbpPseudoRangeToRos(obs.P, (obs.flags >> 0) & 0x1);
     gps_obs.L = convertSbpCarrierPhaseCyclesToRos(
-        sbp_msg.obs[i].L.i, sbp_msg.obs[i].L.f,
-        (sbp_msg.obs[i].flags >> 1) & 0x1, (sbp_msg.obs[i].flags >> 2) & 0x1);
-    gps_obs.D = convertSbpDopplerToRos(sbp_msg.obs[i].D.i, sbp_msg.obs[i].D.f,
-                                       (sbp_msg.obs[i].flags >> 3) & 0x1);
-    gps_obs.cn0 = convertSbpCarrierToNoiseToRos(sbp_msg.obs[i].cn0);
-    gps_obs.lock = sbp_msg.obs[i].lock;
-    gps_obs.raim_exclusion = (sbp_msg.obs[i].flags >> 7) & 0x1;
-    gps_obs.sid = convertSbpSatelliteIdentifierToRos(sbp_msg.obs[i].sid.sat,
-                                                     sbp_msg.obs[i].sid.code);
+        obs.L.i, obs.L.f, (obs.flags >> 1) & 0x1, (obs.flags >> 2) & 0x1);
+    gps_obs.D =
+        convertSbpDopplerToRos(obs.D.i, obs.D.f, (obs.flags >> 3) & 0x1);
+    gps_obs.cn0 = convertSbpCarrierToNoiseToRos(obs.cn0);
+    gps_obs.lock = obs.lock;
+    gps_obs.raim_exclusion = (obs.flags >> 7) & 0x1;
+    gps_obs.sid = convertSbpSatelliteIdentifierToRos(obs.sid.sat, obs.sid.code);
     ros_msg.obs.push_back(gps_obs);
   }
 
@@ -484,21 +498,22 @@ Obs piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_obs_t& sbp_msg) {
 }
 
 PointWgs84 piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_base_pos_llh_t& sbp_msg) {
+    const msg_base_pos_llh_t& sbp_msg, const uint8_t len) {
   PointWgs84 ros_msg =
       convertSbpPointWgs84ToRos(sbp_msg.lat, sbp_msg.lon, sbp_msg.height);
   return ros_msg;
 }
 
 geometry_msgs::Point piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_base_pos_ecef_t& sbp_msg) {
+    const msg_base_pos_ecef_t& sbp_msg, const uint8_t len) {
   geometry_msgs::Point ros_msg =
       convertSbpPointToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
   return ros_msg;
 }
 
 // System
-Startup piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_startup_t& sbp_msg) {
+Startup piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_startup_t& sbp_msg,
+                                                const uint8_t len) {
   Startup ros_msg;
   ros_msg.cause = sbp_msg.cause;
   ros_msg.startup_type = sbp_msg.startup_type;
@@ -506,7 +521,7 @@ Startup piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_startup_t& sbp_msg) {
 }
 
 DgnssStatus piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_dgnss_status_t& sbp_msg) {
+    const msg_dgnss_status_t& sbp_msg, const uint8_t len) {
   DgnssStatus ros_msg;
   ros_msg.differential_type = (sbp_msg.flags >> 0) & 0xF;
   ros_msg.latency = sbp_msg.latency;
@@ -516,7 +531,7 @@ DgnssStatus piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 Heartbeat piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_heartbeat_t& sbp_msg) {
+    const msg_heartbeat_t& sbp_msg, const uint8_t len) {
   Heartbeat ros_msg;
 
   ros_msg.system_error = (sbp_msg.flags >> 0) & 0x1;
@@ -531,7 +546,7 @@ Heartbeat piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 InsStatus piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_ins_status_t& sbp_msg) {
+    const msg_ins_status_t& sbp_msg, const uint8_t len) {
   InsStatus ros_msg;
   ros_msg.mode = (sbp_msg.flags >> 0) & 0x7;
   ros_msg.gnss_fix = (sbp_msg.flags >> 3) & 0x1;
@@ -541,7 +556,7 @@ InsStatus piksi_multi_msgs::convertSbpMsgToRosMsg(
 
 // Acquisition
 AcqResult piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_acq_result_t& sbp_msg) {
+    const msg_acq_result_t& sbp_msg, const uint8_t len) {
   AcqResult ros_msg;
   ros_msg.cn0 = sbp_msg.cn0;
   ros_msg.cp = sbp_msg.cp;
@@ -553,7 +568,7 @@ AcqResult piksi_multi_msgs::convertSbpMsgToRosMsg(
 
 // Linux
 CpuState piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_linux_cpu_state_t& sbp_msg) {
+    const msg_linux_cpu_state_t& sbp_msg, const uint8_t len) {
   CpuState ros_msg;
   ros_msg.index = sbp_msg.index;
   ros_msg.pid = sbp_msg.pid;
@@ -564,7 +579,7 @@ CpuState piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 MemState piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_linux_mem_state_t& sbp_msg) {
+    const msg_linux_mem_state_t& sbp_msg, const uint8_t len) {
   MemState ros_msg;
   ros_msg.index = sbp_msg.index;
   ros_msg.pid = sbp_msg.pid;
@@ -576,7 +591,7 @@ MemState piksi_multi_msgs::convertSbpMsgToRosMsg(
 
 // Orientation
 BaselineHeading piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_baseline_heading_t& sbp_msg) {
+    const msg_baseline_heading_t& sbp_msg, const uint8_t len) {
   BaselineHeading ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.heading = sbp_msg.heading;
@@ -586,7 +601,7 @@ BaselineHeading piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 OrientationQuat piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_orient_quat_t& sbp_msg) {
+    const msg_orient_quat_t& sbp_msg, const uint8_t len) {
   OrientationQuat ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.q = convertSbpOrientationQuatToRos(sbp_msg.w, sbp_msg.x, sbp_msg.y,
@@ -600,7 +615,7 @@ OrientationQuat piksi_multi_msgs::convertSbpMsgToRosMsg(
 
 // Piksi
 UartState piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_uart_state_t& sbp_msg) {
+    const msg_uart_state_t& sbp_msg, const uint8_t len) {
   UartState ros_msg;
   ros_msg.uart_a = convertSbpUartToRos(
       sbp_msg.uart_a.tx_throughput, sbp_msg.uart_a.rx_throughput,
@@ -624,7 +639,7 @@ UartState piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 DeviceMonitor piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_device_monitor_t& sbp_msg) {
+    const msg_device_monitor_t& sbp_msg, const uint8_t len) {
   DeviceMonitor ros_msg;
   ros_msg.dev_vin = sbp_msg.dev_vin;
   ros_msg.cpu_vint = sbp_msg.cpu_vint;
@@ -635,7 +650,8 @@ DeviceMonitor piksi_multi_msgs::convertSbpMsgToRosMsg(
 }
 
 // Sbas
-SbasRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_sbas_raw_t& sbp_msg) {
+SbasRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_sbas_raw_t& sbp_msg,
+                                                const uint8_t len) {
   SbasRaw ros_msg;
   ros_msg.sid =
       convertSbpSatelliteIdentifierToRos(sbp_msg.sid.sat, sbp_msg.sid.code);
@@ -650,29 +666,31 @@ SbasRaw piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_sbas_raw_t& sbp_msg) {
 // Ssr
 // Tracking
 TrackingStates piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_tracking_state_t& sbp_msg) {
+    const msg_tracking_state_t& sbp_msg, const uint8_t len) {
   TrackingStates ros_msg;
-  for (size_t i = 0; i < sizeof(sbp_msg.states) / sizeof(*sbp_msg.states);
-       ++i) {
+  const uint8_t kN = len / 4;
+  for (int i = 0; i < kN; ++i) {
+    const auto& sbp_state = sbp_msg.states[i];
     TrackingState state;
-    state.sid = convertSbpSatelliteIdentifierToRos(sbp_msg.states[i].sid.sat,
-                                                   sbp_msg.states[i].sid.code);
-    state.fcn = sbp_msg.states[i].fcn;
-    state.cn0 = convertSbpCarrierToNoiseToRos(sbp_msg.states[i].cn0);
+    state.sid = convertSbpSatelliteIdentifierToRos(sbp_state.sid.sat,
+                                                   sbp_state.sid.code);
+    state.fcn = sbp_state.fcn;
+    state.cn0 = convertSbpCarrierToNoiseToRos(sbp_state.cn0);
     ros_msg.states.push_back(state);
   }
   return ros_msg;
 }
 
 MeasurementStates piksi_multi_msgs::convertSbpMsgToRosMsg(
-    const msg_measurement_state_t& sbp_msg) {
+    const msg_measurement_state_t& sbp_msg, const uint8_t len) {
   MeasurementStates ros_msg;
-  for (size_t i = 0; i < sizeof(sbp_msg.states) / sizeof(*sbp_msg.states);
-       ++i) {
+  const uint8_t kN = len / 3;
+  for (int i = 0; i < kN; ++i) {
+    const auto& sbp_state = sbp_msg.states[i];
     MeasurementState state;
-    state.mesid = convertSbpSatelliteIdentifierToRos(
-        sbp_msg.states[i].mesid.sat, sbp_msg.states[i].mesid.code);
-    state.cn0 = convertSbpCarrierToNoiseToRos(sbp_msg.states[i].cn0);
+    state.mesid = convertSbpSatelliteIdentifierToRos(sbp_state.mesid.sat,
+                                                     sbp_state.mesid.code);
+    state.cn0 = convertSbpCarrierToNoiseToRos(sbp_state.cn0);
     ros_msg.states.push_back(state);
   }
   return ros_msg;
