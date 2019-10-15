@@ -5,13 +5,11 @@
 using namespace piksi_multi_msgs;
 // How to shift and mask bits: https://stackoverflow.com/a/27592777
 
-const double kFromMilli = 0.001;
-
 AccuracyTangentPlane piksi_multi_msgs::convertSbpAccuracyTangentPlaneToRos(
     const uint16_t h_accuracy, const uint16_t v_accuracy) {
   AccuracyTangentPlane accuracy_tangent_plane;
-  accuracy_tangent_plane.h = kFromMilli * h_accuracy;
-  accuracy_tangent_plane.v = kFromMilli * v_accuracy;
+  accuracy_tangent_plane.h = h_accuracy;
+  accuracy_tangent_plane.v = v_accuracy;
   return accuracy_tangent_plane;
 }
 
@@ -50,14 +48,6 @@ CovTangentNed piksi_multi_msgs::convertSbpCovTangentNedToRos(
   cov_tangent_ned.e_d = e_d;
   cov_tangent_ned.d_d = d_d;
   return cov_tangent_ned;
-}
-
-Gpio piksi_multi_msgs::convertSbpGpioToRos(const uint8_t pin,
-                                           const bool value) {
-  Gpio gpio;
-  gpio.number = pin;
-  gpio.value = value;
-  return gpio;
 }
 
 PseudoRange piksi_multi_msgs::convertSbpPseudoRangeToRos(const uint32_t range,
@@ -114,24 +104,14 @@ GpsTimeValue piksi_multi_msgs::convertSbpGpsTimeValueToRos(
   return gps_time_value;
 }
 
-PointEcef piksi_multi_msgs::convertSbpPointEcefToRos(const double x,
-                                                     const double y,
-                                                     const double z) {
-  PointEcef point_ecef;
-  point_ecef.x = x;
-  point_ecef.y = y;
-  point_ecef.z = z;
-  return point_ecef;
-}
-
-PointNed piksi_multi_msgs::convertSbpPointNedToRos(const int32_t n,
-                                                   const int32_t e,
-                                                   const int32_t d) {
-  PointNed point_ned;
-  point_ned.n = n * kFromMilli;
-  point_ned.e = e * kFromMilli;
-  point_ned.d = d * kFromMilli;
-  return point_ned;
+geometry_msgs::Point piksi_multi_msgs::convertSbpPointToRos(const double x,
+                                                            const double y,
+                                                            const double z) {
+  geometry_msgs::Point point;
+  point.x = x;
+  point.y = y;
+  point.z = z;
+  return point;
 }
 
 PointWgs84 piksi_multi_msgs::convertSbpPointWgs84ToRos(const double lat,
@@ -159,26 +139,26 @@ Vector3Int piksi_multi_msgs::convertSbpVector3IntToRos(const int16_t x,
   vector_3_int.x = x;
   vector_3_int.y = y;
   vector_3_int.z = z;
-
   return vector_3_int;
 }
 
-geometry_msgs::Vector3 piksi_multi_msgs::convertSbpVectorCartesianToRos(
-    const int32_t x, const int32_t y, const int32_t z) {
-  geometry_msgs::Vector3 vec;
-  vec.x = kFromMilli * x;
-  vec.y = kFromMilli * y;
-  vec.z = kFromMilli * z;
-  return vec;
+Vector3Int32 piksi_multi_msgs::convertSbpVector3Int32ToRos(const int32_t x,
+                                                           const int32_t y,
+                                                           const int32_t z) {
+  Vector3Int32 vector_3_int_32;
+  vector_3_int_32.x = x;
+  vector_3_int_32.y = y;
+  vector_3_int_32.z = z;
+  return vector_3_int_32;
 }
 
 VectorNed piksi_multi_msgs::convertSbpVectorNedToRos(const int32_t n,
                                                      const int32_t e,
                                                      const int32_t d) {
   VectorNed vec;
-  vec.n = kFromMilli * n;
-  vec.e = kFromMilli * e;
-  vec.d = kFromMilli * d;
+  vec.n = n;
+  vec.e = e;
+  vec.d = d;
   return vec;
 }
 
@@ -188,8 +168,9 @@ ExtEvent piksi_multi_msgs::convertSbpMsgToRosMsg(
   ExtEvent ros_msg;
   ros_msg.time =
       convertSbpGpsTimeValueToRos(sbp_msg.wn, sbp_msg.tow, sbp_msg.ns_residual);
+  ros_msg.value = (sbp_msg.flags >> 0) & 0x1;
   ros_msg.quality = (sbp_msg.flags >> 1) & 0x1;
-  ros_msg.pin = convertSbpGpioToRos(sbp_msg.pin, (sbp_msg.flags >> 0) & 0x1);
+  ros_msg.pin = sbp_msg.pin;
   return ros_msg;
 }
 
@@ -250,7 +231,7 @@ GpsTime piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_gps_time_t& sbp_msg) {
   GpsTime ros_msg;
   ros_msg.time =
       convertSbpGpsTimeValueToRos(sbp_msg.wn, sbp_msg.tow, sbp_msg.ns_residual);
-  ros_msg.source.source = (sbp_msg.flags >> 0) & 0x7;
+  ros_msg.time_source.source = (sbp_msg.flags >> 0) & 0x7;
   return ros_msg;
 }
 
@@ -284,9 +265,9 @@ Dops piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_dops_t& sbp_msg) {
 PosEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_pos_ecef_t& sbp_msg) {
   PosEcef ros_msg;
   ros_msg.tow = sbp_msg.tow;
-  ros_msg.coordinate =
-      convertSbpPointEcefToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
-  ros_msg.accuracy = kFromMilli * sbp_msg.accuracy;
+  ros_msg.coordinate_ecef =
+      convertSbpPointToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+  ros_msg.accuracy = sbp_msg.accuracy;
   ros_msg.n_sats = sbp_msg.n_sats;
   ros_msg.fix_mode.fix_mode = (sbp_msg.flags >> 0) & 0x7;
   ros_msg.ins_mode.ins_mode = (sbp_msg.flags >> 3) & 0x3;
@@ -297,8 +278,8 @@ PosEcefCov piksi_multi_msgs::convertSbpMsgToRosMsg(
     const msg_pos_ecef_cov_t& sbp_msg) {
   PosEcefCov ros_msg;
   ros_msg.tow = sbp_msg.tow;
-  ros_msg.coordinate =
-      convertSbpPointEcefToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+  ros_msg.coordinate_ecef =
+      convertSbpPointToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
   ros_msg.cov = convertSbpCovCartesianToRos(sbp_msg.cov_x_x, sbp_msg.cov_x_y,
                                             sbp_msg.cov_x_z, sbp_msg.cov_y_y,
                                             sbp_msg.cov_y_z, sbp_msg.cov_z_z);
@@ -311,7 +292,7 @@ PosEcefCov piksi_multi_msgs::convertSbpMsgToRosMsg(
 PosLlh piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_pos_llh_t& sbp_msg) {
   PosLlh ros_msg;
   ros_msg.tow = sbp_msg.tow;
-  ros_msg.coordinate =
+  ros_msg.coordinate_wgs84 =
       convertSbpPointWgs84ToRos(sbp_msg.lat, sbp_msg.lon, sbp_msg.height);
   ros_msg.accuracy = convertSbpAccuracyTangentPlaneToRos(sbp_msg.h_accuracy,
                                                          sbp_msg.v_accuracy);
@@ -325,7 +306,7 @@ PosLlhCov piksi_multi_msgs::convertSbpMsgToRosMsg(
     const msg_pos_llh_cov_t& sbp_msg) {
   PosLlhCov ros_msg;
   ros_msg.tow = sbp_msg.tow;
-  ros_msg.coordinate =
+  ros_msg.coordinate_wgs84 =
       convertSbpPointWgs84ToRos(sbp_msg.lat, sbp_msg.lon, sbp_msg.height);
   ros_msg.cov = convertSbpCovTangentNedToRos(sbp_msg.cov_n_n, sbp_msg.cov_n_e,
                                              sbp_msg.cov_n_d, sbp_msg.cov_e_e,
@@ -340,9 +321,9 @@ BaselineEcef piksi_multi_msgs::convertSbpMsgToRosMsg(
     const msg_baseline_ecef_t& sbp_msg) {
   BaselineEcef ros_msg;
   ros_msg.tow = sbp_msg.tow;
-  ros_msg.coordinate = convertSbpPointEcefToRos(
-      kFromMilli * sbp_msg.x, kFromMilli * sbp_msg.y, kFromMilli * sbp_msg.z);
-  ros_msg.accuracy = kFromMilli * sbp_msg.accuracy;
+  ros_msg.baseline_ecef =
+      convertSbpVector3Int32ToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+  ros_msg.accuracy = sbp_msg.accuracy;
   ros_msg.n_sats = sbp_msg.n_sats;
   ros_msg.fix_mode.fix_mode = (sbp_msg.flags >> 0) & 0x7;
   return ros_msg;
@@ -352,7 +333,8 @@ BaselineNed piksi_multi_msgs::convertSbpMsgToRosMsg(
     const msg_baseline_ned_t& sbp_msg) {
   BaselineNed ros_msg;
   ros_msg.tow = sbp_msg.tow;
-  ros_msg.coordinate = convertSbpPointNedToRos(sbp_msg.n, sbp_msg.e, sbp_msg.d);
+  ros_msg.baseline_ned =
+      convertSbpVectorNedToRos(sbp_msg.n, sbp_msg.e, sbp_msg.d);
   ros_msg.accuracy = convertSbpAccuracyTangentPlaneToRos(sbp_msg.h_accuracy,
                                                          sbp_msg.v_accuracy);
   ros_msg.n_sats = sbp_msg.n_sats;
@@ -364,8 +346,8 @@ VelEcef piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_ecef_t& sbp_msg) {
   VelEcef ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.velocity_ecef =
-      convertSbpVectorCartesianToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
-  ros_msg.accuracy = kFromMilli * sbp_msg.accuracy;
+      convertSbpVector3Int32ToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+  ros_msg.accuracy = sbp_msg.accuracy;
   ros_msg.n_sats = sbp_msg.n_sats;
   ros_msg.velocity_mode.velocity_mode = (sbp_msg.flags >> 0) & 0x7;
   ros_msg.ins_mode.ins_mode = (sbp_msg.flags >> 3) & 0x3;
@@ -377,7 +359,7 @@ VelEcefCov piksi_multi_msgs::convertSbpMsgToRosMsg(
   VelEcefCov ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.velocity_ecef =
-      convertSbpVectorCartesianToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+      convertSbpVector3Int32ToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
   ros_msg.cov = convertSbpCovCartesianToRos(sbp_msg.cov_x_x, sbp_msg.cov_x_y,
                                             sbp_msg.cov_x_z, sbp_msg.cov_y_y,
                                             sbp_msg.cov_y_z, sbp_msg.cov_z_z);
@@ -419,7 +401,7 @@ VelBody piksi_multi_msgs::convertSbpMsgToRosMsg(const msg_vel_body_t& sbp_msg) {
   VelBody ros_msg;
   ros_msg.tow = sbp_msg.tow;
   ros_msg.velocity_body =
-      convertSbpVectorCartesianToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
+      convertSbpVector3Int32ToRos(sbp_msg.x, sbp_msg.y, sbp_msg.z);
   ros_msg.cov = convertSbpCovCartesianToRos(sbp_msg.cov_x_x, sbp_msg.cov_x_y,
                                             sbp_msg.cov_x_z, sbp_msg.cov_y_y,
                                             sbp_msg.cov_y_z, sbp_msg.cov_z_z);

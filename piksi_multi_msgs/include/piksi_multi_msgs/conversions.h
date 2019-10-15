@@ -20,10 +20,8 @@
 #include "piksi_multi_msgs/ExtEvent.h"
 #include "piksi_multi_msgs/FixMode.h"
 #include "piksi_multi_msgs/Fwd.h"
-#include "piksi_multi_msgs/Gpio.h"
 #include "piksi_multi_msgs/GpsObservation.h"
 #include "piksi_multi_msgs/GpsTime.h"
-#include "piksi_multi_msgs/GpsTimeSource.h"
 #include "piksi_multi_msgs/GpsTimeValue.h"
 #include "piksi_multi_msgs/GpsTow.h"
 #include "piksi_multi_msgs/Heartbeat.h"
@@ -59,6 +57,7 @@
 #include "piksi_multi_msgs/UartState.h"
 #include "piksi_multi_msgs/UtcTime.h"
 #include "piksi_multi_msgs/Vector3Int.h"
+#include "piksi_multi_msgs/Vector3Int32.h"
 #include "piksi_multi_msgs/VectorBody.h"
 #include "piksi_multi_msgs/VectorEcef.h"
 #include "piksi_multi_msgs/VectorNed.h"
@@ -101,7 +100,6 @@ CovCartesian convertSbpCovCartesianToRos(const float x_x, const float x_y,
 CovTangentNed convertSbpCovTangentNedToRos(const float n_n, const float n_e,
                                            const float n_d, const float e_e,
                                            const float e_d, const float d_d);
-Gpio convertSbpGpioToRos(const uint8_t pin, const bool value);
 
 // GPS observation.
 GpsObservation convertSbpGpsObservationToRos(
@@ -122,17 +120,14 @@ SatelliteIdentifier convertSbpSatelliteIdentifierToRos(const uint8_t sat,
 GpsTimeValue convertSbpGpsTimeValueToRos(const uint16_t wn, const uint32_t tow,
                                          const int32_t ns_residual);
 GpsTow convertSbpGpsTowToRos(const uint32_t tow, const uint8_t tow_f);
-PointEcef convertSbpPointEcefToRos(const double x, const double y,
-                                   const double z);
-PointNed convertSbpPointNedToRos(const int32_t n, const int32_t e,
-                                 const int32_t d);
+geometry_msgs::Point convertSbpPointToRos(const double x, const double y,
+                                          const double z);
 PointWgs84 convertSbpPointWgs84ToRos(const double lat, const double lon,
                                      const double height);
 Vector3Int convertSbpVector3IntToRos(const int16_t x, const int16_t y,
                                      const int16_t z);
-geometry_msgs::Vector3 convertSbpVectorCartesianToRos(const int32_t x,
-                                                      const int32_t y,
-                                                      const int32_t z);
+Vector3Int32 convertSbpVector3Int32ToRos(const int32_t x, const int32_t y,
+                                         const int32_t z);
 VectorNed convertSbpVectorNedToRos(const int32_t n, const int32_t e,
                                    const int32_t d);
 

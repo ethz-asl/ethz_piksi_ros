@@ -1,3 +1,3 @@
-float64 n  # North direction
-float64 e  # East direction
-float64 d  # Down direction
+int32 n # North direction
+int32 e # East direction
+int32 d # Down direction
