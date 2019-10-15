@@ -1,7 +1,7 @@
 # MSG STARTUP — 0xFF00 — 65280
 
-std_msgs/UInt8 cause        # Cause of startup
-std_msgs/UInt8 startup_type # Startup type
+uint8 cause        # Cause of startup
+uint8 startup_type # Startup type
 
 uint8 CAUSE_POWER_ON       = 0
 uint8 CAUSE_SOFTWARE_RESET = 1

@@ -1,4 +1,4 @@
-std_msgs/Int32 i                              # Carrier phase whole cycles
-std_msgs/Int32 f                              # Carrier phase fractional part
-std_msgs/Bool  valid                          # Carrier phase valid
-std_msgs/Bool  half_cycle_ambiguity_resolved 
+int32 i                              # Carrier phase whole cycles
+int32 f                              # Carrier phase fractional part
+bool  valid                          # Carrier phase valid
+bool  half_cycle_ambiguity_resolved

@@ -1,3 +1,3 @@
-std_msgs/Float64 n  # North coordinate
-std_msgs/Float64 e  # East coordinate
-std_msgs/Float64 d  # Down coordinate
+float64 n  # North coordinate
+float64 e  # East coordinate
+float64 d  # Down coordinate

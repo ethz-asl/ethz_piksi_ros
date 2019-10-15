@@ -1,7 +1,7 @@
 # MSG LOG — 0x0401 — 1025
 
-std_msgs/UInt8  level # Logging level
-std_msgs/String text  # Human-readable string
+uint8  level # Logging level
+string text  # Human-readable string
 
 uint8 LEVEL_EMERG  = 0
 uint8 LEVEL_ALERT  = 1

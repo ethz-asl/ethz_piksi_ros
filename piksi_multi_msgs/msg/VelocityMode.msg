@@ -1,4 +1,4 @@
-std_msgs/UInt8 velocity_mode # Velocity mode values
+uint8 velocity_mode # Velocity mode values
 
 uint8 INVALID          = 0
 uint8 MEASURED_DOPPLER = 1

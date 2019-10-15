@@ -1,4 +1,4 @@
-std_msgs/UInt8 fix_mode # Fix mode value
+uint8 fix_mode # Fix mode value
 
 uint8 INVALID        = 0
 uint8 SPP            = 1

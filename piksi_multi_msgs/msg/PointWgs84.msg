@@ -1,3 +1,3 @@
-std_msgs/Float64 lat    # Latitude
-std_msgs/Float64 lon    # Longitude
-std_msgs/Float64 height # Height above WGS84 ellipsoid
+float64 lat    # Latitude
+float64 lon    # Longitude
+float64 height # Height above WGS84 ellipsoid

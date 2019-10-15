@@ -1,8 +1,8 @@
 # MSG INS STATUS — 0xFF03 — 65283
 
-std_msgs/UInt8 mode
-std_msgs/Bool  gnss_fix
-std_msgs/UInt8 ins_error_value
+uint8 mode
+bool  gnss_fix
+uint8 ins_error_value
 
 uint8 MODE_AWAITING_INITIALIZATION  = 0
 uint8 MODE_DYNAMICALLY_ALIGNING     = 1

@@ -1,5 +1,5 @@
-std_msgs/UInt8 sat  # Constellation-specific satellite identifier. This field for Glonass can either be (100+FCN) where FCN is in [-7,+6] or the Slot ID in [1,28]
-std_msgs/UInt8 code # Signal constellation, band and code
+uint8 sat  # Constellation-specific satellite identifier. This field for Glonass can either be (100+FCN) where FCN is in [-7,+6] or the Slot ID in [1,28]
+uint8 code # Signal constellation, band and code
 
 uint8 CODE_GPS_L1CA  = 0  # GPS L1CA
 uint8 CODE_GPS_L2CM  = 1  # GPS L2CM
