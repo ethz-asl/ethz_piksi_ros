@@ -3,7 +3,7 @@
 #include <libsbp/observation.h>
 #include <libsbp/sbp.h>
 #include <libsbp/system.h>
-#include <piksi_multi_cpp/observations/observation_callback_interface.h>
+#include <piksi_multi_cpp/observations/callback_observation_interface.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h>
 #include <ros/ros.h>

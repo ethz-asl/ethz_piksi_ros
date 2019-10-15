@@ -1,13 +1,11 @@
 #include <piksi_multi_cpp/observations/udp_observation_receiver.h>
-// udp
+
 #include <arpa/inet.h>
-#include <fcntl.h>  // File control definitions
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdlib.h>
+#include <ros/console.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>  // UNIX standard function definitions
 
 namespace piksi_multi_cpp {
@@ -29,7 +27,23 @@ void UDPObservationReceiver::start(int port) {
   // get socket & bind
   fd_socket_ = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
   if (bind(fd_socket_, res->ai_addr, res->ai_addrlen) != 0) {
+    ROS_ERROR_STREAM(
+        "Could not bind to UDP socket. Observations will not be received");
     close(fd_socket_);
+    return;
+  }
+
+  // set socket to receive any broadcast/multicast
+  struct ip_mreq mreq;
+  mreq.imr_multiaddr.s_addr = inet_addr("255.255.255.255");
+  mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+  if (setsockopt(fd_socket_, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq,
+                 sizeof(mreq)) < 0) {
+    ROS_ERROR_STREAM(
+        "Could not set UDP listener to Multicast. Observations will not "
+        "be received.");
+    close(fd_socket_);
+    return;
   }
 
   // start thread.

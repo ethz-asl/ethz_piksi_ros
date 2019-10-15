@@ -1,4 +1,4 @@
-#include <piksi_multi_cpp/observations/raw_observation_handler.h>
+#include <piksi_multi_cpp/observations/cb_to_raw_obs_converter.h>
 namespace piksi_multi_cpp {
 CBtoRawObsConverter::CBtoRawObsConverter() {
   sbp_state_init(&sbp_state_);

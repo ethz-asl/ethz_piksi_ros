@@ -1,7 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_OBSERVATIONS_RAW_OBSERVATIONS_HANDLER_H_
 #define PIKSI_MULTI_CPP_OBSERVATIONS_RAW_OBSERVATIONS_HANDLER_H_
-#include <piksi_multi_cpp/observations/observation_callback_interface.h>
-#include <piksi_multi_cpp/observations/raw_observation_consumer.h>
+#include <piksi_multi_cpp/observations/callback_observation_interface.h>
+#include <piksi_multi_cpp/observations/raw_observation_interface.h>
 #include <vector>
 
 namespace piksi_multi_cpp {

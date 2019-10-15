@@ -1,7 +1,7 @@
 
 #ifndef PIKSI_MULTI_CPP_OBSERVATIONS_UDP_OBSERVATIONS_RECEIVER_H_
 #define PIKSI_MULTI_CPP_OBSERVATIONS_UDP_OBSERVATIONS_RECEIVER_H_
-#include <piksi_multi_cpp/observations/raw_observation_consumer.h>
+#include <piksi_multi_cpp/observations/raw_observation_interface.h>
 #include <atomic>
 #include <mutex>
 #include <thread>

@@ -2,7 +2,7 @@
 #define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_BASE_POSITION_H_
 
 #include <piksi_multi_cpp/device/device.h>
-#include <piksi_multi_cpp/observations/raw_observation_consumer.h>
+#include <piksi_multi_cpp/observations/raw_observation_interface.h>
 #include <piksi_multi_cpp/observations/udp_observation_receiver.h>
 #include <piksi_multi_cpp/receiver/receiver.h>
 #include <ros/ros.h>

@@ -17,7 +17,7 @@ cs_add_library(${PROJECT_NAME}
         src/device/device_serial.cc
         src/device/device_tcp.cc
         src/observations/udp_observation_receiver.cc
-        src/observations/raw_observation_handler.cc
+        src/observations/cb_to_raw_obs_converter.cc
         src/observations/udp_observation_sender.cc
         src/observations/file_observation_logger.cc
         src/receiver/receiver_attitude.cc

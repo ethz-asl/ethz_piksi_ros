@@ -9,6 +9,8 @@ ReceiverBaseStation::ReceiverBaseStation(const ros::NodeHandle& nh,
   // Base station has a observation sender.
   obs_cbs_->addObservationCallbackListener(
       CBtoRawObsConverter::createFor(udp_sender_));
+
+  udp_sender_->open(26078);
 }
 
 }  // namespace piksi_multi_cpp
