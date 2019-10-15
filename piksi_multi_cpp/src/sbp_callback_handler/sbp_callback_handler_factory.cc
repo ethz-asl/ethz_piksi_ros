@@ -3,11 +3,16 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_ext_events.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_linux.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_logging.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_mag.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_navigation.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_observation.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_orientation.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_piksi.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_sbas.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_system.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_tracking.h"
 
 #include <libsbp/acquisition.h>
 #include <libsbp/ext_events.h>
@@ -99,10 +104,57 @@ SBPCallbackHandlerFactory::createRelayCallbackBySBPMsgType(
     // Observation
     case SBP_MSG_OBS:
       return SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayObs(nh, state));
+    case SBP_MSG_BASE_POS_LLH:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayBasePosLlh(nh, state));
+    case SBP_MSG_BASE_POS_ECEF:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayBasePosEcef(nh, state));
     // System.
+    case SBP_MSG_STARTUP:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayStartup(nh, state));
+    case SBP_MSG_DGNSS_STATUS:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayDgnssStatus(nh, state));
     case SBP_MSG_HEARTBEAT:
       return SBPCallbackHandler::Ptr(
           new SBPCallbackHandlerRelayHeartbeat(nh, state));
+    case SBP_MSG_INS_STATUS:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayInsStatus(nh, state));
+    // Linux.
+    case SBP_MSG_LINUX_CPU_STATE:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayCpuState(nh, state));
+    case SBP_MSG_LINUX_MEM_STATE:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayMemState(nh, state));
+    // Orientation.
+    case SBP_MSG_BASELINE_HEADING:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayBaselineHeading(nh, state));
+    case SBP_MSG_ORIENT_QUAT:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayOrientQuat(nh, state));
+    // Piksi
+    case SBP_MSG_UART_STATE:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayUartState(nh, state));
+    case SBP_MSG_DEVICE_MONITOR:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayDeviceMonitor(nh, state));
+    // Sbas
+    case SBP_MSG_SBAS_RAW:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelaySbasRaw(nh, state));
+    // Tracking
+    case SBP_MSG_TRACKING_STATE:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayTrackingState(nh, state));
+    case SBP_MSG_MEASUREMENT_STATE:
+      return SBPCallbackHandler::Ptr(
+          new SBPCallbackHandlerRelayMeasurementState(nh, state));
     default:
       // TODO(rikba): Implement all other callbacks.
       ROS_WARN("Message type %u not implemented.", sbp_msg_type);

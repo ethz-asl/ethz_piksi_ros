@@ -91,9 +91,12 @@ namespace piksi_multi_msgs {
 // Functions to create specific ROS message types.
 AccuracyTangentPlane convertSbpAccuracyTangentPlaneToRos(
     const uint16_t h_accuracy, const uint16_t v_accuracy);
-AccuracyQuaternion convertSbpAccuracyQuaternionPlaneToRos(
-    const uint16_t w_accuracy, const uint16_t x_accuracy,
-    const uint16_t y_accuracy, const uint16_t z_accuracy);
+AccuracyQuaternion convertSbpAccuracyQuaternionToRos(const float w_accuracy,
+                                                     const float x_accuracy,
+                                                     const float y_accuracy,
+                                                     const float z_accuracy);
+QuaternionInt convertSbpOrientationQuatToRos(const int32_t w, const int32_t x,
+                                             const int32_t y, const int32_t z);
 CovCartesian convertSbpCovCartesianToRos(const float x_x, const float x_y,
                                          const float x_z, const float y_y,
                                          const float y_z, const float z_z);
@@ -124,6 +127,13 @@ geometry_msgs::Point convertSbpPointToRos(const double x, const double y,
                                           const double z);
 PointWgs84 convertSbpPointWgs84ToRos(const double lat, const double lon,
                                      const double height);
+Uart convertSbpUartToRos(const float tx_throughput, const float rx_throughput,
+                         const uint16_t crc_error_count,
+                         const uint16_t io_error_count,
+                         const uint8_t tx_buffer_level,
+                         const uint8_t rx_buffer_level);
+Statistics convertSbpStatisticsToRos(const int32_t avg, const int32_t min,
+                                     const int32_t max, const int32_t current);
 Vector3Int convertSbpVector3IntToRos(const int16_t x, const int16_t y,
                                      const int16_t z);
 Vector3Int32 convertSbpVector3Int32ToRos(const int32_t x, const int32_t y,
@@ -163,7 +173,7 @@ AgeCorrections convertSbpMsgToRosMsg(const msg_age_corrections_t& sbp_msg);
 // Observation
 Obs convertSbpMsgToRosMsg(const msg_obs_t& sbp_msg);
 PointWgs84 convertSbpMsgToRosMsg(const msg_base_pos_llh_t& sbp_msg);
-PointEcef convertSbpMsgToRosMsg(const msg_base_pos_ecef_t& sbp_msg);
+geometry_msgs::Point convertSbpMsgToRosMsg(const msg_base_pos_ecef_t& sbp_msg);
 // EphemerisGps convertSbpMsgToRosMsg(const msg_ephemeris_gps_t& sbp_msg);
 // EphemerisQzss convertSbpMsgToRosMsg(const msg_ephemeris_qzss_t& sbp_msg);
 // EphemerisBds convertSbpMsgToRosMsg(const msg_ephemeris_bds_t& sbp_msg);
