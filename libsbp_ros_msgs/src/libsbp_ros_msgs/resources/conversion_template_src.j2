@@ -1,0 +1,54 @@
+/*
+ * Copyright (C) 2018 Swift Navigation Inc.
+ * Contact: Swift Navigation <dev@swiftnav.com>
+ *
+ * This source is subject to the license found in the file 'LICENSE' which must
+ * be be distributed together with this source. All other rights reserved.
+ *
+ * THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+ * EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
+// This message is automatically generated using generator.py
+// PLEASE DO NOT MODIFY MANUALLY.
+
+#include "piksi_multi_msgs/conversion.h"
+
+namespace piksi_multi_msgs {
+((*- for spec in all_specs -*))
+((*- if spec.render_source *))
+((*- for definition in spec.definitions *))
+((*- if not ((((((definition)))|ros_is_deprecated))) *))
+((*- if not ((((((definition)))|ros_is_empty))) *))
+
+((((((definition.identifier)))|ros_to_identifier))) convertSbpMsgToRosMsg(const ((((((definition.identifier)))|ros_to_sbp_msg_type_name)))& sbp_msg, const uint8_t len)
+{
+  ((((((definition.identifier)))|ros_to_identifier))) ros_msg;
+  ((*- for field in definition.fields -*))
+  ((*- if not 'reserved' in field.identifier *))
+  ((*- if ((((((field)))|ros_is_default_type))) *))
+  ros_msg.(((field.identifier))) = sbp_msg.(((field.identifier)));
+  ((*- elif field.type_id == 'array' *))
+  ((*- if ((((((field)))|ros_is_default_array_type))) *))
+  for (auto msg : sbp_msg.(((field.identifier))))
+    ros_msg.(((field.identifier))).push_back(msg);
+  ((*- else *))
+  // Compute array size from message length and header size and array object size.
+  for (size_t i = 0; i < (len - sizeof(sbp_msg)) / sizeof( *sbp_msg.(((field.identifier)))); ++i)
+    ros_msg.(((field.identifier))).push_back(convertSbpMsgToRosMsg(sbp_msg.(((field.identifier)))[i]));
+  ((*- endif -*))
+  ((*- else *))
+  ros_msg.(((field.identifier))) = convertSbpMsgToRosMsg(sbp_msg.(((field.identifier))));
+  ((*- endif -*))
+  ((*- endif -*))
+  ((*- endfor *))
+  return ros_msg;
+}
+
+((*- endif *))
+((*- endif *))
+((*- endfor -*))
+((*- endif *))
+((*- endfor *))
+} // namespace piksi_multi_msgs

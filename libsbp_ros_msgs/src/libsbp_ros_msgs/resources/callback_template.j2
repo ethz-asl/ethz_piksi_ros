@@ -1,0 +1,77 @@
+/*
+ * Copyright (C) 2018 Swift Navigation Inc.
+ * Contact: Swift Navigation <dev@swiftnav.com>
+ *
+ * This source is subject to the license found in the file 'LICENSE' which must
+ * be be distributed together with this source. All other rights reserved.
+ *
+ * THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+ * EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
+// This message is automatically generated using generator.py
+// PLEASE DO NOT MODIFY MANUALLY.
+
+#ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_SBP_CALLBACK_HANDLER_RELAY_SBP_H_
+#define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_SBP_CALLBACK_HANDLER_RELAY_SBP_H_
+
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
+#include <piksi_multi_msgs/conversion.h>
+
+namespace piksi_multi_cpp {
+
+// Declare all relays.
+((*- for spec in all_specs -*))
+((*- if spec.render_source *))
+((*- for definition in spec.definitions *))
+((*- if (((definition.sbp_id)))*))
+((*- if not ((((((definition)))|ros_is_deprecated))) *))
+((*- if not ((((((definition)))|ros_is_empty))) *))
+
+class SBPCallbackHandlerRelay((((((definition.identifier)))|ros_to_identifier)))
+    : public SBPCallbackHandlerRelay<((((((definition.identifier)))|ros_to_sbp_msg_type_name))),
+                                     piksi_multi_msgs::((((((definition.identifier)))|ros_to_identifier)))> {
+  public:
+    inline SBPCallbackHandlerRelay((((((definition.identifier)))|ros_to_identifier)))(
+        const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state)
+        : SBPCallbackHandlerRelay(nh, ((((((definition.identifier)))|ros_to_msg_type))), state, "((((((definition.identifier)))|ros_to_topic)))") {}
+};
+
+((*- endif *))
+((*- endif *))
+((*- endif *))
+((*- endfor -*))
+((*- endif *))
+((*- endfor *))
+
+// Create all relays
+std::vector<SBPCallbackHandler::Ptr> createAllSbpMsgRelays(const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state) {
+  std::vector<SBPCallbackHandler::Ptr> relays;
+
+  ((* for spec in all_specs -*))
+  ((*- if spec.render_source -*))
+  ((*- for definition in spec.definitions -*))
+  ((*- if (((definition.sbp_id)))-*))
+  ((*- if not ((((((definition)))|ros_is_deprecated))) -*))
+  ((*- if not ((((((definition)))|ros_is_empty))) -*))
+
+  relays.push_back(SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelay((((((definition.identifier)))|ros_to_identifier)))(nh, state)));
+  ((* endif -*))
+  ((*- endif -*))
+  ((*- endif -*))
+  ((*- endfor -*))
+  ((*- endif -*))
+  ((*- endfor *))
+
+  // Remove all invalid (nullptr) callbacks.
+  relays.erase(std::remove_if(
+  relays.begin(), relays.end(),
+  [](const SBPCallbackHandler::Ptr& relay) { return relay.get() == nullptr; }));
+
+  return relays;
+}
+
+} // namespace piksi_multi_cpp
+
+#endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_SBP_CALLBACK_HANDLER_RELAY_SBP_H_
