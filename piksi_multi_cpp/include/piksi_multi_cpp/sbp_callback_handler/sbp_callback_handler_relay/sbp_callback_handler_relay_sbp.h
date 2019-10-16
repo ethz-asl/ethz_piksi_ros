@@ -1177,7 +1177,7 @@ std::vector<SBPCallbackHandler::Ptr> createAllSbpMsgRelays(const ros::NodeHandle
   relays.push_back(SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayMsgTrackingIq(nh, state)));
   relays.push_back(SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayMsgUserData(nh, state)));
   relays.push_back(SBPCallbackHandler::Ptr(new SBPCallbackHandlerRelayMsgOdometry(nh, state)));
-
+  
 
   // Remove all invalid (nullptr) callbacks.
   relays.erase(std::remove_if(
