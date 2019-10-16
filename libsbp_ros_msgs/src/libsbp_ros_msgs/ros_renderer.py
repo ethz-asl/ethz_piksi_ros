@@ -1,6 +1,18 @@
 #!/usr/bin/env python
 
-from libsbp_ros_msgs.resources import *
+import libsbp_ros_msgs
+import jinja2
+import rospkg
+
+R = rospkg.RosPack()
+JENV = jinja2.Environment(block_start_string = '((*',
+                          block_end_string = '*))',
+                          variable_start_string = '(((',
+                          variable_end_string = ')))',
+                          comment_start_string = '((=',
+                          comment_end_string = '=))',
+                          loader=jinja2.FileSystemLoader(searchpath=R.get_path('libsbp_ros_msgs') + '/resources'),
+                          )
 
 CALLBACK_TEMPLATE_NAME = 'callback_template.j2'
 CONVERSION_TEMPLATE_HEADER_NAME = 'conversion_template_header.j2'
@@ -24,6 +36,8 @@ TYPE_MAP = {
 def render_msgs(output_dir, all_specs, verbose):
     if verbose:
         print("Rendering messages.")
+    print libsbp_ros_msgs.__file__
+    template = JENV.get_template(ROS_MESSAGES_TEMPLATE_NAME)
 
 def render_conversion_header(output_dir, all_specs, verbose):
     if verbose:

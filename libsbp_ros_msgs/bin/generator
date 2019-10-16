@@ -9,7 +9,7 @@ import rospkg
 import argparse
 import pprint
 
-def createDirectory(dir):
+def create_directory(dir):
     dir = os.path.abspath(r.get_path('libsbp_ros_msgs') + dir)
     try:
         os.makedirs(dir)
@@ -18,7 +18,7 @@ def createDirectory(dir):
             raise
     return dir
 
-def getArgs():
+def get_args():
     parser = argparse.ArgumentParser(description='ROS SBP message generator.')
     parser.add_argument('-v',
                         '--verbose',
@@ -26,10 +26,20 @@ def getArgs():
                         help='Print debugging info.')
     return parser
 
+def is_deprecated(definition):
+    if 'DEP' in definition.identifier.upper():
+        return True
+    if definition.desc and 'legacy' in definition.desc:
+        return True
+    if definition.desc and any(item in definition.desc for item in ['legacy', 'Dep']):
+        return True
+    if definition.short_desc and any(item in definition.short_desc for item in ['legacy', 'Dep']):
+        return True
+    return False
+
 if __name__ == '__main__':
-    print "hello world."
     # Parse input arguments.
-    args = getArgs().parse_args()
+    args = get_args().parse_args()
 
     # Get the SBP specs.
     r = rospkg.RosPack()
@@ -37,21 +47,24 @@ if __name__ == '__main__':
     file_index = yaml.resolve_deps(*yaml.get_files(input_dir))
 
     # Output directories.
-    msg_dir = createDirectory('/msg')
-    include_dir = createDirectory('/include/libsbp_ros_msgs')
-    src_dir = createDirectory('/src')
-    export_cb_dir = createDirectory('/export')
+    msg_dir = create_directory('/msg')
+    include_dir = create_directory('/include/libsbp_ros_msgs')
+    src_dir = create_directory('/src')
+    export_cb_dir = create_directory('/export')
 
     if args.verbose:
         print("Reading files...")
         pprint.pprint(list(file_index.keys()))
         print("Writing to...\n%s\n%s\n%s\n%s" % (include_dir, src_dir, msg_dir, export_cb_dir))
 
-    # Parse specs.
+    # Parse specs and filter out undesired messages.
     file_index_items = sorted(file_index.items(), key=lambda f: f[0])
     all_specs = []
     for fname, spec in file_index_items:
         parsed = yaml.parse_spec(spec)
+        if not parsed.render_source:
+          continue
+        parsed.definitions = [definition for definition in parsed.definitions if not is_deprecated(definition)]
         all_specs.append(parsed)
 
     # Render.
