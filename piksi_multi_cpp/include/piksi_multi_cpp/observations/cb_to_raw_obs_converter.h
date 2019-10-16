@@ -51,6 +51,8 @@ class CBtoRawObsConverter : public CallbackObservationInterface {
    *    multiple calls to sbp_write_redirect
    * 3. call finishMessage() to finally send the complete, buffered SBP message
    *    to all consumers.
+   *
+   * NOTE: NOT THREADSAFE, only use in single threaded environment.
    */
   void startMessage();
   void finishMessage();
