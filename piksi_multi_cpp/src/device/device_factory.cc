@@ -49,12 +49,11 @@ std::vector<Device::Ptr> DeviceFactory::createByIdentifier(
 
 std::vector<Device::Ptr> DeviceFactory::createByIdentifiers(
     const piksi_multi_cpp::Identifiers& ids) {
-
   std::vector<Device::Ptr> devices;
   for (const auto& id : ids) {
     ROS_INFO_STREAM(id);
     auto devs = createByIdentifier(id);
-        // copy valid devices into devices vector
+    // copy valid devices into devices vector
     std::copy_if(devs.begin(), devs.end(), std::back_inserter(devices),
                  [](auto dev_ptr) { return dev_ptr.get(); });
   }

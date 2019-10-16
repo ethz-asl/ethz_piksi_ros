@@ -55,23 +55,15 @@ class SBPObservationCallbackHandler {
     }
   }
 
+  std::shared_ptr<sbp_state_t> state_;
+  std::vector<CallbackObservationInterface::Ptr> listeners_{};
   /* Set up Lambda redirect callbacks for the four message types used for
    * corrections, such that this class gets any of the four callbacks and can
    * forward them to the observation listeners */
-  SBPLambdaCallbackHandler<msg_base_pos_ecef_t> base_pos_handler_{
-      getCallback<msg_base_pos_ecef_t>(), SBP_MSG_BASE_POS_ECEF, state_};
-
-  SBPLambdaCallbackHandler<msg_glo_biases_t> glo_bias_handler_{
-      getCallback<msg_glo_biases_t>(), SBP_MSG_GLO_BIASES, state_};
-
-  SBPLambdaCallbackHandler<msg_obs_t> obs_handler_{getCallback<msg_obs_t>(),
-                                                   SBP_MSG_OBS, state_};
-
-  SBPLambdaCallbackHandler<msg_heartbeat_t> heartbeat_handler_{
-      getCallback<msg_heartbeat_t>(), SBP_MSG_HEARTBEAT, state_};
-
-  std::shared_ptr<sbp_state_t> state_;
-  std::vector<CallbackObservationInterface::Ptr> listeners_;
+  SBPLambdaCallbackHandler<msg_base_pos_ecef_t> base_pos_handler_;
+  SBPLambdaCallbackHandler<msg_glo_biases_t> glo_bias_handler_;
+  SBPLambdaCallbackHandler<msg_obs_t> obs_handler_;
+  SBPLambdaCallbackHandler<msg_heartbeat_t> heartbeat_handler_;
 };
 }  // namespace piksi_multi_cpp
 #endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_OBSERVATION_CALLBACK_HANDLER_H_

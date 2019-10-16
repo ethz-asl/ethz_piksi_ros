@@ -20,7 +20,7 @@ class FileObservationLogger : public RawObservationInterface {
   ~FileObservationLogger();
 
  private:
-  FILE* log_file_;  // not using fstream, but raw file for performance.
+  FILE* log_file_{nullptr};  // not using fstream, but raw file for performance.
 
   // File pointer etc.
 };

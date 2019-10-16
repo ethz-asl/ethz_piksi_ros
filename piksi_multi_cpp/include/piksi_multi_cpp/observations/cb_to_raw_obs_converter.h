@@ -38,10 +38,28 @@ class CBtoRawObsConverter : public CallbackObservationInterface {
 
  private:
   static int32_t sbp_write_redirect(uint8_t* buff, uint32_t n, void* context);
-  uint16_t sbp_sender_id_{26};
+
+  /*
+   * One problem with the SBP library is that when sending packets,
+   * "sbp_write_redirect" gets called multiple times per message - once for the
+   * header, the checksum, the payload etc. So here we use start / finishMessage
+   * to clear the buffer before a new message is written and to send the buffer
+   * to consumers once the message is done.
+   * Inside the callbacks, the call order is as follows:
+   * 1. call startMessage() to empty buffers
+   * 2. call sbp_send_message to trigger encapsulation of SBP messages and cause
+   *    multiple calls to sbp_write_redirect
+   * 3. call finishMessage() to finally send the complete, buffered SBP message
+   *    to all consumers.
+   */
+  void startMessage();
+  void finishMessage();
+
+  uint16_t sbp_sender_id_{0x42};
   sbp_state_t sbp_state_;
 
-  std::vector<RawObservationInterface::Ptr> raw_consumers_;
+  RawObservation buffer_msg_;
+  std::vector<RawObservationInterface::Ptr> raw_consumers_{};
 };
 }  // namespace piksi_multi_cpp
 #endif  // PIKSI_MULTI_CPP_OBSERVATIONS_CB_TO_RAW_OBS_CONVERTER_H_

@@ -20,11 +20,12 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::Ptr& device)
   relay_cbs_ = SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
 
   // Create observation callbacks
+
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
 
-  if (/*write to file*/ 1) {
+  if (1) {
     auto logger = std::make_shared<FileObservationLogger>();
-    logger->open("tempfile.sbp");
+    ROS_WARN_STREAM(logger->open("/tmp/tempfile.sbp"));
     obs_cbs_->addObservationCallbackListener(
         CBtoRawObsConverter::createFor(logger));
   }
