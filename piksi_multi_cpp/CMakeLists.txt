@@ -3,6 +3,7 @@ project(piksi_multi_cpp)
 
 add_definitions(-std=c++17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)

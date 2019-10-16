@@ -1,4 +1,0 @@
-uint32 reset_value
-
-uint32 PRESERVE_EXISTING_SETTINGS = 0
-uint32 RESTORE_DEFAULT_SETTINGS   = 1
