@@ -62,7 +62,7 @@ class SBPObservationCallbackHandler {
    * forward them to the observation listeners */
   SBPLambdaCallbackHandler<msg_base_pos_ecef_t> base_pos_handler_;
   SBPLambdaCallbackHandler<msg_glo_biases_t> glo_bias_handler_;
-  SBPLambdaCallbackHandler<msg_obs_t> obs_handler_;
+  SBPLambdaCallbackHandler<msg_obs_t_var> obs_handler_;
   SBPLambdaCallbackHandler<msg_heartbeat_t> heartbeat_handler_;
 };
 }  // namespace piksi_multi_cpp

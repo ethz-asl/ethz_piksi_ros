@@ -9,9 +9,9 @@ SBPObservationCallbackHandler::SBPObservationCallbackHandler(
                         SBP_MSG_BASE_POS_ECEF, state},
       glo_bias_handler_{getCallback<msg_glo_biases_t>(), SBP_MSG_GLO_BIASES,
                         state},
-      obs_handler_{getCallback<msg_obs_t>(), SBP_MSG_OBS, state_},
+      obs_handler_{getCallback<msg_obs_t_var>(), SBP_MSG_OBS, state},
       heartbeat_handler_{getCallback<msg_heartbeat_t>(), SBP_MSG_HEARTBEAT,
-                         state_} {}
+                         state} {}
 
 void SBPObservationCallbackHandler::addObservationCallbackListener(
     const CallbackObservationInterface::Ptr& listener) {

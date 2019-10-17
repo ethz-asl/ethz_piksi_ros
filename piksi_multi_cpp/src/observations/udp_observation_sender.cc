@@ -115,8 +115,6 @@ void UDPObservationSender::insertObservation(
   // send udp package with SBP message.
   int n = ::sendto(fd_socket_, data.data(), data.size(), 0,
                    target_addr_->ai_addr, target_addr_->ai_addrlen);
-
-  ROS_INFO_STREAM("Sent " << data.size() << " bytes " << n);
 }
 
 UDPObservationSender::~UDPObservationSender() { close(); }

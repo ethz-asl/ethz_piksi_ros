@@ -26,16 +26,17 @@ void CBtoRawObsConverter::observationCallback(msg_glo_biases_t msg) {
   finishMessage();
 }
 
-void CBtoRawObsConverter::observationCallback(msg_obs_t msg) {
-  // calculate proper size
-  // Todo: check byte shifting  (we need the most significant nibble)
-  uint8_t num_observations = msg.header.n_obs & 0xF0 >> 4;
-  size_t len_msg = sizeof(observation_header_t) +
-                   num_observations * sizeof(packed_obs_content_t);
+void CBtoRawObsConverter::observationCallback(msg_obs_t_var msg) {
+  // reconstruct raw buffer
+  std::vector<uint8_t> observation_buffer;
+  observation_buffer.resize(msg.length());
+  msg.toBuffer(observation_buffer.data());
+
   // Repack into full SBP Message
   startMessage();
-  sbp_send_message(&sbp_state_, SBP_MSG_OBS, sbp_sender_id_, len_msg,
-                   reinterpret_cast<uint8_t*>(&msg),
+  sbp_send_message(&sbp_state_, SBP_MSG_OBS, sbp_sender_id_,
+                   observation_buffer.size(),
+                   reinterpret_cast<uint8_t*>(observation_buffer.data()),
                    &CBtoRawObsConverter::sbp_write_redirect);
 
   // this triggers sbp_write_redirect

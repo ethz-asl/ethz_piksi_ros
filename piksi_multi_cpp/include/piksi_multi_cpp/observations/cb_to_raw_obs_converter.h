@@ -26,7 +26,7 @@ class CBtoRawObsConverter : public CallbackObservationInterface {
   CBtoRawObsConverter();
   void observationCallback(msg_base_pos_ecef_t msg) final;
   void observationCallback(msg_glo_biases_t msg) final;
-  void observationCallback(msg_obs_t msg) final;
+  void observationCallback(msg_obs_t_var msg) final;
   void observationCallback(msg_heartbeat_t msg) final;
 
   static std::shared_ptr<CBtoRawObsConverter> createFor(

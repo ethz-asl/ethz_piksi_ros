@@ -1,6 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_LAMBDA_CALLBACK_HANDLER_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_LAMBDA_CALLBACK_HANDLER_H_
 #include <libsbp/sbp.h>
+#include <piksi_multi_cpp/sbp_callback_handler/sbp_additional_msgs.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h>
 
 #include <memory>
@@ -41,5 +42,13 @@ class SBPLambdaCallbackHandler : SBPCallbackHandler {
 
   CallbackFn callback_redirect_;
 };
+
+template <>
+inline void SBPLambdaCallbackHandler<msg_obs_t_var>::callback(
+    uint16_t sender_id, uint8_t len, uint8_t* msg) {
+  msg_obs_t_var obs_msg;
+  obs_msg.fromBuffer(msg, len);
+  callback_redirect_(obs_msg);
+}
 }  // namespace piksi_multi_cpp
 #endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_LAMBDA_CALLBACK_HANDLER_H_
