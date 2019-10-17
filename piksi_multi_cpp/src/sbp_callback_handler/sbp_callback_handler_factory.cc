@@ -1,6 +1,6 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_sbp.h"
+#include <libsbp_ros_msgs/sbp_callback_handler_relay_sbp.h>
 
 namespace piksi_multi_cpp {
 

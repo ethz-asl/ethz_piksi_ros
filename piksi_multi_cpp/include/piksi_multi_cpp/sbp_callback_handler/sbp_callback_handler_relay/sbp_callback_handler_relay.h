@@ -1,7 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_SBP_CALLBACK_HANDLER_RELAY_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_SBP_CALLBACK_HANDLER_RELAY_H_
 
-#include <piksi_multi_msgs/conversion.h>
+#include <libsbp_ros_msgs/conversion.h>
 #include <ros/ros.h>
 #include <optional>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
@@ -44,7 +44,7 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
     }
 
     // Convert SBP message.
-    ROSMsgType ros_msg = piksi_multi_msgs::convertSbpMsgToRosMsg(*sbp_msg, len);
+    ROSMsgType ros_msg = libsbp_ros_msgs::convertSbpMsgToRosMsg(*sbp_msg, len);
 
     // Publish ROS msg.
     relay_pub_.value().publish(ros_msg);
