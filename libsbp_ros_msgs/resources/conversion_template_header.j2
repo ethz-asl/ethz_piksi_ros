@@ -24,7 +24,7 @@
 // Include all generated SBP ROS messages.
 ((*- for spec in all_specs -*))
 ((*- for definition in spec.definitions *))
-#include <piksi_multi_msgs/((((((definition.identifier)))|to_identifier))).h>
+#include <libsbp_ros_msgs/((((((definition.identifier)))|to_identifier))).h>
 ((*- endfor -*))
 ((*- endfor *))
 

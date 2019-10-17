@@ -23,6 +23,7 @@ namespace libsbp_ros_msgs {
 {
   ((((((definition.identifier)))|to_identifier))) ros_msg;
   ((*- for field in definition.fields -*))
+  ((*- if not 'reserved' in field.identifier -*))
   ((*- if ((((((field)))|is_default_type))) *))
   ros_msg.(((field.identifier))) = sbp_msg.(((field.identifier)));
   ((*- elif field.type_id == 'array' *))
@@ -36,6 +37,7 @@ namespace libsbp_ros_msgs {
   ((*- endif -*))
   ((*- else *))
   ros_msg.(((field.identifier))) = convertSbpMsgToRosMsg(sbp_msg.(((field.identifier))));
+  ((*- endif -*))
   ((*- endif -*))
   ((*- endfor *))
   return ros_msg;
