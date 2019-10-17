@@ -49,6 +49,8 @@ class Receiver {
   std::shared_ptr<sbp_state_t> state_;
   // Relaying all SBP messages. Common for all receivers.
   std::vector<SBPCallbackHandler::Ptr> relay_cbs_;
+  // A timestamp buffer to lookup exact UTC timestamps from tow.
+  SBPCallbackHandler::Ptr utc_time_buffer_;
 };
 
 }  // namespace piksi_multi_cpp

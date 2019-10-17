@@ -25,6 +25,7 @@ cs_add_library(${PROJECT_NAME}
   src/sbp_callback_handler/sbp_callback_handler.cc
   src/sbp_callback_handler/sbp_callback_handler_factory.cc
   src/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.cc
+  src/sbp_callback_handler/sbp_callback_handler_relay/utc_time_buffer.cc
 )
 target_link_libraries(${PROJECT_NAME} serialport)
 
