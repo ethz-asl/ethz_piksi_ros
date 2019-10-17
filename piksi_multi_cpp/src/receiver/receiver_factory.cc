@@ -11,6 +11,7 @@ namespace piksi_multi_cpp {
 Receiver::Ptr ReceiverFactory::createReceiverByReceiverType(
     const ros::NodeHandle& nh, const Device::Ptr& device,
     const ReceiverType type) {
+  return Receiver::Ptr(new ReceiverBaseStation(nh, device));  // debug
   switch (type) {
     case ReceiverType::kBaseStationReceiver:
       return Receiver::Ptr(new ReceiverBaseStation(nh, device));
