@@ -125,6 +125,6 @@ dmypy.json
 .pyre/
 
 # Ignore auto generated files
-.msg
-.h
-.cc
+*.msg
+*.h
+*.cc
