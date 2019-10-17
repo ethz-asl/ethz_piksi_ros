@@ -37,6 +37,9 @@ def is_deprecated(definition):
         return True
     return False
 
+def is_empty(definition):
+    return len(definition.fields) == 0
+
 if __name__ == '__main__':
     # Parse input arguments.
     args = get_args().parse_args()
@@ -65,6 +68,9 @@ if __name__ == '__main__':
         if not parsed.render_source:
           continue
         parsed.definitions = [definition for definition in parsed.definitions if not is_deprecated(definition)]
+        parsed.definitions = [definition for definition in parsed.definitions if not is_empty(definition)]
+        if len(parsed.definitions) == 0:
+            continue;
         all_specs.append(parsed)
 
     # Render.
