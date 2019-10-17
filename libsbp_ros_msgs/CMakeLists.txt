@@ -10,6 +10,7 @@ find_package(catkin_simple REQUIRED)
 ###################
 ## AUTOGENERATION #
 ###################
+catkin_python_setup() # Must be called before generate_messages (inside catkin_simple) and must be called before running rosrun libsbp_ros_msgs generator
 execute_process(
   COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/msg
   COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -18,7 +19,6 @@ execute_process(
   COMMAND rosrun libsbp_ros_msgs generator --verbose
 )
 
-catkin_python_setup() # Must be called before generate_messages (inside catkin_simple)
 catkin_simple(ALL_DEPS_REQUIRED)
 #############
 # LIBRARIES #
