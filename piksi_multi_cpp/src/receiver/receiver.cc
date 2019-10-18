@@ -7,6 +7,8 @@
 // SBP message definitions.
 #include <libsbp/system.h>
 #include <piksi_multi_cpp/observations/file_observation_logger.h>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 namespace piksi_multi_cpp {
 
@@ -29,6 +31,17 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::Ptr& device)
     obs_cbs_->addObservationCallbackListener(
         CBtoRawObsConverter::createFor(logger));*/
   }
+}
+
+std::vector<std::string> Receiver::getVectorParam(
+    const std::string& name, const std::string& default_value) {
+  auto string_value = nh_.param<std::string>(name, default_value);
+  if (string_value.length() == 0) return {};
+
+  std::vector<std::string> vector_value;
+  boost::algorithm::split(vector_value, string_value,
+                          boost::is_any_of(";"));
+  return vector_value;
 }
 
 Receiver::~Receiver() {

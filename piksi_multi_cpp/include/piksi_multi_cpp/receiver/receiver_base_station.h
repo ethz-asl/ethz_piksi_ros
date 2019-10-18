@@ -15,7 +15,7 @@ class ReceiverBaseStation : public Receiver {
                       const std::shared_ptr<Device>& device);
 
  private:
-  std::shared_ptr<UDPObservationSender> udp_sender_;
+  void setupUDPSenders();
 };
 
 }  // namespace piksi_multi_cpp
