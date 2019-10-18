@@ -2,7 +2,6 @@
 
 #include <libsbp/sbp.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h>
-#include <piksi_rtk_msgs/Heartbeat.h>
 
 // SBP message definitions.
 #include <libsbp/system.h>

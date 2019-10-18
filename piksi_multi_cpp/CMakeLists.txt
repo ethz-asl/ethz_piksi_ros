@@ -3,6 +3,7 @@ project(piksi_multi_cpp)
 
 add_definitions(-std=c++17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
@@ -28,8 +29,6 @@ cs_add_library(${PROJECT_NAME}
         src/sbp_callback_handler/sbp_callback_handler.cc
         src/sbp_callback_handler/sbp_callback_handler_factory.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.cc
-        src/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_heartbeat.cc
-        src/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay_imu_raw.cc
         src/sbp_callback_handler/sbp_observation_callback_handler.cc
         )
 target_link_libraries(${PROJECT_NAME} serialport)
