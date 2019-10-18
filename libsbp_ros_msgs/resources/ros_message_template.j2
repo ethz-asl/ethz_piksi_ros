@@ -1,0 +1,18 @@
+# This message is automatically generated using generator.py
+# PLEASE DO NOT MODIFY MANUALLY.
+
+# (((name|to_title)))
+# (((message.identifier)))
+((*- if message.sbp_id -*))
+((((((message.sbp_id)))|to_hex)))
+((*- endif *))
+#
+# (((message.short_desc)))
+#
+(((message.desc|to_comment)))
+((* for field in message.fields *))
+((* if not 'reserved' in field.identifier -*))
+((((((field.desc)))|to_comment)))
+(((field|to_type))) (((field.identifier))) ((((((field.units)))|to_unit)))
+((* endif -*))
+((*- endfor *))
