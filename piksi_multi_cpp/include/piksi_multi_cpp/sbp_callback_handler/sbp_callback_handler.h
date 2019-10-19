@@ -19,6 +19,8 @@ class SBPCallbackHandler {
   SBPCallbackHandler(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
                      const std::shared_ptr<sbp_state_t>& state);
 
+  ~SBPCallbackHandler();
+
  protected:
   // Implement the specific callback here.
   virtual void callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) = 0;

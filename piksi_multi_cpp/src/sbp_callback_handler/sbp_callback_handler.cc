@@ -17,6 +17,11 @@ SBPCallbackHandler::SBPCallbackHandler(
                  sbp_msg_type, result);
 }
 
+SBPCallbackHandler::~SBPCallbackHandler() {
+  int result = sbp_remove_callback(state_.get(), &sbp_msg_callback_node_);
+  ROS_ERROR_COND(result != SBP_OK, "Failed to remove callback %d", result);
+}
+
 void SBPCallbackHandler::callback_redirect(uint16_t sender_id, uint8_t len,
                                            uint8_t msg[], void* context) {
   if (!context) {
