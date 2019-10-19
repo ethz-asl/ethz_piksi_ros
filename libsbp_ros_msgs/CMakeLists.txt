@@ -15,7 +15,7 @@ catkin_python_setup() # Must be called before generate_messages (inside catkin_s
 execute_process(
   COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/msg
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/include/conversion.h
-  COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/include/sbp_callback_handler_relay_sbp.h
+  COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/include/sbp_relays.h
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/src/conversion.cc
   COMMAND rosrun libsbp_ros_msgs generator --verbose
 )

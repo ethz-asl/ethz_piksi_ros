@@ -15,4 +15,7 @@
   <depend>libsbp_catkin</depend>
   <depend>roscpp</depend>
   <depend>libsbp_ros_msgs</depend>
+  <depend>piksi_rtk_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
 </package>

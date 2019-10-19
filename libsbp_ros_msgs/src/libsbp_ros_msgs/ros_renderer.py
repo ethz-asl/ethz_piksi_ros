@@ -221,7 +221,7 @@ def render_cb_export(output_dir, all_specs, verbose):
     if verbose:
         print("Rendering callback export file.")
     ros_template = JENV.get_template(CALLBACK_TEMPLATE_NAME)
-    destination_filename = '%s/sbp_callback_handler_relay_sbp.h' % (output_dir)
+    destination_filename = '%s/sbp_relays.h' % (output_dir)
     with open(destination_filename, 'w') as f:
         f.write(ros_template.render(
             all_specs=all_specs
