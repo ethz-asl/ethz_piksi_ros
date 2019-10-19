@@ -5,13 +5,13 @@
 #include <ros/ros.h>
 #include <ros/time.h>
 #include <memory>
+#include <optional>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
 namespace piksi_multi_cpp {
 
 // Singleton class to buffer the last GPS time messages. Used to convert tow,
 // tow_f to more precise GPS timestamp.
-// TODO(rikba): Make singleton
 class UtcTimeBuffer : public SBPCallbackHandler {
  public:
   UtcTimeBuffer(const ros::NodeHandle& nh,
@@ -22,8 +22,7 @@ class UtcTimeBuffer : public SBPCallbackHandler {
  private:
   void callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) override;
 
-  std::map<uint32_t, ros::Time> time_map_;
-  size_t buffer_size_ = 100;
+  std::optional<std::pair<uint32_t, ros::Time>> tow_to_utc_;
 };
 
 }  // namespace piksi_multi_cpp
