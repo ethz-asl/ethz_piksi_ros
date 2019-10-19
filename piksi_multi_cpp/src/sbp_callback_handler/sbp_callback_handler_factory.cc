@@ -18,28 +18,29 @@ SBPCallbackHandlerFactory::createAllSBPMessageRelays(
 
 std::vector<SBPCallbackHandler::Ptr>
 SBPCallbackHandlerFactory::createAllRosMessageRelays(
-    const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
-    const SBPCallbackHandler::Ptr& utc_time_buffer) {
-  // Cast utc time buffer.
-  auto utc_time_buffer_cast =
-      std::dynamic_pointer_cast<UtcTimeBuffer>(utc_time_buffer);
-  if (utc_time_buffer_cast.get() != utc_time_buffer.get()) {
-    ROS_ERROR("Failed to cast UtcTimeBuffer.");
-    utc_time_buffer_cast.reset();
+    const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state) {
+  // Enable GPS time stamping.
+  std::shared_ptr<UtcTimeBuffer> utc_time_buffer;
+  bool use_gps_time = false;
+  ros::NodeHandle nh_node("~");
+  nh_node.getParam("use_gps_time", use_gps_time);
+  if (use_gps_time) {
+    utc_time_buffer.reset(new UtcTimeBuffer(nh, state));
   }
 
+  // Create all relays.
   std::vector<SBPCallbackHandler::Ptr> relays;
 
   relays.push_back(SBPCallbackHandler::Ptr(
-      new RosExtEventRelay(nh, state, utc_time_buffer_cast)));
+      new RosExtEventRelay(nh, state, utc_time_buffer)));
+  relays.push_back(
+      SBPCallbackHandler::Ptr(new RosPosEcefRelay(nh, state, utc_time_buffer)));
   relays.push_back(SBPCallbackHandler::Ptr(
-      new RosPosEcefRelay(nh, state, utc_time_buffer_cast)));
+      new RosPosEcefCovRelay(nh, state, utc_time_buffer)));
   relays.push_back(SBPCallbackHandler::Ptr(
-      new RosPosEcefCovRelay(nh, state, utc_time_buffer_cast)));
+      new RosPosLlhCovRelay(nh, state, utc_time_buffer)));
   relays.push_back(SBPCallbackHandler::Ptr(
-      new RosPosLlhCovRelay(nh, state, utc_time_buffer_cast)));
-  relays.push_back(SBPCallbackHandler::Ptr(
-      new RosBaselineNedRelay(nh, state, utc_time_buffer_cast)));
+      new RosBaselineNedRelay(nh, state, utc_time_buffer)));
 
   return relays;
 }

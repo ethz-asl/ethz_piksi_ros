@@ -19,8 +19,7 @@ class SBPCallbackHandlerFactory {
       const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state);
 
   static std::vector<SBPCallbackHandler::Ptr> createAllRosMessageRelays(
-      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
-      const SBPCallbackHandler::Ptr& utc_time_buffer);
+      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state);
 
   static SBPCallbackHandler::Ptr createUtcTimeBuffer(
       const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state);

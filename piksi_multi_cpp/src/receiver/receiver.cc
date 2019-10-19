@@ -16,17 +16,12 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::Ptr& device)
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
   sbp_state_init(state_.get());
-  // Register UTC time buffer.
-  // TODO(rikba): Read ROS param here.
-  if (true) {
-    utc_time_buffer_ =
-        SBPCallbackHandlerFactory::createUtcTimeBuffer(nh, state_);
-  }
+
   // Register all relay callbacks.
-  relay_cbs_ = SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
+  sbp_relays_ = SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
+  ros_relays_ = SBPCallbackHandlerFactory::createAllRosMessageRelays(nh, state_);
 
   // Create observation callbacks
-
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
 
   if (1) {
