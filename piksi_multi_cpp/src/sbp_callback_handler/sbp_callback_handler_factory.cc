@@ -2,9 +2,9 @@
 #include <memory>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/utc_time_buffer.h"
+#include "piksi_multi_cpp/sbp_callback_handler/utc_time_buffer.h"
 
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_navigation_relays.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.h"
 
 namespace piksi_multi_cpp {
 

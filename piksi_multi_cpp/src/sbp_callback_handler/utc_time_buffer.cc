@@ -1,4 +1,4 @@
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/utc_time_buffer.h"
+#include "piksi_multi_cpp/sbp_callback_handler/utc_time_buffer.h"
 
 #include <libsbp/navigation.h>
 #include <libsbp_ros_msgs/ros_conversion.h>

@@ -1,4 +1,4 @@
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_navigation_relays.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.h"
 
 #include <libsbp_ros_msgs/ros_conversion.h>
 

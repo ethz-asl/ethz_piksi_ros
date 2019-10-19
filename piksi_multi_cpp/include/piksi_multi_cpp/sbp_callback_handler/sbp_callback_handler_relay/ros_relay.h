@@ -1,23 +1,22 @@
-#ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_NAVIGATION_RELAY_H_
-#define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_NAVIGATION_RELAY_H_
+#ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_RELAY_H_
+#define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_RELAY_H_
 
 #include <libsbp_ros_msgs/ros_conversion.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/utc_time_buffer.h"
+#include "piksi_multi_cpp/sbp_callback_handler/utc_time_buffer.h"
 
 namespace piksi_multi_cpp {
 
 // A base relay to publish ROS messages. Handles basic operations, e.g., time
 // stamp conversion.
 template <class SbpMsgType, class RosMsgType>
-class RosNavigationRelay
-    : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
+class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
  public:
-  inline RosNavigationRelay(
-      const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
-      const std::shared_ptr<sbp_state_t>& state, const std::string& topic,
-      const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer,
-      const std::string& frame_id)
+  inline RosRelay(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
+                  const std::shared_ptr<sbp_state_t>& state,
+                  const std::string& topic,
+                  const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer,
+                  const std::string& frame_id)
       : SBPCallbackHandlerRelay<SbpMsgType, RosMsgType>(nh, sbp_msg_type, state,
                                                         "ros/" + topic),
         utc_time_buffer_(utc_time_buffer),
@@ -54,4 +53,4 @@ class RosNavigationRelay
 };
 }  // namespace piksi_multi_cpp
 
-#endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_NAVIGATION_RELAY_H_
+#endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_RELAY_H_
