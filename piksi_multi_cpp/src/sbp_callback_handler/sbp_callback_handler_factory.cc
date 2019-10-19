@@ -4,6 +4,7 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
 #include "piksi_multi_cpp/sbp_callback_handler/utc_time_buffer.h"
 
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_ext_event_relay.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.h"
 
 namespace piksi_multi_cpp {
@@ -30,7 +31,15 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
   std::vector<SBPCallbackHandler::Ptr> relays;
 
   relays.push_back(SBPCallbackHandler::Ptr(
+      new RosExtEventRelay(nh, state, utc_time_buffer_cast)));
+  relays.push_back(SBPCallbackHandler::Ptr(
       new RosPosEcefRelay(nh, state, utc_time_buffer_cast)));
+  relays.push_back(SBPCallbackHandler::Ptr(
+      new RosPosEcefCovRelay(nh, state, utc_time_buffer_cast)));
+  relays.push_back(SBPCallbackHandler::Ptr(
+      new RosPosLlhCovRelay(nh, state, utc_time_buffer_cast)));
+  relays.push_back(SBPCallbackHandler::Ptr(
+      new RosBaselineNedRelay(nh, state, utc_time_buffer_cast)));
 
   return relays;
 }

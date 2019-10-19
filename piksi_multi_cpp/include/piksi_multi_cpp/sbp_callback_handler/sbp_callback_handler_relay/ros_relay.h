@@ -7,8 +7,7 @@
 
 namespace piksi_multi_cpp {
 
-// A base relay to publish ROS messages. Handles basic operations, e.g., time
-// stamp conversion.
+// A base relay to publish ROS messages which have a header.
 template <class SbpMsgType, class RosMsgType>
 class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
  public:

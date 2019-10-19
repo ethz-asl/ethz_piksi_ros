@@ -18,4 +18,6 @@
   <depend>piksi_rtk_msgs</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>eigen_conversions</depend>
 </package>

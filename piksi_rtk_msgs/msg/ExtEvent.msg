@@ -4,9 +4,9 @@
 # Modified to contain ROS time.
 
 std_msgs/Time stamp
-std_msgs/Bool pin_value
-std_msgs/Bool quality
-std_msgs/UInt8 pin
+bool pin_value
+bool quality
+uint8 pin
 
 uint8 PIN_VALUE_LOW   = 0   # Falling edge.
 uint8 PIN_VALUE_HIGH  = 1   # Rising edge

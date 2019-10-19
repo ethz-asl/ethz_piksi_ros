@@ -11,6 +11,7 @@ namespace piksi_multi_cpp {
 
 // Singleton class to buffer the last GPS time messages. Used to convert tow,
 // tow_f to more precise GPS timestamp.
+// TODO(rikba): Make singleton
 class UtcTimeBuffer : public SBPCallbackHandler {
  public:
   UtcTimeBuffer(const ros::NodeHandle& nh,
