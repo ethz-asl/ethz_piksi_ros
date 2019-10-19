@@ -2,6 +2,7 @@
 #include <piksi_multi_cpp/device/device_factory.h>
 #include <piksi_multi_cpp/device/device_tcp.h>
 #include <piksi_multi_cpp/device/device_usb.h>
+#include <piksi_multi_cpp/device/device_dummy.h>
 #include <ros/console.h>
 #include <regex>
 
@@ -38,7 +39,9 @@ std::vector<Device::Ptr> DeviceFactory::createByIdentifier(
       return {Device::Ptr(new DeviceSerial(protocol_address))};
     } else if (protocol == "tcp") {  // Specific TCP device
       return {Device::Ptr(new DeviceTCP(protocol_address))};
-    } else {
+    } else if(protocol == "dummy"){
+      return {Device::Ptr(new DeviceDummy(protocol_address))};
+    }else {
       ROS_WARN_STREAM("Warning, unknown device Protocol " << protocol);
       return {};
     }
@@ -51,8 +54,8 @@ std::vector<Device::Ptr> DeviceFactory::createByIdentifiers(
     const piksi_multi_cpp::Identifiers& ids) {
   std::vector<Device::Ptr> devices;
   for (const auto& id : ids) {
+    ROS_INFO_STREAM(id);
     auto devs = createByIdentifier(id);
-
     // copy valid devices into devices vector
     std::copy_if(devs.begin(), devs.end(), std::back_inserter(devices),
                  [](auto dev_ptr) { return dev_ptr.get(); });

@@ -12,22 +12,26 @@ catkin_simple(ALL_DEPS_REQUIRED)
 # LIBRARIES #
 #############
 cs_add_library(${PROJECT_NAME}
-  src/device/device.cc
-  src/device/device_factory.cc
-  src/device/device_usb.cc
-  src/device/device_serial.cc
-  src/device/device_tcp.cc
-  src/receiver/receiver_attitude.cc
-  src/receiver/receiver_base_station.cc
-  src/receiver/receiver_factory.cc
-  src/receiver/receiver_position.cc
-  src/receiver/receiver.cc
-  src/sbp_callback_handler/sbp_callback_handler.cc
-  src/sbp_callback_handler/sbp_callback_handler_factory.cc
-  src/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.cc
-  src/sbp_callback_handler/utc_time_buffer.cc
-  src/sbp_callback_handler/imu_conf_listener.cc
-)
+        src/device/device.cc
+        src/device/device_factory.cc
+        src/device/device_usb.cc
+        src/device/device_serial.cc
+        src/device/device_tcp.cc
+        src/observations/udp_observation_receiver.cc
+        src/observations/cb_to_raw_obs_converter.cc
+        src/observations/udp_observation_sender.cc
+        src/observations/file_observation_logger.cc
+        src/receiver/receiver_attitude.cc
+        src/receiver/receiver_base_station.cc
+        src/receiver/receiver_factory.cc
+        src/receiver/receiver_position.cc
+        src/receiver/receiver.cc
+        src/sbp_callback_handler/sbp_callback_handler.cc
+        src/sbp_callback_handler/sbp_callback_handler_factory.cc
+        src/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.cc
+        src/sbp_callback_handler/sbp_observation_callback_handler.cc
+	src/sbp_callback_handler/utc_time_buffer.cc
+        )
 target_link_libraries(${PROJECT_NAME} serialport)
 
 ############
