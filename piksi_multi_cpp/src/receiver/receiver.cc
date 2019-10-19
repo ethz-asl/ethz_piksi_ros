@@ -20,7 +20,10 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::Ptr& device)
         SBPCallbackHandlerFactory::createUtcTimeBuffer(nh, state_);
   }
   // Register all relay callbacks.
-  relay_cbs_ = SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
+  sbp_relays_ =
+      SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
+  ros_relays_ = SBPCallbackHandlerFactory::createAllRosMessageRelays(
+      nh, state_, utc_time_buffer_);
 }
 
 Receiver::~Receiver() {

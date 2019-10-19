@@ -2,6 +2,7 @@
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_NAVIGATION_RELAYS_H_
 
 #include <geometry_msgs/PointStamped.h>
+#include <libsbp/navigation.h>
 #include <libsbp_ros_msgs/conversion.h>
 #include <ros/ros.h>
 #include <optional>
@@ -16,11 +17,11 @@ namespace piksi_multi_cpp {
 class RosPosEcefRelay
     : public RosNavigationRelay<msg_pos_ecef_t, geometry_msgs::PointStamped> {
  public:
-  inline RosPosEcefRelay(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
+  inline RosPosEcefRelay(const ros::NodeHandle& nh,
                          const std::shared_ptr<sbp_state_t>& state,
                          const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
-      : RosNavigationRelay(nh, sbp_msg_type, state, "pos_ecef", utc_time_buffer,
-                           "ecef") {}
+      : RosNavigationRelay(nh, SBP_MSG_POS_ECEF, state, "pos_ecef",
+                           utc_time_buffer, "ecef") {}
 
  private:
   void convertSbpMsgToRosMsg(const msg_pos_ecef_t& in, const uint8_t len,
