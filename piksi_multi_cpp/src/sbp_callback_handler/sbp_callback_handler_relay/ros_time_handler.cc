@@ -55,7 +55,7 @@ void RosTimeHandler::callbackToUtcTime(const msg_utc_time_t& msg) {
   leap_seconds_ = std::make_optional(new_leap_s);
 }
 
-ros::Time RosTimeHandler::lookupTime(const uint32_t tow) {
+ros::Time RosTimeHandler::lookupTime(const uint32_t tow) const {
   if (!use_gps_time_)
     return ros::Time::now();
   else if (tow_to_utc_.has_value() && tow_to_utc_.value().first == tow) {
@@ -71,7 +71,8 @@ ros::Time RosTimeHandler::lookupTime(const uint32_t tow) {
   }
 }
 
-ros::Time RosTimeHandler::lookupTime(const uint32_t tow, const uint8_t tow_f) {
+ros::Time RosTimeHandler::lookupTime(const uint32_t tow,
+                                     const uint8_t tow_f) const {
   if (!use_gps_time_) {
   } else if (tow >> 31) {
     ROS_ERROR(
@@ -83,6 +84,20 @@ ros::Time RosTimeHandler::lookupTime(const uint32_t tow, const uint8_t tow_f) {
     ROS_ERROR(
         "Failed to convert tow, tow_f to GPS time stamp. Stamping data with "
         "ros::Time::now()");
+  }
+  return ros::Time::now();
+}
+
+ros::Time RosTimeHandler::convertGpsTime(const uint16_t wn, const uint32_t tow,
+                                         const int32_t ns_residual) const {
+  if (!use_gps_time_) {
+  } else if (leap_seconds_.has_value()) {
+    return lrm::convertGpsTimeToUtcRosTime(wn, tow, ns_residual,
+                                           leap_seconds_.value());
+  } else {
+    ROS_ERROR(
+        "Unkown leap seconds. Failed to convert wn, tow, ns_residual to UTC "
+        "time stamp. Stamping data with ros::Time::now()");
   }
   return ros::Time::now();
 }

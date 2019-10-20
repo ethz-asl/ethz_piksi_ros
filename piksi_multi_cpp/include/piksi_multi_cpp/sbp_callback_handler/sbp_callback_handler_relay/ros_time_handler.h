@@ -24,8 +24,10 @@ class RosTimeHandler {
   RosTimeHandler(RosTimeHandler const&) = delete;
   void operator=(RosTimeHandler const&) = delete;
 
-  ros::Time lookupTime(const uint32_t tow);
-  ros::Time lookupTime(const uint32_t tow, const uint8_t tow_f);
+  ros::Time lookupTime(const uint32_t tow) const;
+  ros::Time lookupTime(const uint32_t tow, const uint8_t tow_f) const;
+  ros::Time convertGpsTime(const uint16_t wn, const uint32_t tow,
+                           const int32_t ns_residual) const;
 
  private:
   void callbackToGpsTime(const msg_gps_time_t& msg);
