@@ -72,16 +72,19 @@ ros::Time RosTimeHandler::lookupTime(const uint32_t tow) {
 }
 
 ros::Time RosTimeHandler::lookupTime(const uint32_t tow, const uint8_t tow_f) {
-  if (!use_gps_time_)
-    return ros::Time::now();
-  else if (leap_seconds_.has_value()) {
+  if (!use_gps_time_) {
+  } else if (tow >> 31) {
+    ROS_ERROR(
+        "High bit of tow set. Time invalid or unkown. Setting stamp to"
+        "ros::Time::now().");
+  } else if (leap_seconds_.has_value()) {
     return lrm::convertTowTowfToRosTime(tow, tow_f, leap_seconds_.value());
   } else {
     ROS_ERROR(
         "Failed to convert tow, tow_f to GPS time stamp. Stamping data with "
         "ros::Time::now()");
-    return ros::Time::now();
   }
+  return ros::Time::now();
 }
 
 }  // namespace piksi_multi_cpp
