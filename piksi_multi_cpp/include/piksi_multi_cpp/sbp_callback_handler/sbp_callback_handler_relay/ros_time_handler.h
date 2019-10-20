@@ -24,6 +24,7 @@ class RosTimeHandler {
   RosTimeHandler(RosTimeHandler const&) = delete;
   void operator=(RosTimeHandler const&) = delete;
 
+  bool utcTimeReady() const;
   ros::Time lookupTime(const uint32_t tow) const;
   ros::Time lookupTime(const uint32_t tow, const uint8_t tow_f) const;
   ros::Time convertGpsTime(const uint16_t wn, const uint32_t tow,
