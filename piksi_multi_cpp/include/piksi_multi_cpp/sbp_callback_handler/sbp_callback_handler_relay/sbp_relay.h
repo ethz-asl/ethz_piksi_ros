@@ -18,9 +18,10 @@ class SbpRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
                                                         "sbp/" + topic) {}
 
  private:
-  inline RosMsgType convertSbpToRos(const SbpMsgType& sbp_msg,
-                                    const uint8_t len) override {
-    return libsbp_ros_msgs::convertSbpMsgToRosMsg(sbp_msg, len);
+  inline bool convertSbpToRos(const SbpMsgType& sbp_msg, const uint8_t len,
+                              RosMsgType* ros_msg) override {
+    *ros_msg = libsbp_ros_msgs::convertSbpMsgToRosMsg(sbp_msg, len);
+    return true;
   }
 };
 }  // namespace piksi_multi_cpp

@@ -16,8 +16,8 @@ class RosImuRelay
               const RosTimeHandler::Ptr& ros_time_handler);
 
  private:
-  sensor_msgs::Imu convertSbpToRos(const msg_imu_raw_t& sbp_msg,
-                                   const uint8_t len) override;
+  bool convertSbpToRos(const msg_imu_raw_t& sbp_msg, const uint8_t len,
+                       sensor_msgs::Imu* ros_msg) override;
 
   void callbackToGpsTime(const msg_imu_aux_t& msg);
 

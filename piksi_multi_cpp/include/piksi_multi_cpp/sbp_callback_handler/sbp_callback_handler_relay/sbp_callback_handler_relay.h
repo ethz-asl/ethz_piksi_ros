@@ -30,20 +30,17 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
 
  private:
   //  Transforming incoming SBP message to ROS message.
-  virtual RosMsgType convertSbpToRos(const SbpMsgType& sbp_msg,
-                                     const uint8_t len) = 0;
+  virtual bool convertSbpToRos(const SbpMsgType& sbp_msg, const uint8_t len,
+                               RosMsgType* ros_msg) = 0;
 
   // Overwrites callback method to check number of subscribers, cast SBP message
   // and publish ROS msg.
   inline void callback(uint16_t sender_id, uint8_t len,
                        uint8_t msg[]) override {
-    // Advertise topic on first call.
-    if (!relay_pub_.has_value()) {
-      relay_pub_ = nh_.advertise<RosMsgType>(topic_, kQueueSize, kLatchTopic);
-    }
     // Before doing anything check if anybody is listening.
     // https://answers.ros.org/question/197878/how-expensive-is-getnumsubscribers-of-publisher/
-    if (relay_pub_.value().getNumSubscribers() == 0) return;
+    if (relay_pub_.has_value() && relay_pub_.value().getNumSubscribers() == 0)
+      return;
 
     // Cast message.
     auto sbp_msg = (SbpMsgType*)msg;
@@ -53,7 +50,13 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
     }
 
     // Convert and publish ROS msg.
-    relay_pub_.value().publish(convertSbpToRos(*sbp_msg, len));
+    RosMsgType ros_msg;
+    if (!convertSbpToRos(*sbp_msg, len, &ros_msg)) return;
+    // Advertise topic on first publication.
+    if (!relay_pub_.has_value()) {
+      relay_pub_ = nh_.advertise<RosMsgType>(topic_, kQueueSize, kLatchTopic);
+    }
+    relay_pub_.value().publish(ros_msg);
   }
   std::string topic_;
 };

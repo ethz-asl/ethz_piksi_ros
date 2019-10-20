@@ -12,41 +12,39 @@ RosImuRelay::RosImuRelay(const ros::NodeHandle& nh,
                                  std::placeholders::_1),
                        SBP_MSG_IMU_AUX, state} {}
 
-sensor_msgs::Imu RosImuRelay::convertSbpToRos(const msg_imu_raw_t& sbp_msg,
-                                              const uint8_t len) {
-  sensor_msgs::Imu imu;
+bool RosImuRelay::convertSbpToRos(const msg_imu_raw_t& sbp_msg,
+                                  const uint8_t len, sensor_msgs::Imu* imu) {
+  ROS_ASSERT(imu);
+
   // Invalidate.
-  imu.orientation_covariance[0] = -1.0;
-  imu.angular_velocity_covariance[0] = -1.0;
-  imu.linear_acceleration_covariance[0] = -1.0;
+  imu->orientation_covariance[0] = -1.0;
+  imu->angular_velocity_covariance[0] = -1.0;
+  imu->linear_acceleration_covariance[0] = -1.0;
 
   if (!ros_time_handler_.get()) {
     ROS_ERROR("No time handler set.");
-    return imu;
+    return false;
   }
 
   if (!gyro_scale_.has_value() || !acc_scale_.has_value()) {
     ROS_WARN("Did not receive IMU configuration data.");
-    return imu;
+    return false;
   }
 
   // Field conversion.
-  imu.header.stamp = ros_time_handler_->lookupTime(sbp_msg.tow, sbp_msg.tow_f);
-  imu.header.frame_id = "imu";
-  imu.angular_velocity.x = sbp_msg.gyr_x * gyro_scale_.value();
-  imu.angular_velocity.y = sbp_msg.gyr_y * gyro_scale_.value();
-  imu.angular_velocity.z = sbp_msg.gyr_z * gyro_scale_.value();
+  imu->header.stamp = ros_time_handler_->lookupTime(sbp_msg.tow, sbp_msg.tow_f);
+  imu->header.frame_id = nh_.getUnresolvedNamespace() + "_imu";
+  imu->angular_velocity.x = sbp_msg.gyr_x * gyro_scale_.value();
+  imu->angular_velocity.y = sbp_msg.gyr_y * gyro_scale_.value();
+  imu->angular_velocity.z = sbp_msg.gyr_z * gyro_scale_.value();
+  imu->angular_velocity_covariance[0] = 0.0;  // Validate.
 
-  imu.linear_acceleration.x = sbp_msg.acc_x * acc_scale_.value();
-  imu.linear_acceleration.y = sbp_msg.acc_y * acc_scale_.value();
-  imu.linear_acceleration.z = sbp_msg.acc_z * acc_scale_.value();
+  imu->linear_acceleration.x = sbp_msg.acc_x * acc_scale_.value();
+  imu->linear_acceleration.y = sbp_msg.acc_y * acc_scale_.value();
+  imu->linear_acceleration.z = sbp_msg.acc_z * acc_scale_.value();
+  imu->linear_acceleration_covariance[0] = 0.0;  // Validate.
 
-  // Validate.
-  imu.orientation_covariance[0] = 0.0;
-  imu.angular_velocity_covariance[0] = 0.0;
-  imu.linear_acceleration_covariance[0] = 0.0;
-
-  return imu;
+  return true;
 }
 
 void RosImuRelay::callbackToGpsTime(const msg_imu_aux_t& msg) {
@@ -64,7 +62,7 @@ void RosImuRelay::callbackToGpsTime(const msg_imu_aux_t& msg) {
 
   uint8_t acc_conf = ((msg.imu_conf >> 0) & 0xF) + 1;
   // 2^acc_conf == 1 << acc_conf
-  acc_scale_ = std::make_optional(( 1 << acc_conf) * kAccPrescale);
+  acc_scale_ = std::make_optional((1 << acc_conf) * kAccPrescale);
 
   uint8_t gyro_conf = ((msg.imu_conf >> 4) & 0xF);
   gyro_scale_ =

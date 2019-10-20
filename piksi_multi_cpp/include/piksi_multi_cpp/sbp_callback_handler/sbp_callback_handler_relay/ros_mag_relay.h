@@ -16,8 +16,8 @@ class RosMagRelay : public SBPCallbackHandlerRelay<msg_mag_raw_t,
               const RosTimeHandler::Ptr& ros_time_handler);
 
  private:
-  sensor_msgs::MagneticField convertSbpToRos(const msg_mag_raw_t& sbp_msg,
-                                             const uint8_t len) override;
+  bool convertSbpToRos(const msg_mag_raw_t& sbp_msg, const uint8_t len,
+                       sensor_msgs::MagneticField* ros_msg) override;
 
   RosTimeHandler::Ptr ros_time_handler_;
 };

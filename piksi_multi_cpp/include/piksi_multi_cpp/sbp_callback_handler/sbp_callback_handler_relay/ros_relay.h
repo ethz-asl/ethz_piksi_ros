@@ -2,7 +2,7 @@
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_RELAY_H_
 
 #include <libsbp_ros_msgs/ros_conversion.h>
-#include <optional>
+#include <ros/assert.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
 
@@ -28,32 +28,25 @@ class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
                                      const uint8_t len,
                                      RosMsgType* ros_msg) = 0;
 
-  inline RosMsgType convertSbpToRos(const SbpMsgType& sbp_msg,
-                                    const uint8_t len) override {
-    RosMsgType ros_msg;
+  inline bool convertSbpToRos(const SbpMsgType& sbp_msg, const uint8_t len,
+                              RosMsgType* ros_msg) override {
+    ROS_ASSERT(ros_msg);
 
-    // Assign time stamp.
-    if (ros_time_handler_.get())
-      ros_msg.header.stamp = ros_time_handler_->lookupTime(sbp_msg.tow);
-    else {
-      ROS_ERROR(
-          "No time handler set. Using ros::Time::now() to stamp navigation "
-          "data.");
-      ros_msg.header.stamp = ros::Time::now();
+    // Check status.
+    if (((sbp_msg.flags >> 0) & 0x7) == 0) return false;
+    if (!ros_time_handler_.get()) {
+      ROS_ERROR("No time handler set.");
+      return false;
     }
 
-    // Set frame id.
-    ros_msg.header.frame_id = frame_id_;
+    // Set header.
+    ros_msg->header.stamp = ros_time_handler_->lookupTime(sbp_msg.tow);
+    ros_msg->header.frame_id = frame_id_;
 
     // Manual conversion.
-    convertSbpMsgToRosMsg(sbp_msg, len, &ros_msg);
-    return ros_msg;
+    convertSbpMsgToRosMsg(sbp_msg, len, ros_msg);
+    return true;
   }
-
-  // void utcTimeCallback(const msg_utc_time_t& msg);
-  //
-  // std::optional<SBPLambdaCallbackHandler<msg_utc_time_t>> utc_time_listener_;
-  // std::optional<std::pair<uint32_t tow, ros::Time>> utc_time_;
 
   RosTimeHandler::Ptr ros_time_handler_;
   std::string frame_id_;

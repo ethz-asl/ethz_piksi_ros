@@ -3,6 +3,7 @@
 
 #include <libsbp/ext_events.h>
 #include <piksi_rtk_msgs/ExtEvent.h>
+#include <ros/assert.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
 
@@ -20,28 +21,22 @@ class RosExtEventRelay
         ros_time_handler_(ros_time_handler) {}
 
  private:
-  inline piksi_rtk_msgs::ExtEvent convertSbpToRos(
-      const msg_ext_event_t& sbp_msg, const uint8_t len) override {
-    piksi_rtk_msgs::ExtEvent ros_msg;
-
-    // Assign time stamp.
-    if (ros_time_handler_.get())
-      // TODO(rikba): Not sure if the external time stamp will occur in the UTC
-      // tmie messages. Maybe we have to manually convert the GPS time stamp to
-      // UTC time.
-      ros_msg.stamp.data = ros_time_handler_->lookupTime(sbp_msg.tow);
-    else {
-      ROS_ERROR(
-          "No ROS time handler. Using ros::Time::now() to stamp external "
-          "event.");
-      ros_msg.stamp.data = ros::Time::now();
+  inline bool convertSbpToRos(const msg_ext_event_t& sbp_msg, const uint8_t len,
+                              piksi_rtk_msgs::ExtEvent* ros_msg) override {
+    ROS_ASSERT(ros_msg);
+    if (!ros_time_handler_.get()) {
+      ROS_ERROR("No time handler set.");
+      return false;
     }
 
-    ros_msg.pin_value = (sbp_msg.flags >> 0) & 0x1;
-    ros_msg.quality = (sbp_msg.flags >> 1) & 0x1;
-    ros_msg.pin = sbp_msg.pin;
+    // Create ROS data.
+    // TODO(rikba): Get timestamp right.
+    ros_msg->stamp.data = ros_time_handler_->lookupTime(sbp_msg.tow);
+    ros_msg->pin_value = (sbp_msg.flags >> 0) & 0x1;
+    ros_msg->quality = (sbp_msg.flags >> 1) & 0x1;
+    ros_msg->pin = sbp_msg.pin;
 
-    return ros_msg;
+    return true;
   }
 
   RosTimeHandler::Ptr ros_time_handler_;

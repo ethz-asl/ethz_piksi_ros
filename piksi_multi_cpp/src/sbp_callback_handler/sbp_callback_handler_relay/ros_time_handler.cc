@@ -31,7 +31,7 @@ void RosTimeHandler::callbackToGpsTime(const msg_gps_time_t& msg) {
   last_gps_time_ =
       std::make_optional(lrm::convertGpsTimeToRosTimeWithLeapSecondOffset(msg));
   // Calculate UTC time and cache tow, GPS time pair to lookup time stamp.
-  if (leap_seconds_.has_value())
+  if (leap_seconds_.has_value() && ((msg.flags >> 0) & 0x7) > 0)
     tow_to_utc_ = std::make_optional(std::make_pair(
         msg.tow, lrm::convertGpsTimeToUtcRosTime(msg, leap_seconds_.value())));
 }
