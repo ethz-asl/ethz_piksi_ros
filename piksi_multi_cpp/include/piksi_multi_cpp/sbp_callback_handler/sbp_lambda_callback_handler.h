@@ -27,10 +27,11 @@ class SBPLambdaCallbackHandler : SBPCallbackHandler {
 
  private:
   // Disable copy / assignement constructors.
+  // TODO(rikba): Can we make this compatible with std::optional?
   SBPLambdaCallbackHandler(const SBPLambdaCallbackHandler&) = delete;
   SBPLambdaCallbackHandler& operator=(const SBPLambdaCallbackHandler&) = delete;
 
-  void callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
+  void callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) override {
     /* Parse message to type*/
     auto sbp_msg = (SBPMsgStruct*)msg;
     if (!sbp_msg) {

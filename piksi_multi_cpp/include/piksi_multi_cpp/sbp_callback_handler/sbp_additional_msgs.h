@@ -1,6 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_ADDITIONAL_MSGS_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_ADDITIONAL_MSGS_H_
 #include <libsbp/sbp.h>
+#include <libsbp/observation.h>
 #include <cstring>
 #include <vector>
 

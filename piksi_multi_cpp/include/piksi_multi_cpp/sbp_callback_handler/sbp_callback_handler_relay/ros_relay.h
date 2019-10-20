@@ -2,8 +2,9 @@
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_RELAY_H_
 
 #include <libsbp_ros_msgs/ros_conversion.h>
+#include <optional>
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
-#include "piksi_multi_cpp/sbp_callback_handler/utc_time_buffer.h"
 
 namespace piksi_multi_cpp {
 
@@ -14,11 +15,11 @@ class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
   inline RosRelay(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
                   const std::shared_ptr<sbp_state_t>& state,
                   const std::string& topic,
-                  const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer,
+                  const RosTimeHandler::Ptr& ros_time_handler,
                   const std::string& frame_id)
       : SBPCallbackHandlerRelay<SbpMsgType, RosMsgType>(nh, sbp_msg_type, state,
                                                         "ros/" + topic),
-        utc_time_buffer_(utc_time_buffer),
+        ros_time_handler_(ros_time_handler),
         frame_id_(frame_id) {}
 
  private:
@@ -32,10 +33,12 @@ class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
     RosMsgType ros_msg;
 
     // Assign time stamp.
-    if (utc_time_buffer_.get())
-      ros_msg.header.stamp = utc_time_buffer_->getTime(sbp_msg.tow);
+    if (ros_time_handler_.get())
+      ros_msg.header.stamp = ros_time_handler_->lookupTime(sbp_msg.tow);
     else {
-      ROS_WARN_ONCE("Using ros::Time::now() to stamp navigation data.");
+      ROS_ERROR(
+          "No time handler set. Using ros::Time::now() to stamp navigation "
+          "data.");
       ros_msg.header.stamp = ros::Time::now();
     }
 
@@ -47,7 +50,12 @@ class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
     return ros_msg;
   }
 
-  std::shared_ptr<UtcTimeBuffer> utc_time_buffer_;
+  // void utcTimeCallback(const msg_utc_time_t& msg);
+  //
+  // std::optional<SBPLambdaCallbackHandler<msg_utc_time_t>> utc_time_listener_;
+  // std::optional<std::pair<uint32_t tow, ros::Time>> utc_time_;
+
+  RosTimeHandler::Ptr ros_time_handler_;
   std::string frame_id_;
 };
 }  // namespace piksi_multi_cpp

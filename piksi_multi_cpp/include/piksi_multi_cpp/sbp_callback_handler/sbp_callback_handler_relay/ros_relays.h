@@ -26,8 +26,8 @@ class RosPosEcefRelay
  public:
   inline RosPosEcefRelay(const ros::NodeHandle& nh,
                          const std::shared_ptr<sbp_state_t>& state,
-                         const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
-      : RosRelay(nh, SBP_MSG_POS_ECEF, state, "pos_ecef", utc_time_buffer,
+                         const RosTimeHandler::Ptr& ros_time_handler)
+      : RosRelay(nh, SBP_MSG_POS_ECEF, state, "pos_ecef", ros_time_handler,
                  "ecef") {}
 
  private:
@@ -39,11 +39,11 @@ class RosPosEcefCovRelay
     : public RosRelay<msg_pos_ecef_cov_t,
                       piksi_rtk_msgs::PositionWithCovarianceStamped> {
  public:
-  inline RosPosEcefCovRelay(
-      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
-      const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
+  inline RosPosEcefCovRelay(const ros::NodeHandle& nh,
+                            const std::shared_ptr<sbp_state_t>& state,
+                            const RosTimeHandler::Ptr& ros_time_handler)
       : RosRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pos_ecef_cov",
-                 utc_time_buffer, "ecef") {}
+                 ros_time_handler, "ecef") {}
 
  private:
   void convertSbpMsgToRosMsg(
@@ -54,10 +54,10 @@ class RosPosEcefCovRelay
 class RosPosLlhCovRelay
     : public RosRelay<msg_pos_llh_cov_t, sensor_msgs::NavSatFix> {
  public:
-  inline RosPosLlhCovRelay(
-      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
-      const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
-      : RosRelay(nh, SBP_MSG_POS_LLH_COV, state, "navsatfix", utc_time_buffer,
+  inline RosPosLlhCovRelay(const ros::NodeHandle& nh,
+                           const std::shared_ptr<sbp_state_t>& state,
+                           const RosTimeHandler::Ptr& ros_time_handler)
+      : RosRelay(nh, SBP_MSG_POS_LLH_COV, state, "navsatfix", ros_time_handler,
                  "wgs84") {}
 
  private:
@@ -69,11 +69,11 @@ class RosBaselineNedRelay
     : public RosRelay<msg_baseline_ned_t,
                       piksi_rtk_msgs::PositionWithCovarianceStamped> {
  public:
-  inline RosBaselineNedRelay(
-      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
-      const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
+  inline RosBaselineNedRelay(const ros::NodeHandle& nh,
+                             const std::shared_ptr<sbp_state_t>& state,
+                             const RosTimeHandler::Ptr& ros_time_handler)
       : RosRelay(nh, SBP_MSG_BASELINE_NED, state, "baseline_ned",
-                 utc_time_buffer, "ned_base_station") {}
+                 ros_time_handler, "ned_base_station") {}
 
  private:
   void convertSbpMsgToRosMsg(
@@ -86,8 +86,8 @@ class RosVelEcefRelay
  public:
   inline RosVelEcefRelay(const ros::NodeHandle& nh,
                          const std::shared_ptr<sbp_state_t>& state,
-                         const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
-      : RosRelay(nh, SBP_MSG_VEL_ECEF, state, "vel_ecef", utc_time_buffer,
+                         const RosTimeHandler::Ptr& ros_time_handler)
+      : RosRelay(nh, SBP_MSG_VEL_ECEF, state, "vel_ecef", ros_time_handler,
                  "ecef") {}
 
  private:
@@ -99,11 +99,11 @@ class RosVelEcefCovRelay
     : public RosRelay<msg_vel_ecef_cov_t,
                       piksi_rtk_msgs::VelocityWithCovarianceStamped> {
  public:
-  inline RosVelEcefCovRelay(
-      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
-      const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
+  inline RosVelEcefCovRelay(const ros::NodeHandle& nh,
+                            const std::shared_ptr<sbp_state_t>& state,
+                            const RosTimeHandler::Ptr& ros_time_handler)
       : RosRelay(nh, SBP_MSG_VEL_ECEF_COV, state, "vel_ecef_cov",
-                 utc_time_buffer, "ecef") {}
+                 ros_time_handler, "ecef") {}
 
  private:
   void convertSbpMsgToRosMsg(
@@ -116,8 +116,8 @@ class RosVelNedRelay
  public:
   inline RosVelNedRelay(const ros::NodeHandle& nh,
                         const std::shared_ptr<sbp_state_t>& state,
-                        const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
-      : RosRelay(nh, SBP_MSG_VEL_NED, state, "vel_ned", utc_time_buffer,
+                        const RosTimeHandler::Ptr& ros_time_handler)
+      : RosRelay(nh, SBP_MSG_VEL_NED, state, "vel_ned", ros_time_handler,
                  "ned") {}
 
  private:
@@ -129,11 +129,11 @@ class RosVelNedCovRelay
     : public RosRelay<msg_vel_ned_cov_t,
                       piksi_rtk_msgs::VelocityWithCovarianceStamped> {
  public:
-  inline RosVelNedCovRelay(
-      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
-      const std::shared_ptr<UtcTimeBuffer>& utc_time_buffer)
-      : RosRelay(nh, SBP_MSG_VEL_NED_COV, state, "vel_ned_cov", utc_time_buffer,
-                 "ned") {}
+  inline RosVelNedCovRelay(const ros::NodeHandle& nh,
+                           const std::shared_ptr<sbp_state_t>& state,
+                           const RosTimeHandler::Ptr& ros_time_handler)
+      : RosRelay(nh, SBP_MSG_VEL_NED_COV, state, "vel_ned_cov",
+                 ros_time_handler, "ned") {}
 
  private:
   void convertSbpMsgToRosMsg(

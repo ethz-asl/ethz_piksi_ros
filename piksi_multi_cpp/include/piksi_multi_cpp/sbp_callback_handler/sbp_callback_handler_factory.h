@@ -20,9 +20,6 @@ class SBPCallbackHandlerFactory {
 
   static std::vector<SBPCallbackHandler::Ptr> createAllRosMessageRelays(
       const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state);
-
-  static SBPCallbackHandler::Ptr createUtcTimeBuffer(
-      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state);
 };
 }  // namespace piksi_multi_cpp
 
