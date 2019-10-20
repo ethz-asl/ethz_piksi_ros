@@ -22,6 +22,12 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
                                  const std::string& topic)
       : SBPCallbackHandler(nh, sbp_msg_type, state), topic_(topic) {}
 
+ protected:
+  // This publisher relays the incoming SBP message. It is generated and
+  // advertised in when callback is called for the first time, i.e., Piksi is
+  // publishing this message.
+  std::optional<ros::Publisher> relay_pub_;
+
  private:
   //  Transforming incoming SBP message to ROS message.
   virtual RosMsgType convertSbpToRos(const SbpMsgType& sbp_msg,
@@ -49,11 +55,6 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
     // Convert and publish ROS msg.
     relay_pub_.value().publish(convertSbpToRos(*sbp_msg, len));
   }
-
-  // This publisher relays the incoming SBP message. It is generated and
-  // advertised in when callback is called for the first time, i.e., Piksi is
-  // publishing this message.
-  std::optional<ros::Publisher> relay_pub_;
   std::string topic_;
 };
 
