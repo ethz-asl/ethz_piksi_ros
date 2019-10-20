@@ -41,6 +41,10 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
     // https://answers.ros.org/question/197878/how-expensive-is-getnumsubscribers-of-publisher/
     if (relay_pub_.has_value() && relay_pub_.value().getNumSubscribers() == 0)
       return;
+    // Advertise topic on first callback.
+    if (!relay_pub_.has_value()) {
+      relay_pub_ = nh_.advertise<RosMsgType>(topic_, kQueueSize, kLatchTopic);
+    }
 
     // Cast message.
     auto sbp_msg = (SbpMsgType*)msg;
@@ -52,10 +56,6 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
     // Convert and publish ROS msg.
     RosMsgType ros_msg;
     if (!convertSbpToRos(*sbp_msg, len, &ros_msg)) return;
-    // Advertise topic on first publication.
-    if (!relay_pub_.has_value()) {
-      relay_pub_ = nh_.advertise<RosMsgType>(topic_, kQueueSize, kLatchTopic);
-    }
     relay_pub_.value().publish(ros_msg);
   }
   std::string topic_;

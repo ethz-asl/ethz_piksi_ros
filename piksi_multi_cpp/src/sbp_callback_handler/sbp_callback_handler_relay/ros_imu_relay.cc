@@ -27,7 +27,7 @@ bool RosImuRelay::convertSbpToRos(const msg_imu_raw_t& sbp_msg,
   }
 
   if (!gyro_scale_.has_value() || !acc_scale_.has_value()) {
-    ROS_WARN("Did not receive IMU configuration data.");
+    ROS_DEBUG("Did not receive IMU configuration data.");
     return false;
   }
 

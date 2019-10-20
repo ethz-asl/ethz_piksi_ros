@@ -56,9 +56,8 @@ void RosTimeHandler::callbackToUtcTime(const msg_utc_time_t& msg) {
 }
 
 ros::Time RosTimeHandler::lookupTime(const uint32_t tow) const {
-  if (!use_gps_time_)
-    return ros::Time::now();
-  else if (tow_to_utc_.has_value() && tow_to_utc_.value().first == tow) {
+  if (!use_gps_time_) {
+  } else if (tow_to_utc_.has_value() && tow_to_utc_.value().first == tow) {
     return tow_to_utc_.value().second;  // Can lookup ns timestamp.
   } else if (leap_seconds_.has_value()) {
     ROS_WARN("Cannot lookup GPS time. Only ms GPS time stamp precision.");
@@ -67,8 +66,8 @@ ros::Time RosTimeHandler::lookupTime(const uint32_t tow) const {
     ROS_ERROR(
         "Failed to convert tow to GPS time stamp. Stamping data with "
         "ros::Time::now()");
-    return ros::Time::now();
   }
+  return ros::Time::now();
 }
 
 ros::Time RosTimeHandler::lookupTime(const uint32_t tow,
