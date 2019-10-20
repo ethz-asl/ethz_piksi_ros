@@ -51,7 +51,10 @@ void RosPosLlhCovRelay::convertSbpMsgToRosMsg(const msg_pos_llh_cov_t& in,
       out->status.status = sensor_msgs::NavSatStatus::STATUS_NO_FIX;
   }
 
-  // TODO(rikba): Set service flags.
+  if(ros_receiver_state_.get()) {
+    out->status.service = ros_receiver_state_->getNavSatServiceStatus();
+  }
+
   lrm::convertWgs84Point<msg_pos_llh_cov_t, sensor_msgs::NavSatFix>(in, out);
   lrm::convertNedCov<msg_pos_llh_cov_t, boost::array<double, 9>>(
       in, &(out->position_covariance));

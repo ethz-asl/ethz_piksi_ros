@@ -43,6 +43,15 @@ RosReceiverState::RosReceiverState(const ros::NodeHandle& nh,
   resetMeasurementState();
 }
 
+uint16_t RosReceiverState::getNavSatServiceStatus() const {
+  uint16_t service_status = 0;
+  if (receiver_state_.num_gps_sat > 0) service_status += (1 << 0);
+  if (receiver_state_.num_glonass_sat > 0) service_status += (1 << 1);
+  if (receiver_state_.num_bds_sat > 0) service_status += (1 << 2);
+  if (receiver_state_.num_gal_sat > 0) service_status += (1 << 3);
+  return service_status;
+}
+
 void RosReceiverState::callbackToHeartbeat(const msg_heartbeat_t& msg) {
   receiver_state_.system_error = (msg.flags >> 0) & 0x1;
   receiver_state_.io_error = (msg.flags >> 1) & 0x1;

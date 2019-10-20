@@ -21,6 +21,8 @@ class RosReceiverState
                    const std::shared_ptr<sbp_state_t>& state,
                    const RosTimeHandler::Ptr& ros_time_handler);
 
+  uint16_t getNavSatServiceStatus() const;
+
  private:
   typedef piksi_rtk_msgs::ReceiverState_V2_6_5 ReceiverState;
   bool convertSbpToRos(const msg_measurement_state_t& sbp_msg,

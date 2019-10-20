@@ -35,8 +35,6 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
   relays.push_back(SBPCallbackHandler::Ptr(
       new RosPosEcefCovRelay(nh, state, ros_time_handler)));
   relays.push_back(SBPCallbackHandler::Ptr(
-      new RosPosLlhCovRelay(nh, state, ros_time_handler)));
-  relays.push_back(SBPCallbackHandler::Ptr(
       new RosBaselineNedRelay(nh, state, ros_time_handler)));
   relays.push_back(SBPCallbackHandler::Ptr(
       new RosVelEcefRelay(nh, state, ros_time_handler)));
@@ -50,8 +48,12 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
       SBPCallbackHandler::Ptr(new RosImuRelay(nh, state, ros_time_handler)));
   relays.push_back(
       SBPCallbackHandler::Ptr(new RosMagRelay(nh, state, ros_time_handler)));
+
+  auto ros_receiver_state =
+      std::make_shared<RosReceiverState>(nh, state, ros_time_handler);
+  relays.push_back(ros_receiver_state);
   relays.push_back(SBPCallbackHandler::Ptr(
-      new RosReceiverState(nh, state, ros_time_handler)));
+      new RosPosLlhCovRelay(nh, state, ros_time_handler, ros_receiver_state)));
 
   return relays;
 }
