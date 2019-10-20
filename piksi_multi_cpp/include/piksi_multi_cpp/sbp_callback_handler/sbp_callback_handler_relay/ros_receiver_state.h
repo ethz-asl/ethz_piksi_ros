@@ -3,6 +3,7 @@
 
 #include <libsbp/navigation.h>
 #include <libsbp/tracking.h>
+#include <memory.h>
 #include <piksi_rtk_msgs/ReceiverState_V2_6_5.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
@@ -14,14 +15,16 @@ class RosReceiverState
     : public SBPCallbackHandlerRelay<msg_measurement_state_t,
                                      piksi_rtk_msgs::ReceiverState_V2_6_5> {
  public:
+  typedef std::shared_ptr<RosReceiverState> Ptr;
+
   RosReceiverState(const ros::NodeHandle& nh,
                    const std::shared_ptr<sbp_state_t>& state,
                    const RosTimeHandler::Ptr& ros_time_handler);
 
  private:
+  typedef piksi_rtk_msgs::ReceiverState_V2_6_5 ReceiverState;
   bool convertSbpToRos(const msg_measurement_state_t& sbp_msg,
-                       const uint8_t len,
-                       piksi_rtk_msgs::ReceiverState_V2_6_5* ros_msg) override;
+                       const uint8_t len, ReceiverState* ros_msg) override;
 
   void callbackToHeartbeat(const msg_heartbeat_t& msg);
 
@@ -31,38 +34,30 @@ class RosReceiverState
 
     switch (fix_mode) {
       case 0:
-        receiver_state_.fix_mode =
-            piksi_rtk_msgs::ReceiverState_V2_6_5::STR_FIX_MODE_INVALID;
+        receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_INVALID;
         break;
       case 1:
-        receiver_state_.fix_mode =
-            piksi_rtk_msgs::ReceiverState_V2_6_5::STR_FIX_MODE_SPP;
+        receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_SPP;
         break;
       case 2:
-        receiver_state_.fix_mode =
-            piksi_rtk_msgs::ReceiverState_V2_6_5::STR_FIX_MODE_DGNSS;
+        receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_DGNSS;
         break;
       case 3:
         receiver_state_.rtk_mode_fix = 0;
-        receiver_state_.fix_mode =
-            piksi_rtk_msgs::ReceiverState_V2_6_5::STR_FIX_MODE_FLOAT_RTK;
+        receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_FLOAT_RTK;
         break;
       case 4:
         receiver_state_.rtk_mode_fix = 1;
-        receiver_state_.fix_mode =
-            piksi_rtk_msgs::ReceiverState_V2_6_5::STR_FIX_MODE_FIXED_RTK;
+        receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_FIXED_RTK;
         break;
       case 5:
-        receiver_state_.fix_mode =
-            piksi_rtk_msgs::ReceiverState_V2_6_5::STR_FIX_MODE_DEAD_RECKONING;
+        receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_DEAD_RECKONING;
         break;
       case 6:
-        receiver_state_.fix_mode =
-            piksi_rtk_msgs::ReceiverState_V2_6_5::STR_FIX_MODE_SBAS;
+        receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_SBAS;
         break;
       default:
-        receiver_state_.fix_mode =
-            piksi_rtk_msgs::ReceiverState_V2_6_5::STR_FIX_MODE_UNKNOWN;
+        receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_UNKNOWN;
     }
   }
 
@@ -75,7 +70,7 @@ class RosReceiverState
   SBPLambdaCallbackHandler<msg_pos_llh_cov_t> pos_llh_cov_handler_;
   SBPLambdaCallbackHandler<msg_heartbeat_t> heartbeat_handler_;
 
-  piksi_rtk_msgs::ReceiverState_V2_6_5 receiver_state_;
+  ReceiverState receiver_state_;
 };
 
 }  // namespace piksi_multi_cpp

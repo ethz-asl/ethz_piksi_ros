@@ -1,18 +1,14 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_receiver_state.h"
 
 #include <libsbp_ros_msgs/conversion.h>
-//#include <prm/ReceiverState_V2_6_5.h>
 #include <functional>
 
 namespace piksi_multi_cpp {
 
-namespace prm = piksi_rtk_msgs;
-
 RosReceiverState::RosReceiverState(const ros::NodeHandle& nh,
                                    const std::shared_ptr<sbp_state_t>& state,
                                    const RosTimeHandler::Ptr& ros_time_handler)
-    : SBPCallbackHandlerRelay<msg_measurement_state_t,
-                              prm::ReceiverState_V2_6_5>(
+    : SBPCallbackHandlerRelay<msg_measurement_state_t, ReceiverState>(
           nh, SBP_MSG_MEASUREMENT_STATE, state, "ros/receiver_state"),
       ros_time_handler_(ros_time_handler),
       pos_ecef_handler_{
@@ -37,14 +33,12 @@ RosReceiverState::RosReceiverState(const ros::NodeHandle& nh,
                                    std::placeholders::_1),
                          SBP_MSG_HEARTBEAT, state} {
   // Initialize receiver state.receiver_state_.rtk_mode_fix = false;
-  receiver_state_.system_error = prm::ReceiverState_V2_6_5::STATUS_UNKNOWN;
-  receiver_state_.io_error = prm::ReceiverState_V2_6_5::STATUS_UNKNOWN;
-  receiver_state_.swift_nap_error = prm::ReceiverState_V2_6_5::STATUS_UNKNOWN;
-  receiver_state_.external_antenna_short =
-      prm::ReceiverState_V2_6_5::STATUS_UNKNOWN;
-  receiver_state_.external_antenna_present =
-      prm::ReceiverState_V2_6_5::STATUS_UNKNOWN;
-  receiver_state_.fix_mode = prm::ReceiverState_V2_6_5::STR_FIX_MODE_UNKNOWN;
+  receiver_state_.system_error = ReceiverState::STATUS_UNKNOWN;
+  receiver_state_.io_error = ReceiverState::STATUS_UNKNOWN;
+  receiver_state_.swift_nap_error = ReceiverState::STATUS_UNKNOWN;
+  receiver_state_.external_antenna_short = ReceiverState::STATUS_UNKNOWN;
+  receiver_state_.external_antenna_present = ReceiverState::STATUS_UNKNOWN;
+  receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_UNKNOWN;
   receiver_state_.utc_time_ready = false;
   resetMeasurementState();
 }
@@ -73,9 +67,9 @@ void RosReceiverState::resetMeasurementState() {
   receiver_state_.cn0_gal.clear();
 }
 
-bool RosReceiverState::convertSbpToRos(
-    const msg_measurement_state_t& sbp_msg, const uint8_t len,
-    piksi_rtk_msgs::ReceiverState_V2_6_5* ros_msg) {
+bool RosReceiverState::convertSbpToRos(const msg_measurement_state_t& sbp_msg,
+                                       const uint8_t len,
+                                       ReceiverState* ros_msg) {
   libsbp_ros_msgs::MsgMeasurementState meas_states =
       libsbp_ros_msgs::convertSbpMsgToRosMsg(sbp_msg, len);
 
