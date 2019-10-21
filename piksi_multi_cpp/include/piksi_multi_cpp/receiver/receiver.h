@@ -2,6 +2,7 @@
 #define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_H_
 
 #include <libsbp/sbp.h>
+#include <piksi_multi_cpp/sbp_callback_handler/sbp_observation_callback_handler.h>
 #include <ros/ros.h>
 #include <atomic>
 #include <memory>
@@ -25,7 +26,7 @@ class Receiver {
   ~Receiver();
 
   // Open device.
-  bool init();
+  virtual bool init();
 
   // Checks if thread is running
   bool isRunning() const;
@@ -36,9 +37,18 @@ class Receiver {
   // The actual hardware interface.
   Device::Ptr device_;
 
+  // Observation callbackhandlers
+  std::unique_ptr<SBPObservationCallbackHandler> obs_cbs_;
+
+ protected:
+  // get vector valued string params
+  std::vector<std::string> getVectorParam(
+      const std::string& name, const std::string& default_value = "");
+
  private:
   // Read device and process SBP callbacks.
   void process();
+
   // Start thread that reads device and processes SBP messages. This thread is
   // terminated when the is_running flag ist set false during object
   // destruction.
@@ -47,6 +57,7 @@ class Receiver {
 
   // The sbp state.
   std::shared_ptr<sbp_state_t> state_;
+
   // Relaying all SBP messages. Common for all receivers.
   std::vector<SBPCallbackHandler::Ptr> relay_cbs_;
 };

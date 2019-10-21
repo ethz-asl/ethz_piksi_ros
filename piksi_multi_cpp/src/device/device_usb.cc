@@ -104,15 +104,23 @@ Identifier DeviceUSB::identifyPiksiAndGetSerialNumber(struct sp_port* port) {
     ROS_ERROR_STREAM("Cannot get vendor ID and product ID." << result);
     return nullptr;
   }
+  std::tuple<uint16_t, uint16_t> usb_vidpid = {usb_vid, usb_pid};
 
   // These are the Piksi Multi USB identifiers. (see lsusb -v)
-  const uint16_t kIDVendor = 0x2E69;
-  const uint16_t kIDProduct = 0x1001;
+  std::tuple<uint16_t, uint16_t> kStandardPiksi = {0x2E69, 0x1001};
+  std::tuple<uint16_t, uint16_t> kOldFirmware = {0x0525, 0xa4a7};
 
-  if (usb_vid == kIDVendor && usb_pid == kIDProduct) {
+  // if this combination of vid/pid is in the set of valid tuples.
+  if (usb_vidpid == kStandardPiksi) {
     // Get serial number as a unique identifier.
     char* serial_number = sp_get_port_usb_serial(port);
     return Identifier(serial_number);
+  } else if (usb_vidpid == kOldFirmware) {
+    ROS_ERROR_STREAM(
+        "Piksi with old firmware detected (before 2.00). Update firmware in "
+        "order to use this driver.");
+    return Identifier();
+    // return Identifier(devBoardId.str());
   } else {
     return Identifier();
   }

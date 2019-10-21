@@ -5,6 +5,9 @@
 
 // SBP message definitions.
 #include <libsbp/system.h>
+#include <piksi_multi_cpp/observations/file_observation_logger.h>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 namespace piksi_multi_cpp {
 
@@ -13,8 +16,31 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::Ptr& device)
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
   sbp_state_init(state_.get());
+
   // Register all relay callbacks.
   relay_cbs_ = SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
+
+  // Create observation callbacks
+
+  obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
+
+  if (1) {
+    auto logger = std::make_shared<FileObservationLogger>();
+    /*ROS_WARN_STREAM(logger->open("/tmp/tempfile.sbp"));
+    obs_cbs_->addObservationCallbackListener(
+        CBtoRawObsConverter::createFor(logger));*/
+  }
+}
+
+std::vector<std::string> Receiver::getVectorParam(
+    const std::string& name, const std::string& default_value) {
+  auto string_value = nh_.param<std::string>(name, default_value);
+  if (string_value.length() == 0) return {};
+
+  std::vector<std::string> vector_value;
+  boost::algorithm::split(vector_value, string_value,
+                          boost::is_any_of(";"));
+  return vector_value;
 }
 
 Receiver::~Receiver() {

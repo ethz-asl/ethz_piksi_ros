@@ -2,7 +2,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include "piksi_multi_cpp/receiver/receiver_factory.h"
-
 using namespace piksi_multi_cpp;
 
 int main(int argc, char** argv) {
