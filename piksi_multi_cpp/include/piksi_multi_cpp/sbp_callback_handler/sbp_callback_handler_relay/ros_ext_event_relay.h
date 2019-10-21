@@ -30,7 +30,6 @@ class RosExtEventRelay
     }
 
     // Create ROS data.
-    // TODO(rikba): Get timestamp right.
     ros_msg->stamp.data = ros_time_handler_->convertGpsTime(
         sbp_msg.wn, sbp_msg.tow, sbp_msg.ns_residual);
     ros_msg->pin_value = (sbp_msg.flags >> 0) & 0x1;
