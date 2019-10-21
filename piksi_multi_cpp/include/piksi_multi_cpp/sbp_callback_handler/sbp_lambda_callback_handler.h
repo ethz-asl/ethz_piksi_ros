@@ -34,7 +34,7 @@ class SBPLambdaCallbackHandler : SBPCallbackHandler {
     std::unique_lock<std::mutex> lock(callback_mutex_);
     auto now = std::chrono::system_clock::now();
     return cv_.wait_until(lock, now + std::chrono::milliseconds(timeout),
-                          [](auto obj) { return obj->callback_received_; });
+                          [this]() { return callback_received_.load(); });
   }
 
  private:

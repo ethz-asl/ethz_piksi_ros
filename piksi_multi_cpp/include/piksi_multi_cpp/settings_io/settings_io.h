@@ -18,13 +18,17 @@ class SettingsIo {
 
   void printSetting(const msg_settings_read_resp_t& msg);
 
+  inline void setTimeout(const int timeout) { timeout_ = timeout; }
+
   // Simultaneous read and write with this class.
   static int32_t write_redirect(uint8_t* buff, uint32_t n, void* context);
+  static int32_t read_redirect(uint8_t* buff, uint32_t n, void* context);
 
  private:
   Device::Ptr device_;
   std::shared_ptr<sbp_state_t> state_;
   SBPLambdaCallbackHandler<msg_settings_read_resp_t> settings_listener_;
+  int timeout_ = 1;
 };
 
 }  // namespace piksi_multi_cpp
