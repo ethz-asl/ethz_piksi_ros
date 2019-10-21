@@ -3,8 +3,10 @@
 #include <libsbp/sbp.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_additional_msgs.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h>
+#include <condition_variable>
 
 #include <memory>
+#include <mutex>
 
 namespace piksi_multi_cpp {
 
@@ -25,6 +27,14 @@ class SBPLambdaCallbackHandler : SBPCallbackHandler {
       : SBPCallbackHandler(ros::NodeHandle(), msg_id, state),
         callback_redirect_(func) {}
 
+ public:
+  bool waitForCallback(int timeout = 1000) {
+    std::unique_lock<std::mutex> lock(callback_mutex_);
+    auto now = std::chrono::system_clock::now();
+    return cv_.wait_until(lock, now + std::chrono::milliseconds(timeout),
+                          [](auto obj) { return obj->callback_received_; });
+  }
+
  private:
   // Disable copy / assignement constructors.
   SBPLambdaCallbackHandler(const SBPLambdaCallbackHandler&) = delete;
@@ -38,9 +48,14 @@ class SBPLambdaCallbackHandler : SBPCallbackHandler {
       return;
     }
     callback_redirect_(*sbp_msg);
+    callback_received_ = true;
+    cv_.notify_all();
   }
 
   CallbackFn callback_redirect_;
+  std::condition_variable cv_;
+  std::atomic_bool callback_received_{false};
+  std::mutex callback_mutex_;
 };
 
 template <>
