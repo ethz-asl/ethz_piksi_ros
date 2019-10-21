@@ -38,7 +38,7 @@ bool SettingsIo::readSetting(const std::string& section,
   // Register setting listener.
   SBPLambdaCallbackHandler<msg_settings_read_resp_t> settings_listener(
       std::bind(&SettingsIo::printSetting, this, std::placeholders::_1),
-      SBP_MSG_SETTINGS_READ_REQ, state_);
+      SBP_MSG_SETTINGS_READ_RESP, state_);
 
   // Start reading thread.
   thread_exit_requested_ = false;
@@ -52,18 +52,18 @@ bool SettingsIo::readSetting(const std::string& section,
     ROS_ERROR("Cannot request setting %s.%s, %d", section.c_str(), name.c_str(),
               req_success);
     device_->close();
-    thread_exit_requested_ = true;
+    thread_exit_requested_.store(true);
     return false;
   }
 
-  // Wait for  MSG_SETTINGS_READ_RESP.
-  // if (!settings_listener_.waitForCallback(timeout_)) {
-  //  ROS_ERROR("Did not receive setting %s, %s.", section.c_str(),
-  //  name.c_str()); thread_exit_requested_.store(true); if
-  //  (process_thread_.joinable()) process_thread_.join(); device_->close();
-  //  return false;
-  //}
-  ros::Duration(10).sleep();
+  // Wait to receive setting.
+  if (!settings_listener.waitForCallback(timeout_)) {
+    ROS_ERROR("Did not receive setting %s, %s.", section.c_str(), name.c_str());
+    thread_exit_requested_.store(true);
+    if (process_thread_.joinable()) process_thread_.join();
+    device_->close();
+    return false;
+  }
 
   thread_exit_requested_.store(true);
   if (process_thread_.joinable()) process_thread_.join();
