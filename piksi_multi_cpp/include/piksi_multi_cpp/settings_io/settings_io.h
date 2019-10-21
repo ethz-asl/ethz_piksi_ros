@@ -28,7 +28,6 @@ class SettingsIo {
  private:
   Device::Ptr device_;
   std::shared_ptr<sbp_state_t> state_;
-  SBPLambdaCallbackHandler<msg_settings_read_resp_t> settings_listener_;
   int timeout_ = 1000;
 
   void process();

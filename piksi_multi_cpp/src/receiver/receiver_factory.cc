@@ -1,9 +1,9 @@
-#include "piksi_multi_cpp/receiver/receiver_factory.h"
 #include <ros/console.h>
 #include "piksi_multi_cpp/device/device_factory.h"
 #include "piksi_multi_cpp/receiver/receiver.h"
 #include "piksi_multi_cpp/receiver/receiver_attitude.h"
 #include "piksi_multi_cpp/receiver/receiver_base_station.h"
+#include "piksi_multi_cpp/receiver/receiver_factory.h"
 #include "piksi_multi_cpp/receiver/receiver_position.h"
 #include "piksi_multi_cpp/settings_io/settings_io.h"
 
