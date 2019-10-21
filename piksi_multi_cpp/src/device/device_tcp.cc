@@ -1,9 +1,9 @@
-#include "piksi_multi_cpp/device/device_tcp.h"
 #include <netinet/tcp.h>
 #include <poll.h>
 #include <ros/console.h>
 #include <cstring>
 #include <regex>
+#include "piksi_multi_cpp/device/device_tcp.h"
 
 namespace piksi_multi_cpp {
 
@@ -76,7 +76,7 @@ bool DeviceTCP::open() {
   return parseId() && openSocket();
 }
 
-int8_t DeviceTCP::write(std::vector<uint8_t> buff) const {
+int32_t DeviceTCP::write(std::vector<uint8_t> buff) const {
   return send(socket_fd_, buff.data(), buff.size(), 0);
 }
 
@@ -101,4 +101,4 @@ void DeviceTCP::close() {
   ::close(socket_fd_);
 }
 
-}
+}  // namespace piksi_multi_cpp

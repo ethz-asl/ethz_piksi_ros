@@ -22,7 +22,7 @@ class Device {
   Device(const Identifier& id);
   virtual bool open() = 0;
   virtual int32_t read(uint8_t* buff, uint32_t n) const = 0;
-  virtual int8_t write(std::vector<uint8_t> buff) const = 0;
+  virtual int32_t write(std::vector<uint8_t> buff) const = 0;
   virtual void close() = 0;
   inline std::string getID() const { return id_; }
 
@@ -32,7 +32,7 @@ class Device {
   // points on the context's read function.
   // WARNING: Requires sbp_state_set_io_context to be called first.
   static int32_t read_redirect(uint8_t* buff, uint32_t n, void* context);
-  static int8_t write_redirect(uint8_t* buff, uint32_t n, void* context);
+  static int32_t write_redirect(uint8_t* buff, uint32_t n, void* context);
 
  protected:
   Identifier id_;

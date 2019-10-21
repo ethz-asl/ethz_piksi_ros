@@ -19,7 +19,7 @@ int32_t Device::read_redirect(uint8_t* buff, uint32_t n, void* context) {
   return instance->read(buff, n);
 }
 
-int8_t Device::write_redirect(uint8_t* buff, uint32_t n, void* context) {
+int32_t Device::write_redirect(uint8_t* buff, uint32_t n, void* context) {
   if (!context) {
     ROS_ERROR_STREAM("No context set.");
     return 0;

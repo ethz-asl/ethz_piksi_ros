@@ -114,7 +114,7 @@ bool DeviceSerial::open() {
   return true;
 }
 
-int8_t DeviceSerial::write(std::vector<uint8_t> buff) const {
+int32_t DeviceSerial::write(std::vector<uint8_t> buff) const {
   if (!port_) {
     ROS_ERROR_STREAM("Port not opened.");
   }
