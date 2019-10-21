@@ -6,6 +6,7 @@
 #include <piksi_multi_cpp/device/device.h>
 #include <memory>
 #include <string>
+#include <thread>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h"
 
 namespace piksi_multi_cpp {
@@ -28,7 +29,11 @@ class SettingsIo {
   Device::Ptr device_;
   std::shared_ptr<sbp_state_t> state_;
   SBPLambdaCallbackHandler<msg_settings_read_resp_t> settings_listener_;
-  int timeout_ = 1;
+  int timeout_ = 1000;
+
+  void process();
+  std::thread process_thread_;
+  std::atomic_bool thread_exit_requested_ = false;
 };
 
 }  // namespace piksi_multi_cpp
