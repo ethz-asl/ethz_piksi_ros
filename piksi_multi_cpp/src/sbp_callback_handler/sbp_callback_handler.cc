@@ -5,9 +5,8 @@
 namespace piksi_multi_cpp {
 
 SBPCallbackHandler::SBPCallbackHandler(
-    const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
-    const std::shared_ptr<sbp_state_t>& state)
-    : nh_(nh), state_(state) {
+    const uint16_t sbp_msg_type, const std::shared_ptr<sbp_state_t>& state)
+    : state_(state) {
   int result = sbp_register_callback(
       state.get(), sbp_msg_type,
       &piksi_multi_cpp::SBPCallbackHandler::callback_redirect, this,

@@ -20,13 +20,15 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
                                  const uint16_t sbp_msg_type,
                                  const std::shared_ptr<sbp_state_t>& state,
                                  const std::string& topic)
-      : SBPCallbackHandler(nh, sbp_msg_type, state), topic_(topic) {}
+      : SBPCallbackHandler(sbp_msg_type, state), nh_(nh), topic_(topic) {}
 
  protected:
   // This publisher relays the incoming SBP message. It is generated and
   // advertised in when callback is called for the first time, i.e., Piksi is
   // publishing this message.
   std::optional<ros::Publisher> relay_pub_;
+  // A nodehandle with the correct ROS namespace.
+  ros::NodeHandle nh_;
 
  private:
   //  Transforming incoming SBP message to ROS message.
