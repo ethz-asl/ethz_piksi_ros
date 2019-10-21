@@ -3,9 +3,10 @@
 #include <libsbp/sbp.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_additional_msgs.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h>
-#include <condition_variable>
 #include <ros/console.h>
+#include <condition_variable>
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -26,8 +27,7 @@ class SBPLambdaCallbackHandler : SBPCallbackHandler {
 
   SBPLambdaCallbackHandler(const CallbackFn func, const uint16_t msg_id,
                            const std::shared_ptr<sbp_state_t>& state)
-      : SBPCallbackHandler(msg_id, state),
-        callback_redirect_(func) {}
+      : SBPCallbackHandler(msg_id, state), callback_redirect_(func) {}
 
  public:
   bool waitForCallback(int timeout = 1000) {
