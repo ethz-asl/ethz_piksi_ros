@@ -14,7 +14,7 @@ class DeviceDummy : public Device {
     usleep(100);
     return 0;
   }
-  inline void write(std::vector<uint8_t> buff) const override {}
+  inline int8_t write(std::vector<uint8_t> buff) const override { return 0; }
   inline void close() override {}
 };
 }  // namespace piksi_multi_cpp

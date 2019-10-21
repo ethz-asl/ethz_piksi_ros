@@ -114,12 +114,12 @@ bool DeviceSerial::open() {
   return true;
 }
 
-void DeviceSerial::write(std::vector<uint8_t> buff) const {
+int8_t DeviceSerial::write(std::vector<uint8_t> buff) const {
   if (!port_) {
     ROS_ERROR_STREAM("Port not opened.");
   }
   // try nonblocking for now.
-  sp_nonblocking_write(port_, buff.data(), buff.size());
+  return sp_nonblocking_write(port_, buff.data(), buff.size());
 }
 
 int32_t DeviceSerial::read(uint8_t* buff, uint32_t n) const {
