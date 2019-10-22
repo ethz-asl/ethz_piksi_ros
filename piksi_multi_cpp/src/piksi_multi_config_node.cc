@@ -1,5 +1,6 @@
 #include <ros/package.h>
 #include <boost/algorithm/string.hpp>
+#include <experimental/filesystem>
 #include <memory>
 #include <set>
 #include <string>
@@ -7,6 +8,8 @@
 #include "piksi_multi_cpp/receiver/settings_io.h"
 
 using namespace piksi_multi_cpp;
+
+namespace fs = std::experimental::filesystem;
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "piksi_multi_config");
@@ -42,22 +45,22 @@ int main(int argc, char** argv) {
     ROS_FATAL("Config type '%s' does not exist.", config_type);
     exit(1);
   }
+  // Search config file.
   std::string pkg_path = ros::package::getPath("piksi_multi_cpp");
+  std::string config_file;
+  for (const auto& entry : fs::directory_iterator(pkg_path + "/cfg/")) {
+    if (entry.path().extension().compare(".ini") != 0) continue;
+    if (entry.path().stem().string().find(config_type) != std::string::npos)
+      config_file = entry.path().string();
+  }
+  // Overwrite config file with rosparam.
+  config_file = nh_private.param<std::string>("config_file", config_file);
 
-  // std::string
-  //    config_file = pkg_path + "/config_" + config_type + "";  // =
-  //    nh_private.param<std::string>("config_file", "");
+  // Now load parameters.
   for (auto rec : receivers) {
     auto setting_io = std::static_pointer_cast<SettingsIo>(rec);
 
-    // Get config file.
-    if (!setting_io->readSetting("system_info", "firmware_version")) {
-      ROS_FATAL("Cannot read firmware version.");
-      continue;
-    }
-    auto firmware_version = setting_io->getValue();
-    ROS_INFO("%s", firmware_version.c_str());
-    std::string config_file;
+    // Process config file.
     if (!setting_io->openConfig(config_file)) {
       ROS_FATAL("Error opening config.");
     }

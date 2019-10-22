@@ -35,7 +35,7 @@ class SettingsIo : public Receiver {
                            const uint8_t len);
   void receiveWriteResponse(const msg_settings_write_resp_t& msg,
                             const uint8_t len);
-
+                            
   std::string value_;
   bool write_success_{false};
 };

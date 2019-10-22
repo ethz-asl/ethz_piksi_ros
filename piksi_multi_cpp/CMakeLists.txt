@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(piksi_multi_cpp)
 
-add_definitions(-std=c++17)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_BUILD_TYPE Release)
 
@@ -36,7 +36,7 @@ cs_add_library(${PROJECT_NAME}
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.cc
         src/sbp_callback_handler/sbp_observation_callback_handler.cc
         )
-target_link_libraries(${PROJECT_NAME} serialport)
+target_link_libraries(${PROJECT_NAME} serialport stdc++fs)
 
 ############
 # BINARIES #
