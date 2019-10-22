@@ -45,6 +45,9 @@ class Receiver {
   std::vector<std::string> getVectorParam(
       const std::string& name, const std::string& default_value = "");
 
+  // The sbp state.
+  std::shared_ptr<sbp_state_t> state_;
+
  private:
   // Read device and process SBP callbacks.
   void process();
@@ -55,8 +58,6 @@ class Receiver {
   std::thread process_thread_;
   std::atomic_bool thread_exit_requested_;
 
-  // The sbp state.
-  std::shared_ptr<sbp_state_t> state_;
   // A timestamp buffer to lookup exact UTC timestamps from tow.
   SBPCallbackHandler::Ptr utc_time_buffer_;
   // Relaying all SBP messages. Common for all receivers.

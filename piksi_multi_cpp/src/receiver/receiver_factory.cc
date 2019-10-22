@@ -5,7 +5,7 @@
 #include "piksi_multi_cpp/receiver/receiver_base_station.h"
 #include "piksi_multi_cpp/receiver/receiver_factory.h"
 #include "piksi_multi_cpp/receiver/receiver_position.h"
-#include "piksi_multi_cpp/settings_io/settings_io.h"
+#include "piksi_multi_cpp/receiver/settings_io.h"
 
 namespace piksi_multi_cpp {
 
@@ -89,8 +89,12 @@ ReceiverFactory::ReceiverType ReceiverFactory::inferType(
     const Device::Ptr& dev) {
   if (!dev.get()) return ReceiverType::kUnknown;
 
-  SettingsIo settings_io(dev);
-  settings_io.readSetting("pps", "width");
+  // Create settings object.
+  SettingsIo settings_io(ros::NodeHandle(), dev);
+  if (!settings_io.init()) return ReceiverType::kUnknown;
+
+  std::string value;
+  settings_io.readSetting("pps", "width", &value);
 
   ROS_WARN("inferType not implemented.");
   return ReceiverType::kUnknown;

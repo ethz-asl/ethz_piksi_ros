@@ -26,6 +26,7 @@ cs_add_library(${PROJECT_NAME}
         src/receiver/receiver_factory.cc
         src/receiver/receiver_position.cc
         src/receiver/receiver.cc
+        src/receiver/settings_io.cc
         src/sbp_callback_handler/sbp_callback_handler.cc
         src/sbp_callback_handler/sbp_callback_handler_factory.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.cc
@@ -34,7 +35,6 @@ cs_add_library(${PROJECT_NAME}
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_receiver_state.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.cc
         src/sbp_callback_handler/sbp_observation_callback_handler.cc
-        src/settings_io/settings_io.cc
         )
 target_link_libraries(${PROJECT_NAME} serialport)
 
