@@ -16,10 +16,14 @@ Receiver::Receiver(const ros::NodeHandle& nh, const Device::Ptr& device)
   // Initialize SBP state.
   state_ = std::make_shared<sbp_state_t>();
   sbp_state_init(state_.get());
+  // Pass device pointer to process function.
+  sbp_state_set_io_context(state_.get(), device_.get());
 
   // Register all relay callbacks.
-  sbp_relays_ = SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
-  ros_relays_ = SBPCallbackHandlerFactory::createAllRosMessageRelays(nh, state_);
+  sbp_relays_ =
+      SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
+  ros_relays_ =
+      SBPCallbackHandlerFactory::createAllRosMessageRelays(nh, state_);
 
   // Create observation callbacks
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
@@ -38,8 +42,7 @@ std::vector<std::string> Receiver::getVectorParam(
   if (string_value.length() == 0) return {};
 
   std::vector<std::string> vector_value;
-  boost::algorithm::split(vector_value, string_value,
-                          boost::is_any_of(";"));
+  boost::algorithm::split(vector_value, string_value, boost::is_any_of(";"));
   return vector_value;
 }
 
@@ -74,8 +77,6 @@ void Receiver::process() {
   // Setting thread_exit_requested_ will terminate the thread.
   while (!thread_exit_requested_.load()) {
     if (!device_.get()) return;
-    // Pass device pointer to process function.
-    sbp_state_set_io_context(state_.get(), device_.get());
     // Pass device read function to sbp_process.
     int result =
         sbp_process(state_.get(), &piksi_multi_cpp::Device::read_redirect);
