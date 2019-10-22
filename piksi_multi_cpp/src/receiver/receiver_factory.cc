@@ -12,7 +12,6 @@ namespace piksi_multi_cpp {
 Receiver::Ptr ReceiverFactory::createReceiverByReceiverType(
     const ros::NodeHandle& nh, const Device::Ptr& device,
     const ReceiverType type) {
-  return Receiver::Ptr(new ReceiverBaseStation(nh, device));  // debug
   switch (type) {
     case ReceiverType::kBaseStationReceiver:
       return Receiver::Ptr(new ReceiverBaseStation(nh, device));
@@ -20,6 +19,8 @@ Receiver::Ptr ReceiverFactory::createReceiverByReceiverType(
       return Receiver::Ptr(new ReceiverPosition(nh, device));
     case ReceiverType::kAttitudeReceiver:
       return Receiver::Ptr(new ReceiverAttitude(nh, device));
+    case ReceiverType::kSettingIo:
+      return Receiver::Ptr(new SettingsIo(nh, device));
     case ReceiverType::kUnknown:
       return Receiver::Ptr(new Receiver(nh, device));
     default:
@@ -35,9 +36,9 @@ Receiver::Ptr ReceiverFactory::createReceiverByDevice(
 
 std::vector<Receiver::Ptr>
 ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
-    const ros::NodeHandle& nh, const Identifiers& id) {
+    const ros::NodeHandle& nh, const Identifiers& ids) {
   // Create all devices.
-  auto devices = DeviceFactory::createByIdentifiers(id);
+  auto devices = DeviceFactory::createByIdentifiers(ids);
 
   // A counter variable to assign unique ids.
   std::map<ReceiverType, size_t> counter;
@@ -58,6 +59,27 @@ ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
     if (receiver.get()) receivers.push_back(receiver);
     // Increment type counter.
     counter[type] += 1;
+  }
+
+  ROS_WARN_COND(receivers.empty(), "No receiver created.");
+  return receivers;
+}
+
+std::vector<Receiver::Ptr> ReceiverFactory::createSettingIoReceivers(
+    const ros::NodeHandle& nh, const Identifiers& ids) {
+  // Create all devices.
+  auto devices = DeviceFactory::createByIdentifiers(ids);
+
+  // Create all receivers.
+  std::vector<std::shared_ptr<Receiver>> receivers;
+  size_t counter = 0;
+  for (auto dev : devices) {
+    std::string ns = "setting_io_" + std::to_string(counter++);
+    ROS_INFO("Creating %s", ns.c_str());
+    ros::NodeHandle nh_private(nh, ns);
+    auto receiver =
+        createReceiverByReceiverType(nh_private, dev, ReceiverType::kSettingIo);
+    if (receiver.get()) receivers.push_back(receiver);
   }
 
   ROS_WARN_COND(receivers.empty(), "No receiver created.");

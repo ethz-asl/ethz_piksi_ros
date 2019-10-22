@@ -44,5 +44,8 @@ target_link_libraries(${PROJECT_NAME} serialport)
 cs_add_executable(piksi_multi src/piksi_multi_node.cc)
 target_link_libraries(piksi_multi ${PROJECT_NAME})
 
+cs_add_executable(piksi_multi_config src/piksi_multi_config_node.cc)
+target_link_libraries(piksi_multi_config ${PROJECT_NAME})
+
 cs_install()
 cs_export()
