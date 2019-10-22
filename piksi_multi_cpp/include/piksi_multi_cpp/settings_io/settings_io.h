@@ -17,7 +17,8 @@ class SettingsIo {
   // Interface to read and write settings to device.
   bool readSetting(const std::string& section, const std::string& name);
 
-  void printSetting(const msg_settings_read_resp_t& msg);
+  void printSetting(const msg_settings_read_by_index_resp_t& msg,
+                    const uint8_t len);
 
   inline void setTimeout(const int timeout) { timeout_ = timeout; }
 

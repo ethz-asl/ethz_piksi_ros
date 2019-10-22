@@ -36,18 +36,22 @@ bool SettingsIo::readSetting(const std::string& section,
                   &read_req.setting[0], kLen);
 
   // Register setting listener.
-  SBPLambdaCallbackHandler<msg_settings_read_resp_t> settings_listener(
-      std::bind(&SettingsIo::printSetting, this, std::placeholders::_1),
-      SBP_MSG_SETTINGS_READ_RESP, state_);
+  SBPLambdaCallbackHandler<msg_settings_read_by_index_resp_t> settings_listener(
+      std::bind(&SettingsIo::printSetting, this, std::placeholders::_1,
+                std::placeholders::_2),
+      SBP_MSG_SETTINGS_READ_BY_INDEX_RESP, state_);
 
   // Start reading thread.
   thread_exit_requested_ = false;
   process_thread_ = std::thread(&SettingsIo::process, this);
 
   const uint16_t kSbpSenderId = 0x42;  // Device will only respond to this ID.
+  msg_settings_read_by_index_req_t req;
+  req.index = 0;
+  std::cout << sizeof(req) << std::endl;
   int req_success = sbp_send_message(
-      state_.get(), SBP_MSG_SETTINGS_READ_REQ, kSbpSenderId, kLen,
-      reinterpret_cast<uint8_t*>(&read_req), &Device::write_redirect);
+      state_.get(), SBP_MSG_SETTINGS_READ_BY_INDEX_REQ, kSbpSenderId,
+      sizeof(req), reinterpret_cast<uint8_t*>(&req), &Device::write_redirect);
   if (req_success != SBP_OK) {
     ROS_ERROR("Cannot request setting %s.%s, %d", section.c_str(), name.c_str(),
               req_success);
@@ -71,8 +75,17 @@ bool SettingsIo::readSetting(const std::string& section,
   return true;
 }
 
-void SettingsIo::printSetting(const msg_settings_read_resp_t& msg) {
-  ROS_INFO("Received setting: %s", msg.setting);
+void SettingsIo::printSetting(const msg_settings_read_by_index_resp_t& msg,
+                              const uint8_t len) {
+  uint8_t len_settings = len - 2;
+
+  const char *section = nullptr, *name = nullptr, *value = nullptr,
+             *type = nullptr;
+  settings_parse(&msg.setting[0], len_settings, &section, &name, &value, &type);
+  std::cout << section << std::endl;
+  std::cout << name << std::endl;
+  std::cout << value << std::endl;
+  std::cout << type << std::endl;
 }
 
 void SettingsIo::process() {
