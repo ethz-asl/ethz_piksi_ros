@@ -52,6 +52,7 @@ ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
     }
 
     std::string ns = createNameSpace(type, counter[type]);
+    ROS_INFO("Creating %s", ns.c_str());
     ros::NodeHandle nh_private(nh, ns);
     auto receiver = createReceiverByReceiverType(nh_private, dev, type);
     if (receiver.get()) receivers.push_back(receiver);
@@ -93,8 +94,18 @@ ReceiverFactory::ReceiverType ReceiverFactory::inferType(
   SettingsIo settings_io(ros::NodeHandle(), dev);
   if (!settings_io.init()) return ReceiverType::kUnknown;
 
-  std::string value;
-  settings_io.readSetting("pps", "width", &value);
+  // Identify base station.
+  if (settings_io.readSetting("surveyed_position", "broadcast") &&
+      settings_io.checkBoolTrue())
+    return ReceiverType::kBaseStationReceiver;
+  // Identify position receiver.
+  else if (settings_io.readSetting("solution", "dgnss_solution_mode") &&
+           settings_io.compareValue("Low Latency"))
+    return ReceiverType::kPositionReceiver;
+  // Identify attitude receiver.
+  else if (settings_io.readSetting("solution", "dgnss_solution_mode") &&
+           settings_io.compareValue("Time Matched"))
+    return ReceiverType::kAttitudeReceiver;
 
   ROS_WARN("inferType not implemented.");
   return ReceiverType::kUnknown;

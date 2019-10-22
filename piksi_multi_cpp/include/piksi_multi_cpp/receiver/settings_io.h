@@ -13,8 +13,13 @@ class SettingsIo : public Receiver {
   SettingsIo(const ros::NodeHandle& nh, const Device::Ptr& device);
 
   // Interface to read and write settings to device.
-  bool readSetting(const std::string& section, const std::string& name, std::string* value,
+  bool readSetting(const std::string& section, const std::string& name,
                    const int timeout_ms = 1000);
+
+  // Compare the stored value with a string.
+  bool compareValue(const std::string& value) const;
+  // Check whether the value is a true boolean.
+  bool checkBoolTrue() const;
 
  private:
   void storeSetting(const msg_settings_read_resp_t& msg, const uint8_t len);

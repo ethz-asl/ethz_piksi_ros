@@ -10,10 +10,9 @@ SettingsIo::SettingsIo(const ros::NodeHandle& nh, const Device::Ptr& device)
     : Receiver(nh, device) {}
 
 bool SettingsIo::readSetting(const std::string& section,
-                             const std::string& name, std::string* value,
-                             const int timeout_ms) {
+                             const std::string& name, const int timeout_ms) {
   ROS_ASSERT(value);
-  value->clear();
+  value_.clear();
 
   // Parse request to format setting\0name\0
   size_t kLen = section.size() + name.size() + 2;
@@ -43,7 +42,6 @@ bool SettingsIo::readSetting(const std::string& section,
     return false;
   }
 
-  *value = value_;
   return true;
 }
 
@@ -56,16 +54,20 @@ void SettingsIo::storeSetting(const msg_settings_read_resp_t& msg,
       settings_parse(&msg.setting[0], len, &section, &name, &value, &type);
   if (num_tokens < 0) {
     ROS_ERROR("Failed to parse settings %d", num_tokens);
-    value_.clear();
     return;
   }
   // Store value.
   value_ = std::string(value);
 
-  std::cout << section << std::endl;
-  std::cout << name << std::endl;
-  std::cout << value_ << std::endl;
-  std::cout << type << std::endl;
+  ROS_DEBUG("Setting section: %s", section);
+  ROS_DEBUG("Setting name: %s", name);
+  ROS_DEBUG("Setting value: %s", value);
+  ROS_DEBUG("Setting type: %s", type);
 }
+
+bool SettingsIo::compareValue(const std::string& value) const {
+  return value_.compare(value) == 0;
+}
+bool SettingsIo::checkBoolTrue() const { return value_.compare("True") == 0; }
 
 }  // namespace piksi_multi_cpp
