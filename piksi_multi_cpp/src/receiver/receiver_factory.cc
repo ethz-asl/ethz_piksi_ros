@@ -90,7 +90,7 @@ ReceiverFactory::ReceiverType ReceiverFactory::inferType(
   if (!dev.get()) return ReceiverType::kUnknown;
 
   SettingsIo settings_io(dev);
-  settings_io.readSetting("solution", "soln_freq");
+  settings_io.readSetting("pps", "width");
 
   ROS_WARN("inferType not implemented.");
   return ReceiverType::kUnknown;

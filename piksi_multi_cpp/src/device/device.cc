@@ -26,6 +26,7 @@ int32_t Device::write_redirect(uint8_t* buff, uint32_t n, void* context) {
   }
   // Cast context to instance.
   Device* instance = static_cast<Device*>(context);
+
   // Execute instance's write function.
   return instance->write(std::vector<uint8_t>(&buff[0], &buff[n]));
 }
