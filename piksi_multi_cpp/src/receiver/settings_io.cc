@@ -11,7 +11,6 @@ SettingsIo::SettingsIo(const ros::NodeHandle& nh, const Device::Ptr& device)
 
 bool SettingsIo::readSetting(const std::string& section,
                              const std::string& name, const int timeout_ms) {
-  ROS_ASSERT(value);
   value_.clear();
 
   // Parse request to format setting\0name\0
