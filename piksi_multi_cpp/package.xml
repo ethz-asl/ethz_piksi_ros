@@ -13,7 +13,6 @@
   <buildtool_depend>catkin_simple</buildtool_depend>
 
   <depend>libsbp_catkin</depend>
-  <depend>libsettings_catkin</depend>
   <depend>roscpp</depend>
   <depend>libsbp_ros_msgs</depend>
   <depend>piksi_rtk_msgs</depend>
