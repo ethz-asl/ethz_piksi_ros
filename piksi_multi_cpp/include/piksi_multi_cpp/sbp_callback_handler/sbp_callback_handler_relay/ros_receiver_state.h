@@ -28,10 +28,11 @@ class RosReceiverState
   bool convertSbpToRos(const msg_measurement_state_t& sbp_msg,
                        const uint8_t len, ReceiverState* ros_msg) override;
 
-  void callbackToHeartbeat(const msg_heartbeat_t& msg);
+  void callbackToHeartbeat(const msg_heartbeat_t& msg, const uint8_t len);
 
   template <class GnssMsgType>
-  inline void callbackToGnssSolution(const GnssMsgType& gnss_msg) {
+  inline void callbackToGnssSolution(const GnssMsgType& gnss_msg,
+                                     const uint8_t len) {
     uint8_t fix_mode = (gnss_msg.flags >> 0) & 0x7;
 
     switch (fix_mode) {

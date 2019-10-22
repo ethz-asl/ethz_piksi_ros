@@ -34,10 +34,10 @@ class SBPObservationCallbackHandler {
    * Implemented in header because of template.
    */
   template <class SBPMsgStruct>
-  std::function<void(const SBPMsgStruct&)> getCallback() {
+  std::function<void(const SBPMsgStruct&, const uint8_t len)> getCallback() {
     return std::bind(
         &SBPObservationCallbackHandler::callbackToListeners<SBPMsgStruct>, this,
-        s::_1);
+        s::_1, s::_2);
   }
 
   /*
@@ -48,7 +48,7 @@ class SBPObservationCallbackHandler {
    * Implemented in header because of template.
    */
   template <class SBPMsgStruct>
-  void callbackToListeners(const SBPMsgStruct& msg) {
+  void callbackToListeners(const SBPMsgStruct& msg, const uint8_t len) {
     // trigger callback on all listeners
     for (const auto& listener : listeners_) {
       listener->observationCallback(msg);

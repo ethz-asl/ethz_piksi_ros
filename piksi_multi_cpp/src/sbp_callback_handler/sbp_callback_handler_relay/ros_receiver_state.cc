@@ -13,25 +13,26 @@ RosReceiverState::RosReceiverState(const ros::NodeHandle& nh,
       ros_time_handler_(ros_time_handler),
       pos_ecef_handler_{
           std::bind(&RosReceiverState::callbackToGnssSolution<msg_pos_ecef_t>,
-                    this, std::placeholders::_1),
+                    this, std::placeholders::_1, std::placeholders::_2),
           SBP_MSG_POS_ECEF, state},
       pos_ecef_cov_handler_{
           std::bind(
               &RosReceiverState::callbackToGnssSolution<msg_pos_ecef_cov_t>,
-              this, std::placeholders::_1),
+              this, std::placeholders::_1, std::placeholders::_2),
           SBP_MSG_POS_ECEF_COV, state},
       pos_llh_handler_{
           std::bind(&RosReceiverState::callbackToGnssSolution<msg_pos_llh_t>,
-                    this, std::placeholders::_1),
+                    this, std::placeholders::_1, std::placeholders::_2),
           SBP_MSG_POS_LLH, state},
       pos_llh_cov_handler_{
           std::bind(
               &RosReceiverState::callbackToGnssSolution<msg_pos_llh_cov_t>,
-              this, std::placeholders::_1),
+              this, std::placeholders::_1, std::placeholders::_2),
           SBP_MSG_POS_LLH_COV, state},
-      heartbeat_handler_{std::bind(&RosReceiverState::callbackToHeartbeat, this,
-                                   std::placeholders::_1),
-                         SBP_MSG_HEARTBEAT, state} {
+      heartbeat_handler_{
+          std::bind(&RosReceiverState::callbackToHeartbeat, this,
+                    std::placeholders::_1, std::placeholders::_2),
+          SBP_MSG_HEARTBEAT, state} {
   // Initialize receiver state.receiver_state_.rtk_mode_fix = false;
   receiver_state_.system_error = ReceiverState::STATUS_UNKNOWN;
   receiver_state_.io_error = ReceiverState::STATUS_UNKNOWN;
@@ -52,7 +53,8 @@ uint16_t RosReceiverState::getNavSatServiceStatus() const {
   return service_status;
 }
 
-void RosReceiverState::callbackToHeartbeat(const msg_heartbeat_t& msg) {
+void RosReceiverState::callbackToHeartbeat(const msg_heartbeat_t& msg,
+                                           const uint8_t len) {
   receiver_state_.system_error = (msg.flags >> 0) & 0x1;
   receiver_state_.io_error = (msg.flags >> 1) & 0x1;
   receiver_state_.swift_nap_error = (msg.flags >> 2) & 0x1;

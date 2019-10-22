@@ -23,7 +23,7 @@ namespace piksi_multi_cpp {
 template <class SBPMsgStruct>
 class SBPLambdaCallbackHandler : SBPCallbackHandler {
  public:
-  typedef std::function<void(const SBPMsgStruct&)> CallbackFn;
+  typedef std::function<void(const SBPMsgStruct&, const uint8_t)> CallbackFn;
 
   SBPLambdaCallbackHandler(const CallbackFn func, const uint16_t msg_id,
                            const std::shared_ptr<sbp_state_t>& state)
@@ -50,7 +50,7 @@ class SBPLambdaCallbackHandler : SBPCallbackHandler {
       ROS_WARN("Cannot cast SBP message.");
       return;
     }
-    callback_redirect_(*sbp_msg);
+    callback_redirect_(*sbp_msg, len);
     callback_received_ = true;
     cv_.notify_all();
   }
@@ -66,7 +66,7 @@ inline void SBPLambdaCallbackHandler<msg_obs_t_var>::callback(
     uint16_t sender_id, uint8_t len, uint8_t* msg) {
   msg_obs_t_var obs_msg;
   obs_msg.fromBuffer(msg, len);
-  callback_redirect_(obs_msg);
+  callback_redirect_(obs_msg, len);
 }
 }  // namespace piksi_multi_cpp
 #endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_LAMBDA_CALLBACK_HANDLER_H_
