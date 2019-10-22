@@ -140,6 +140,8 @@ void DeviceSerial::close() {
     sp_return result = sp_close(port_);
     if (result != SP_OK) {
       ROS_ERROR("Cannot close %s properly.", sp_get_port_name(port_));
+    } else {
+      ROS_INFO("Closing port %s", sp_get_port_name(port_));
     }
     sp_free_port(port_);
     port_ = nullptr;
