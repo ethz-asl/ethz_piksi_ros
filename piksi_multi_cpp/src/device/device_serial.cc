@@ -118,8 +118,9 @@ int32_t DeviceSerial::write(std::vector<uint8_t> buff) const {
   if (!port_) {
     ROS_ERROR("Port not opened.");
   }
-  // try nonblocking for now.
-  int result = sp_nonblocking_write(port_, buff.data(), buff.size());
+  // Use blocking write.
+  const int kTimeoutMs = 1000;
+  int result = sp_blocking_write(port_, buff.data(), buff.size(), kTimeoutMs);
   ROS_ERROR_COND(result < 0, "Serial write failed.");
   ROS_ERROR_COND(result == SP_ERR_FAIL, "%s", sp_last_error_message());
   return result;
