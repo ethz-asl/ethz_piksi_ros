@@ -11,6 +11,20 @@
 
 namespace piksi_multi_cpp {
 
+enum SidCodeValues {
+  kGpsL1CA = 0,
+  kGpsL2CM = 1,
+  kSbasL1CA = 2,
+  kGloL1CA = 3,
+  kGloL2CA = 4,
+  kGpsL1P = 5,
+  kGpsL2P = 6,
+  kBds2B1 = 12,
+  kBds2B2 = 13,
+  kGalE1B = 14,
+  kGalE7I = 20
+};
+
 class RosReceiverState
     : public SBPCallbackHandlerRelay<msg_measurement_state_t,
                                      piksi_rtk_msgs::ReceiverState_V2_6_5> {
