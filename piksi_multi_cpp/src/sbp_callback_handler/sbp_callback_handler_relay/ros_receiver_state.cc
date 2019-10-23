@@ -89,41 +89,41 @@ bool RosReceiverState::convertSbpToRos(const msg_measurement_state_t& sbp_msg,
   for (const auto& meas : meas_states.states) {
     if (meas.cn0 == 0) continue;
     switch (meas.mesid.code) {
-      case 0:
-      case 1:
-      case 5:
-      case 6:
+      case SidCodeValues::kGpsL1CA:
+      case SidCodeValues::kGpsL2CM:
+      case SidCodeValues::kGpsL1P:
+      case SidCodeValues::kGpsL2P:
         receiver_state_.num_gps_sat++;
         receiver_state_.cn0_gps.push_back(meas.cn0);
         receiver_state_.num_sat++;
         receiver_state_.sat.push_back(meas.mesid.sat);
         receiver_state_.cn0.push_back(meas.cn0);
         break;
-      case 2:
+      case SidCodeValues::kSbasL1CA:
         receiver_state_.num_sbas_sat++;
         receiver_state_.cn0_sbas.push_back(meas.cn0);
         receiver_state_.num_sat++;
         receiver_state_.sat.push_back(meas.mesid.sat);
         receiver_state_.cn0.push_back(meas.cn0);
         break;
-      case 3:
-      case 4:
+      case SidCodeValues::kGloL1CA:
+      case SidCodeValues::kGloL2CA:
         receiver_state_.num_glonass_sat++;
         receiver_state_.cn0_glonass.push_back(meas.cn0);
         receiver_state_.num_sat++;
         receiver_state_.sat.push_back(meas.mesid.sat);
         receiver_state_.cn0.push_back(meas.cn0);
         break;
-      case 12:
-      case 13:
+      case SidCodeValues::kBds2B1:
+      case SidCodeValues::kBds2B2:
         receiver_state_.num_bds_sat++;
         receiver_state_.cn0_bds.push_back(meas.cn0);
         receiver_state_.num_sat++;
         receiver_state_.sat.push_back(meas.mesid.sat);
         receiver_state_.cn0.push_back(meas.cn0);
         break;
-      case 14:
-      case 20:
+      case SidCodeValues::kGalE1B:
+      case SidCodeValues::kGalE7I:
         receiver_state_.num_gal_sat++;
         receiver_state_.cn0_gal.push_back(meas.cn0);
         receiver_state_.num_sat++;
