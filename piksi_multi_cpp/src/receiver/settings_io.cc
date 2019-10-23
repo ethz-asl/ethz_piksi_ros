@@ -50,7 +50,7 @@ bool SettingsIo::writeSetting(const std::string& section,
                               const std::string& name, const std::string& value,
                               const int timeout_ms) {
   // Parse request to format setting\0name\0value\0
-  size_t kLen = section.size() + name.size() + value.size() + 2;
+  size_t kLen = section.size() + name.size() + value.size() + 3;
   char write_req[kLen] = {0};
   settings_format(section.c_str(), name.c_str(), value.c_str(), nullptr,
                   write_req, kLen);
@@ -204,10 +204,14 @@ bool SettingsIo::openConfig(const std::string& file) {
     std::smatch section_matches;
     if (std::regex_search(line, section_matches, rgx_section)) {
       if (section_matches.size() > 1) section = section_matches[1];
-      ROS_INFO("%s", section.c_str());
       continue;  // New section.
     }
     if (section.empty()) continue;
+    // Ignore read only settings.
+    if (section == "system_info") continue;
+    // TODO(rikba): Find a way to modify the connections.
+    if (section == "ethernet") continue;
+    if (section == "usb0") continue;
 
     // Find name.
     std::regex rgx_name(".+?(?=\\ \\=)");  // Up to whitespace equal.
@@ -215,7 +219,6 @@ bool SettingsIo::openConfig(const std::string& file) {
     std::string name;
     if (std::regex_search(line, name_matches, rgx_name)) {
       name = name_matches[0];
-      ROS_INFO("%s", name.c_str());
     } else {
       continue;  // No name found.
     }
@@ -227,12 +230,11 @@ bool SettingsIo::openConfig(const std::string& file) {
     std::string value;
     if (std::regex_search(line, value_matches, rgx_value)) {
       if (value_matches.size() > 1) value = value_matches[1];
-      ROS_INFO("%s", value.c_str());
     }
 
     // Write setting.
-    ROS_INFO("Writing setting %s.%s.%s", section.c_str(), name.c_str(),
-             value.c_str());
+    ROS_DEBUG("Writing setting %s.%s.%s", section.c_str(), name.c_str(),
+              value.c_str());
     writeSetting(section, name, value);
   }
   return true;
