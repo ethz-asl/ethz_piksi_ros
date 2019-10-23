@@ -25,6 +25,16 @@ enum SidCodeValues {
   kGalE7I = 20
 };
 
+enum FixModeValues {
+  kInvalid = 0,
+  kSpp = 1,
+  kDgnss = 2,
+  kFloatRtk = 3,
+  kFixedRtk = 4,
+  kDeadReckoning = 5,
+  kSbasPosition = 6
+};
+
 class RosReceiverState
     : public SBPCallbackHandlerRelay<msg_measurement_state_t,
                                      piksi_rtk_msgs::ReceiverState_V2_6_5> {
@@ -50,27 +60,27 @@ class RosReceiverState
     uint8_t fix_mode = (gnss_msg.flags >> 0) & 0x7;
 
     switch (fix_mode) {
-      case 0:
+      case FixModeValues::kInvalid:
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_INVALID;
         break;
-      case 1:
+      case FixModeValues::kSpp:
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_SPP;
         break;
-      case 2:
+      case FixModeValues::kDgnss:
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_DGNSS;
         break;
-      case 3:
+      case FixModeValues::kFloatRtk:
         receiver_state_.rtk_mode_fix = 0;
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_FLOAT_RTK;
         break;
-      case 4:
+      case FixModeValues::kFixedRtk:
         receiver_state_.rtk_mode_fix = 1;
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_FIXED_RTK;
         break;
-      case 5:
+      case FixModeValues::kDeadReckoning:
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_DEAD_RECKONING;
         break;
-      case 6:
+      case FixModeValues::kSbasPosition:
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_SBAS;
         break;
       default:
