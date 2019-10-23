@@ -8,9 +8,18 @@ SBPCallbackHandler::SBPCallbackHandler(
     const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
     const std::shared_ptr<sbp_state_t>& state)
     : nh_(nh), state_(state) {
-  sbp_register_callback(state.get(), sbp_msg_type,
-                        &piksi_multi_cpp::SBPCallbackHandler::callback_redirect,
-                        this, &sbp_msg_callback_node_);
+  int result = sbp_register_callback(
+      state.get(), sbp_msg_type,
+      &piksi_multi_cpp::SBPCallbackHandler::callback_redirect, this,
+      &sbp_msg_callback_node_);
+  ROS_ERROR_COND(result != SBP_OK,
+                 "Could not register callback for message type %.4X err %d",
+                 sbp_msg_type, result);
+}
+
+SBPCallbackHandler::~SBPCallbackHandler() {
+  int result = sbp_remove_callback(state_.get(), &sbp_msg_callback_node_);
+  ROS_ERROR_COND(result != SBP_OK, "Failed to remove callback %d", result);
 }
 
 void SBPCallbackHandler::callback_redirect(uint16_t sender_id, uint8_t len,

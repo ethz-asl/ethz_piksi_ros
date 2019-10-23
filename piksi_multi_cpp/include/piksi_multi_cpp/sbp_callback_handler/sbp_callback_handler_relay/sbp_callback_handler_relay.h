@@ -11,7 +11,7 @@ namespace piksi_multi_cpp {
 // This class handles all SBP messages and simply relays them to the ROS
 // network. The concrete message relay needs to specifify the ROS message type,
 // the SBP message class, set a topic name and implement the message conversion.
-template <class SBPMsgType, class ROSMsgType>
+template <class SbpMsgType, class RosMsgType>
 class SBPCallbackHandlerRelay : public SBPCallbackHandler {
  public:
   // Registers a relay callback. There is a one to one mapping between
@@ -22,38 +22,42 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
                                  const std::string& topic)
       : SBPCallbackHandler(nh, sbp_msg_type, state), topic_(topic) {}
 
+ protected:
+  // This publisher relays the incoming SBP message. It is generated and
+  // advertised in when callback is called for the first time, i.e., Piksi is
+  // publishing this message.
+  std::optional<ros::Publisher> relay_pub_;
+
  private:
+  //  Transforming incoming SBP message to ROS message.
+  virtual bool convertSbpToRos(const SbpMsgType& sbp_msg, const uint8_t len,
+                               RosMsgType* ros_msg) = 0;
+
   // Overwrites callback method to check number of subscribers, cast SBP message
   // and publish ROS msg.
   inline void callback(uint16_t sender_id, uint8_t len,
                        uint8_t msg[]) override {
-    // Advertise topic on first call.
-    if (!relay_pub_.has_value()) {
-      relay_pub_ =
-          nh_.advertise<ROSMsgType>("relay/" + topic_, kQueueSize, kLatchTopic);
-    }
     // Before doing anything check if anybody is listening.
     // https://answers.ros.org/question/197878/how-expensive-is-getnumsubscribers-of-publisher/
-    if (relay_pub_.value().getNumSubscribers() == 0) return;
+    if (relay_pub_.has_value() && relay_pub_.value().getNumSubscribers() == 0)
+      return;
+    // Advertise topic on first callback.
+    if (!relay_pub_.has_value()) {
+      relay_pub_ = nh_.advertise<RosMsgType>(topic_, kQueueSize, kLatchTopic);
+    }
 
     // Cast message.
-    auto sbp_msg = (SBPMsgType*)msg;
+    auto sbp_msg = (SbpMsgType*)msg;
     if (!sbp_msg) {
       ROS_WARN("Cannot cast SBP message.");
       return;
     }
 
-    // Convert SBP message.
-    ROSMsgType ros_msg = libsbp_ros_msgs::convertSbpMsgToRosMsg(*sbp_msg, len);
-
-    // Publish ROS msg.
+    // Convert and publish ROS msg.
+    RosMsgType ros_msg;
+    if (!convertSbpToRos(*sbp_msg, len, &ros_msg)) return;
     relay_pub_.value().publish(ros_msg);
   }
-
-  // This publisher relays the incoming SBP message. It is generated and
-  // advertised in when callback is called for the first time, i.e., Piksi is
-  // publishing this message.
-  std::optional<ros::Publisher> relay_pub_;
   std::string topic_;
 };
 

@@ -49,6 +49,7 @@ add_message_files(
     ReceiverState_V2_2_15.msg
     ReceiverState_V2_3_15.msg
     ReceiverState_V2_4_1.msg
+    ReceiverState_V2_6_5.msg
     TrackingState.msg
     TrackingState_V2_2_15.msg
     TrackingState_V2_3_15.msg
