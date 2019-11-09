@@ -66,7 +66,7 @@ ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
 }
 
 std::vector<SettingsIo::Ptr> ReceiverFactory::createSettingIoReceivers(
-    const ros::NodeHandle& nh, const Identifiers& ids) {
+    const Identifiers& ids) {
   // Create all devices.
   auto devices = DeviceFactory::createByIdentifiers(ids);
 

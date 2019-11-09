@@ -15,15 +15,19 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "piksi_multi_config");
   ros::NodeHandle nh_private("~");
 
+  // Get rosparams.
   // By default, autodetect all usb devices.
   auto device_ids = nh_private.param<std::string>("device_ids", "usb://*");
+  // Get config type.
+  std::string config_type = nh_private.param<std::string>(
+      "config_type", "rover");  // Possible types: "att", "base", "ref", "rover"
 
   // split device_ids by ";" to get multiple identifiers
   Identifiers ids;
   boost::algorithm::split(ids, device_ids, boost::is_any_of(";"));
 
   // Create SettingIo receivers.
-  auto receivers = ReceiverFactory::createSettingIoReceivers(nh_private, ids);
+  auto receivers = ReceiverFactory::createSettingIoReceivers(ids);
   if (receivers.empty()) {
     ROS_FATAL("No receivers.");
     exit(1);
@@ -37,9 +41,6 @@ int main(int argc, char** argv) {
   }
 
   // Open configs.
-  // Get config type.
-  std::string config_type = nh_private.param<std::string>(
-      "config_type", "rover");  // Possible types: "att", "base", "ref", "rover"
   // Search config file.
   std::string pkg_path = ros::package::getPath("piksi_multi_cpp");
   std::string config_file;

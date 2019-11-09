@@ -54,7 +54,7 @@ class ReceiverFactory {
   // A convinience function to open all devices in ids as SettingIo receivers to
   // write the settings.
   static std::vector<SettingsIo::Ptr> createSettingIoReceivers(
-      const ros::NodeHandle& nh, const Identifiers& ids);
+      const Identifiers& ids);
 
  private:
   // Infer receiver type from Piksi firmware settings.
