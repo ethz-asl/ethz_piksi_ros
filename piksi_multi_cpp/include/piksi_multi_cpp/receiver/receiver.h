@@ -58,8 +58,6 @@ class Receiver {
   std::thread process_thread_;
   std::atomic_bool thread_exit_requested_;
 
-  // A timestamp buffer to lookup exact UTC timestamps from tow.
-  SBPCallbackHandler::Ptr utc_time_buffer_;
   // Relaying all SBP messages. Common for all receivers.
   std::vector<SBPCallbackHandler::Ptr> sbp_relays_;
   // Relaying all ROS messages. Common for all receivers.
