@@ -2,6 +2,7 @@
 #define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_FACTORY_H_
 
 #include "piksi_multi_cpp/receiver/receiver.h"
+#include "piksi_multi_cpp/receiver/settings_io.h"
 #include "ros/ros.h"
 
 namespace piksi_multi_cpp {
@@ -52,7 +53,7 @@ class ReceiverFactory {
 
   // A convinience function to open all devices in ids as SettingIo receivers to
   // write the settings.
-  static std::vector<Receiver::Ptr> createSettingIoReceivers(
+  static std::vector<SettingsIo::Ptr> createSettingIoReceivers(
       const ros::NodeHandle& nh, const Identifiers& ids);
 
  private:

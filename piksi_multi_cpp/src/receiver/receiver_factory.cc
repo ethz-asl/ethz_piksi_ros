@@ -65,24 +65,19 @@ ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
   return receivers;
 }
 
-std::vector<Receiver::Ptr> ReceiverFactory::createSettingIoReceivers(
+std::vector<SettingsIo::Ptr> ReceiverFactory::createSettingIoReceivers(
     const ros::NodeHandle& nh, const Identifiers& ids) {
   // Create all devices.
   auto devices = DeviceFactory::createByIdentifiers(ids);
 
   // Create all receivers.
-  std::vector<std::shared_ptr<Receiver>> receivers;
-  size_t counter = 0;
+  std::vector<std::shared_ptr<SettingsIo>> receivers;
   for (auto dev : devices) {
-    std::string ns = "setting_io_" + std::to_string(counter++);
-    ROS_INFO("Creating %s", ns.c_str());
-    ros::NodeHandle nh_private(nh, ns);
-    auto receiver =
-        createReceiverByReceiverType(nh_private, dev, ReceiverType::kSettingIo);
-    if (receiver.get()) receivers.push_back(receiver);
+    auto settings_io = std::make_shared<SettingsIo>(dev);
+    if (settings_io.get()) receivers.push_back(settings_io);
   }
 
-  ROS_WARN_COND(receivers.empty(), "No receiver created.");
+  ROS_WARN_COND(receivers.empty(), "No settings_io receivers created.");
   return receivers;
 }
 

@@ -55,9 +55,8 @@ int main(int argc, char** argv) {
 
   // Now load parameters.
   for (auto rec : receivers) {
-    auto setting_io = std::static_pointer_cast<SettingsIo>(rec);
     // Process config file.
-    if (!setting_io->updateConfig(config_file)) {
+    if (!rec->updateConfig(config_file)) {
       ROS_FATAL("Error opening config.");
     }
   }
