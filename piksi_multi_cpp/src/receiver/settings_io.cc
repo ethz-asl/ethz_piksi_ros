@@ -158,7 +158,7 @@ bool SettingsIo::compareValue(const std::string& value) const {
 bool SettingsIo::checkBoolTrue() const { return compareValue("True"); }
 std::string SettingsIo::getValue() const { return value_; }
 
-bool SettingsIo::openConfig(const std::string& file) {
+bool SettingsIo::updateConfig(const std::string& file) {
   ROS_INFO("Opening config: %s", file.c_str());
 
   // Open.
@@ -190,7 +190,7 @@ bool SettingsIo::openConfig(const std::string& file) {
   if (!compareValue(firmware_config)) {
     ROS_ERROR(
         "Firmware version in config file %s does not match firmware version on "
-        "device %s. Please update this repo and use Swift console to update "
+        "device %s. Please update this driver and use Swift console to update "
         "device firmware.",
         firmware_config.c_str(), value_.c_str());
     return false;

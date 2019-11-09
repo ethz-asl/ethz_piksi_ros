@@ -38,20 +38,17 @@ int main(int argc, char** argv) {
 
   // Open configs.
   // Get config type.
-  std::string config_type =
-      nh_private.param<std::string>("config_type", "rover");
-  std::set<std::string> config_types{"att", "base", "ref", "rover"};
-  if (config_types.count(config_type) < 0) {
-    ROS_FATAL("Config type '%s' does not exist.", config_type);
-    exit(1);
-  }
+  std::string config_type = nh_private.param<std::string>(
+      "config_type", "rover");  // Possible types: "att", "base", "ref", "rover"
   // Search config file.
   std::string pkg_path = ros::package::getPath("piksi_multi_cpp");
   std::string config_file;
   for (const auto& entry : fs::directory_iterator(pkg_path + "/cfg/")) {
     if (entry.path().extension().compare(".ini") != 0) continue;
-    if (entry.path().stem().string().find(config_type) != std::string::npos)
+    if (entry.path().stem().string().find(config_type) != std::string::npos) {
       config_file = entry.path().string();
+      break;
+    }
   }
   // Overwrite config file with rosparam.
   config_file = nh_private.param<std::string>("config_file", config_file);
@@ -59,9 +56,8 @@ int main(int argc, char** argv) {
   // Now load parameters.
   for (auto rec : receivers) {
     auto setting_io = std::static_pointer_cast<SettingsIo>(rec);
-
     // Process config file.
-    if (!setting_io->openConfig(config_file)) {
+    if (!setting_io->updateConfig(config_file)) {
       ROS_FATAL("Error opening config.");
     }
   }

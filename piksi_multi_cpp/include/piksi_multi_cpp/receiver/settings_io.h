@@ -27,15 +27,15 @@ class SettingsIo : public Receiver {
   std::string getValue() const;
   // Check whether the value is a true boolean.
   bool checkBoolTrue() const;
-  // Open and parse a piksi config .ini file.
-  bool openConfig(const std::string& file);
+  // Open, parse and write a piksi config .ini file to a device.
+  bool updateConfig(const std::string& file);
 
  private:
   void receiveReadResponse(const msg_settings_read_resp_t& msg,
                            const uint8_t len);
   void receiveWriteResponse(const msg_settings_write_resp_t& msg,
                             const uint8_t len);
-                            
+
   std::string value_;
   bool write_success_{false};
 };
