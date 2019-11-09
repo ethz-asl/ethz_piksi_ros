@@ -4,8 +4,10 @@
 #include <libsettings/settings_util.h>
 #include <ros/assert.h>
 #include <ros/console.h>
+#include <chrono>
 #include <fstream>
 #include <regex>
+#include <thread>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h"
 
 namespace piksi_multi_cpp {
@@ -143,7 +145,7 @@ void SettingsIo::receiveWriteResponse(const msg_settings_write_resp_t& msg,
       break;
     case SettingWriteStatusValues::kRecejectedModificationDisabled:
       ROS_ERROR("Rejected; modification is temporarily disabled %s",
-               setting.c_str());
+                setting.c_str());
       break;
     case SettingWriteStatusValues::kRecejectedUnspecified:
       ROS_ERROR("Rejected; unspecified error %s", setting.c_str());
@@ -236,6 +238,8 @@ bool SettingsIo::updateConfig(const std::string& file) {
     // Write setting.
     ROS_DEBUG("Writing setting %s.%s.%s", section.c_str(), name.c_str(),
               value.c_str());
+    // The writing sometimes fails with unspecified error. We wait a little.
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     writeSetting(section, name, value);
   }
   return true;
