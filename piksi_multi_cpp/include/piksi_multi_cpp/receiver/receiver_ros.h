@@ -35,6 +35,8 @@ class ReceiverRos : public SettingsIo {
   std::vector<SBPCallbackHandler::Ptr> sbp_relays_;
   // Relaying all ROS messages. Common for all receivers.
   std::vector<SBPCallbackHandler::Ptr> ros_relays_;
+  // Sample its own position and store the result in a file.
+  void samplePosition(const int num_samples, const std::string& file);
 };
 
 }  // namespace piksi_multi_cpp

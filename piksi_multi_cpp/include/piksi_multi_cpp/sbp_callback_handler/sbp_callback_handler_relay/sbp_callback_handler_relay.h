@@ -24,7 +24,7 @@ class SBPCallbackHandlerRelay : public SBPCallbackHandler {
 
  protected:
   // This publisher relays the incoming SBP message. It is generated and
-  // advertised in when callback is called for the first time, i.e., Piksi is
+  // advertised when callback is called for the first time, i.e., Piksi is
   // publishing this message.
   std::optional<ros::Publisher> relay_pub_;
   // A nodehandle with the correct ROS namespace.
