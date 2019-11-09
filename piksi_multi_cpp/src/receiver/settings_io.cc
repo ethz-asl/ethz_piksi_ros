@@ -210,7 +210,7 @@ bool SettingsIo::updateConfig(const std::string& file) {
     if (section.empty()) continue;
     // Ignore read only settings.
     if (section == "system_info") continue;
-    // TODO(rikba): Find a way to modify the connections.
+    // TODO(rikba): Find a way to modify the connections if necessary.
     if (section == "ethernet") continue;
     if (section == "usb0") continue;
 
