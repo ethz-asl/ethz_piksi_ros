@@ -2,16 +2,10 @@
 #define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_H_
 
 #include <libsbp/sbp.h>
-#include <piksi_multi_cpp/sbp_callback_handler/sbp_observation_callback_handler.h>
-#include <ros/ros.h>
 #include <atomic>
 #include <memory>
-#include <string>
 #include <thread>
-#include <vector>
 #include "piksi_multi_cpp/device/device.h"
-#include "piksi_multi_cpp/receiver/receiver.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
 namespace piksi_multi_cpp {
 
@@ -20,7 +14,7 @@ class Receiver {
  public:
   typedef std::shared_ptr<Receiver> Ptr;
 
-  Receiver(const ros::NodeHandle& nh, const Device::Ptr& device);
+  Receiver(const Device::Ptr& device);
 
   // Closes device.
   ~Receiver();
@@ -32,19 +26,10 @@ class Receiver {
   bool isRunning() const;
 
  protected:
-  // ROS node handle in the correct receiver namespace.
-  ros::NodeHandle nh_;
   // The actual hardware interface.
   Device::Ptr device_;
 
-  // Observation callbackhandlers
-  std::unique_ptr<SBPObservationCallbackHandler> obs_cbs_;
-
  protected:
-  // get vector valued string params
-  std::vector<std::string> getVectorParam(
-      const std::string& name, const std::string& default_value = "");
-
   // The sbp state.
   std::shared_ptr<sbp_state_t> state_;
 
@@ -56,12 +41,7 @@ class Receiver {
   // terminated when the is_running flag ist set false during object
   // destruction.
   std::thread process_thread_;
-  std::atomic_bool thread_exit_requested_;
-
-  // Relaying all SBP messages. Common for all receivers.
-  std::vector<SBPCallbackHandler::Ptr> sbp_relays_;
-  // Relaying all ROS messages. Common for all receivers.
-  std::vector<SBPCallbackHandler::Ptr> ros_relays_;
+  std::atomic_bool thread_exit_requested_ = false;
 };
 
 }  // namespace piksi_multi_cpp

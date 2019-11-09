@@ -25,6 +25,7 @@ cs_add_library(${PROJECT_NAME}
         src/receiver/receiver_base_station.cc
         src/receiver/receiver_factory.cc
         src/receiver/receiver_position.cc
+        src/receiver/receiver_ros.cc
         src/receiver/receiver.cc
         src/receiver/settings_io.cc
         src/sbp_callback_handler/sbp_callback_handler.cc

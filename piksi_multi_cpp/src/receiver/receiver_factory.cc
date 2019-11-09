@@ -1,10 +1,10 @@
 #include <ros/console.h>
 #include "piksi_multi_cpp/device/device_factory.h"
-#include "piksi_multi_cpp/receiver/receiver.h"
 #include "piksi_multi_cpp/receiver/receiver_attitude.h"
 #include "piksi_multi_cpp/receiver/receiver_base_station.h"
 #include "piksi_multi_cpp/receiver/receiver_factory.h"
 #include "piksi_multi_cpp/receiver/receiver_position.h"
+#include "piksi_multi_cpp/receiver/receiver_ros.h"
 #include "piksi_multi_cpp/receiver/settings_io.h"
 
 namespace piksi_multi_cpp {
@@ -20,9 +20,9 @@ Receiver::Ptr ReceiverFactory::createReceiverByReceiverType(
     case ReceiverType::kAttitudeReceiver:
       return Receiver::Ptr(new ReceiverAttitude(nh, device));
     case ReceiverType::kSettingIo:
-      return Receiver::Ptr(new SettingsIo(nh, device));
+      return Receiver::Ptr(new SettingsIo(device));
     case ReceiverType::kUnknown:
-      return Receiver::Ptr(new Receiver(nh, device));
+      return Receiver::Ptr(new ReceiverRos(nh, device));
     default:
       return nullptr;
   }
@@ -113,7 +113,7 @@ ReceiverFactory::ReceiverType ReceiverFactory::inferType(
   if (!dev.get()) return ReceiverType::kUnknown;
 
   // Create settings object.
-  SettingsIo settings_io(ros::NodeHandle(), dev);
+  SettingsIo settings_io(dev);
   if (!settings_io.init()) return ReceiverType::kUnknown;
 
   // Identify base station.
@@ -129,7 +129,7 @@ ReceiverFactory::ReceiverType ReceiverFactory::inferType(
            settings_io.compareValue("Time Matched"))
     return ReceiverType::kAttitudeReceiver;
 
-  ROS_WARN("inferType not implemented.");
+  ROS_WARN("Cannot infer receiver type.");
   return ReceiverType::kUnknown;
 }
 

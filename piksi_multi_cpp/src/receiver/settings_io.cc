@@ -1,15 +1,16 @@
 #include "piksi_multi_cpp/receiver/settings_io.h"
 
+#include <libsbp/settings.h>
 #include <libsettings/settings_util.h>
 #include <ros/assert.h>
+#include <ros/console.h>
 #include <fstream>
 #include <regex>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h"
 
 namespace piksi_multi_cpp {
 
-SettingsIo::SettingsIo(const ros::NodeHandle& nh, const Device::Ptr& device)
-    : Receiver(nh, device) {}
+SettingsIo::SettingsIo(const Device::Ptr& device) : Receiver(device) {}
 
 bool SettingsIo::readSetting(const std::string& section,
                              const std::string& name, const int timeout_ms) {
@@ -122,29 +123,29 @@ void SettingsIo::receiveWriteResponse(const msg_settings_write_resp_t& msg,
   if (type) setting += "." + std::string(type);
 
   switch (msg.status) {
-    case 0:
+    case SettingWriteStatusValues::kAccepted:
       ROS_DEBUG("Accepted; value updated %s", setting.c_str());
       break;
-    case 1:
+    case SettingWriteStatusValues::kRecejectedValueUnparsable:
       ROS_ERROR("Rejected; value unparsable or out-of-range %s",
                 setting.c_str());
       break;
-    case 2:
+    case SettingWriteStatusValues::kRecejectedDoesNotExist:
       ROS_ERROR("Rejected; requested setting does not exist %s",
                 setting.c_str());
       break;
-    case 3:
+    case SettingWriteStatusValues::kRecejectedNameUnparsable:
       ROS_ERROR("Rejected; setting name could not be parsed %s",
                 setting.c_str());
       break;
-    case 4:
-      ROS_WARN("Rejected; setting is read only %s", setting.c_str());
+    case SettingWriteStatusValues::kRecejectedReadOnly:
+      ROS_DEBUG("Rejected; setting is read only %s", setting.c_str());
       break;
-    case 5:
-      ROS_WARN("Rejected; modification is temporarily disabled %s",
+    case SettingWriteStatusValues::kRecejectedModificationDisabled:
+      ROS_ERROR("Rejected; modification is temporarily disabled %s",
                setting.c_str());
       break;
-    case 6:
+    case SettingWriteStatusValues::kRecejectedUnspecified:
       ROS_ERROR("Rejected; unspecified error %s", setting.c_str());
       break;
     default:

@@ -2,6 +2,7 @@
 #define PIKSI_MULTI_CPP_RECEIVER_RECEIVER_FACTORY_H_
 
 #include "piksi_multi_cpp/receiver/receiver.h"
+#include "ros/ros.h"
 
 namespace piksi_multi_cpp {
 /* A factory to help initiating receivers at runtime. The factory gives

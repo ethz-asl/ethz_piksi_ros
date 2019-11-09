@@ -3,16 +3,14 @@
 
 #include <piksi_multi_cpp/observations/udp_observation_sender.h>
 #include <ros/ros.h>
-#include <string>
 #include "piksi_multi_cpp/device/device.h"
-#include "piksi_multi_cpp/receiver/receiver.h"
+#include "piksi_multi_cpp/receiver/receiver_ros.h"
 
 namespace piksi_multi_cpp {
 
-class ReceiverBaseStation : public Receiver {
+class ReceiverBaseStation : public ReceiverRos {
  public:
-  ReceiverBaseStation(const ros::NodeHandle& nh,
-                      const std::shared_ptr<Device>& device);
+  ReceiverBaseStation(const ros::NodeHandle& nh, const Device::Ptr& device);
 
  private:
   void setupUDPSenders();

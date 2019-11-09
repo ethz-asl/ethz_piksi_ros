@@ -4,16 +4,14 @@
 #include <piksi_multi_cpp/device/device.h>
 #include <piksi_multi_cpp/observations/raw_observation_interface.h>
 #include <piksi_multi_cpp/observations/udp_observation_receiver.h>
-#include <piksi_multi_cpp/receiver/receiver.h>
 #include <ros/ros.h>
-#include <string>
+#include "piksi_multi_cpp/receiver/receiver_ros.h"
 
 namespace piksi_multi_cpp {
 
-class ReceiverPosition : public Receiver, public RawObservationInterface {
+class ReceiverPosition : public ReceiverRos, public RawObservationInterface {
  public:
-  ReceiverPosition(const ros::NodeHandle& nh,
-                   const std::shared_ptr<Device>& device);
+  ReceiverPosition(const ros::NodeHandle& nh, const Device::Ptr& device);
 
   bool init() override;
 

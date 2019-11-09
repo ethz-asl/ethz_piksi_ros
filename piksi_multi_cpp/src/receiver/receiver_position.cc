@@ -3,15 +3,15 @@
 namespace piksi_multi_cpp {
 
 ReceiverPosition::ReceiverPosition(const ros::NodeHandle& nh,
-                                   const std::shared_ptr<Device>& device)
-    : Receiver(nh, device),
+                                   const Device::Ptr& device)
+    : ReceiverRos(nh, device),
       // attach udp receiver with this class as consumer for remote corrections
       // received via UDP
       udp_receiver_(RawObservationInterface::Ptr(this)) {}
 
 bool ReceiverPosition::init() {
   // do init of base class
-  if (!Receiver::init()) {
+  if (!ReceiverRos::init()) {
     return false;
   }
 

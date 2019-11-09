@@ -9,10 +9,20 @@
 
 namespace piksi_multi_cpp {
 
+enum SettingWriteStatusValues {
+  kAccepted = 0,
+  kRecejectedValueUnparsable = 1,
+  kRecejectedDoesNotExist = 2,
+  kRecejectedNameUnparsable = 3,
+  kRecejectedReadOnly = 4,
+  kRecejectedModificationDisabled = 5,
+  kRecejectedUnspecified = 6
+};
+
 class SettingsIo : public Receiver {
  public:
   typedef std::shared_ptr<SettingsIo> Ptr;
-  SettingsIo(const ros::NodeHandle& nh, const Device::Ptr& device);
+  SettingsIo(const Device::Ptr& device);
 
   // Interface to read settings from device.
   bool readSetting(const std::string& section, const std::string& name,
