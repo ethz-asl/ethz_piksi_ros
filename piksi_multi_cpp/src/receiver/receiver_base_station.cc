@@ -1,4 +1,7 @@
+#include <eigen_conversions/eigen_msg.h>
+#include <geotf/geodetic_converter.h>
 #include <piksi_multi_cpp/observations/udp_observation_sender.h>
+#include <piksi_rtk_msgs/SamplePosition.h>
 #include <boost/algorithm/string.hpp>
 #include "piksi_multi_cpp/receiver/receiver_base_station.h"
 
@@ -8,6 +11,28 @@ ReceiverBaseStation::ReceiverBaseStation(const ros::NodeHandle& nh,
                                          const Device::Ptr& device)
     : ReceiverRos(nh, device) {
   setupUDPSenders();
+  setupBaseStationSampling();
+}
+
+void ReceiverBaseStation::setupBaseStationSampling() {
+  // Subscribe to maximum likelihood estimate and advertise service to overwrite
+  // current base station position.
+  overwrite_base_position_srv_ = nh_.advertiseService(
+      "overwrite_base_position",
+      &ReceiverBaseStation::overwriteBasePositionCallback, this);
+  const uint32_t kQueueSizeMlEstimate = 0;
+  ml_estimate_sub_ =
+      nh_.subscribe("position_sampler/ml_position", kQueueSizeMlEstimate,
+                    &ReceiverBaseStation::sampledPositionCallback, this);
+
+  // Automatically sample base station on startup.
+  ros::NodeHandle nh_node("~");
+  auto autostart_base_sampling =
+      nh_node.param<bool>("autostart_base_sampling", true);
+  if (autostart_base_sampling) {
+    std_srvs::Empty srv;
+    overwriteBasePositionCallback(srv.request, srv.response);
+  }
 }
 
 void ReceiverBaseStation::setupUDPSenders() {
@@ -37,6 +62,36 @@ void ReceiverBaseStation::setupUDPSenders() {
       obs_cbs_->addObservationCallbackListener(
           CBtoRawObsConverter::createFor(udp_sender_));
     }
+  }
+}
+
+bool ReceiverBaseStation::overwriteBasePositionCallback(
+    std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
+  // Start sampling.
+  ros::NodeHandle nh_node("~");
+  uint32_t num_desired_fixes = nh_node.param<int>("num_desired_fixes", 2000);
+  position_sampler_->startSampling(num_desired_fixes);
+  ROS_INFO("Start sampling base station position with %d desired fixes.",
+           num_desired_fixes);
+  // Set flag to wait for sampling to be finished.
+  wait_for_sampled_position_ = true;
+  return true;
+}
+
+void ReceiverBaseStation::sampledPositionCallback(
+    const piksi_rtk_msgs::PositionWithCovarianceStamped::Ptr& msg) {
+  if (!wait_for_sampled_position_) {
+    ROS_WARN("Received sampled base position but not updating firmware.");
+    ROS_WARN("Call `overwrite_base_position` first.");
+    return;
+  }
+
+  Eigen::Vector3d x_ecef, x_wgs84;
+  tf::pointMsgToEigen(msg->position.position, x_ecef);
+  geotf::GeodeticConverter geotf;
+  if(!geotf.convert("epsg:4978", x_ecef, "wgs84", &x_wgs84)) {
+    ROS_ERROR("Failed to convert ECEF to WGS84.");
+    return;
   }
 }
 

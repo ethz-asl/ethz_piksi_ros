@@ -6,16 +6,22 @@
 #include <piksi_multi_cpp/observations/file_observation_logger.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
+#include "piksi_multi_cpp/sbp_callback_handler/ros_time_handler.h"
 
 namespace piksi_multi_cpp {
 
 ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
     : SettingsIo(device), nh_(nh) {
   // Register all relay callbacks.
+  // Handle (GPS) time stamping.
+  auto ros_time_handler = std::make_shared<RosTimeHandler>(state_);
   sbp_relays_ =
       SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
-  ros_relays_ =
-      SBPCallbackHandlerFactory::createAllRosMessageRelays(nh, state_);
+  ros_relays_ = SBPCallbackHandlerFactory::createAllRosMessageRelays(
+      nh, state_, ros_time_handler);
+  position_sampler_ =
+      std::make_shared<PositionSampler>(nh, state_, ros_time_handler);
 
   // Create observation callbacks
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);

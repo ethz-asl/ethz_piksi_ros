@@ -3,8 +3,6 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
 
-#include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
-#include "piksi_multi_cpp/sbp_callback_handler/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_ext_event_relay.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_imu_relay.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_mag_relay.h"
@@ -22,10 +20,8 @@ SBPCallbackHandlerFactory::createAllSBPMessageRelays(
 
 std::vector<SBPCallbackHandler::Ptr>
 SBPCallbackHandlerFactory::createAllRosMessageRelays(
-    const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state) {
-  // Handle (GPS) time stamping.
-  auto ros_time_handler = std::make_shared<RosTimeHandler>(state);
-
+    const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
+    const RosTimeHandler::Ptr& ros_time_handler) {
   // Create all relays.
   std::vector<SBPCallbackHandler::Ptr> relays;
 
@@ -55,9 +51,6 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
   relays.push_back(ros_receiver_state);
   relays.push_back(SBPCallbackHandler::Ptr(
       new RosPosLlhCovRelay(nh, state, ros_time_handler, ros_receiver_state)));
-
-  relays.push_back(SBPCallbackHandler::Ptr(
-      new PositionSampler(nh, state, ros_time_handler)));
 
   return relays;
 }

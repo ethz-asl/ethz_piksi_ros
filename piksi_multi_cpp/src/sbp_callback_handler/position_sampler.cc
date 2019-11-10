@@ -135,6 +135,10 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
     publishPosition(ml_pos_pub_.value(), x_ml_.value(), P_ml_.value(),
                     sbp_msg->tow);
   }
+
+  // Logging.
+  ROS_INFO_THROTTLE(5.0, "Sampling position %d/%d", num_fixes_,
+                    num_desired_fixes_.value());
 }
 
 void PositionSampler::publishPosition(const ros::Publisher& pub,

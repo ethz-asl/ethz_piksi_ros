@@ -21,4 +21,5 @@
   <depend>sensor_msgs</depend>
   <depend>eigen_conversions</depend>
   <depend>roslib</depend>
+  <depend>geotf</depend>
 </package>
