@@ -67,14 +67,14 @@ void ReceiverBaseStation::setupUDPSenders() {
 
 bool ReceiverBaseStation::overwriteBasePositionCallback(
     std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
+  // Set flag to wait for sampling to be finished.
+  wait_for_sampled_position_ = true;
   // Start sampling.
   ros::NodeHandle nh_node("~");
   uint32_t num_desired_fixes = nh_node.param<int>("num_desired_fixes", 2000);
   position_sampler_->startSampling(num_desired_fixes);
   ROS_INFO("Start sampling base station position with %d desired fixes.",
            num_desired_fixes);
-  // Set flag to wait for sampling to be finished.
-  wait_for_sampled_position_ = true;
   return true;
 }
 
@@ -85,14 +85,33 @@ void ReceiverBaseStation::sampledPositionCallback(
     ROS_WARN("Call `overwrite_base_position` first.");
     return;
   }
+  wait_for_sampled_position_ = false;
 
   Eigen::Vector3d x_ecef, x_wgs84;
   tf::pointMsgToEigen(msg->position.position, x_ecef);
   geotf::GeodeticConverter geotf;
-  if(!geotf.convert("epsg:4978", x_ecef, "wgs84", &x_wgs84)) {
+  geotf.addFrameByEPSG("ecef", 4978);
+  geotf.addFrameByEPSG("wgs84", 4326);
+
+  if (!geotf.convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
     ROS_ERROR("Failed to convert ECEF to WGS84.");
     return;
   }
+
+  ROS_INFO("Writing lat: %.9f lon: %.9f alt: %.9f to %s.", x_wgs84.x(),
+           x_wgs84.y(), x_wgs84.z(), nh_.getUnresolvedNamespace().c_str());
+
+  ROS_ERROR_COND(!writeSetting("surveyed_position", "surveyed_lat",
+                               boost::lexical_cast<std::string>(x_wgs84.x())),
+                 "Failed to overwrite surveyed_lat.");
+
+  ROS_ERROR_COND(!writeSetting("surveyed_position", "surveyed_lon",
+                               boost::lexical_cast<std::string>(x_wgs84.y())),
+                 "Failed to overwrite surveyed_lon.");
+
+  ROS_ERROR_COND(!writeSetting("surveyed_position", "surveyed_alt",
+                               boost::lexical_cast<std::string>(x_wgs84.z())),
+                 "Failed to overwrite surveyed_alt.");
 }
 
 }  // namespace piksi_multi_cpp

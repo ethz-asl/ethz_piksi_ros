@@ -81,6 +81,9 @@ bool SettingsIo::writeSetting(const std::string& section,
     return false;
   }
 
+  // The writing sometimes fails with unspecified error. We wait a little.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
   return true;
 }
 
@@ -238,8 +241,6 @@ bool SettingsIo::updateConfig(const std::string& file) {
     // Write setting.
     ROS_DEBUG("Writing setting %s.%s.%s", section.c_str(), name.c_str(),
               value.c_str());
-    // The writing sometimes fails with unspecified error. We wait a little.
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     writeSetting(section, name, value);
   }
   return true;
