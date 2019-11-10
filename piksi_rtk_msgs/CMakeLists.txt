@@ -68,6 +68,7 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
+    SamplePosition.srv
     SettingsWrite.srv
     SettingsReadReq.srv
     SettingsReadResp.srv

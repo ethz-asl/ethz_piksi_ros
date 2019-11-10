@@ -1,11 +1,53 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <libsbp_ros_msgs/ros_conversion.h>
+#include <ros/assert.h>
+#include <Eigen/Dense>
 #include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
 
 namespace piksi_multi_cpp {
 
 namespace lrm = libsbp_ros_msgs;
 namespace prm = piksi_rtk_msgs;
+
+PositionSampler::PositionSampler(const ros::NodeHandle& nh,
+                                 const std::shared_ptr<sbp_state_t>& state,
+                                 const RosTimeHandler::Ptr& ros_time_handler)
+    : SBPCallbackHandler(SBP_MSG_POS_ECEF_COV, state),
+      nh_(nh),
+      ros_time_handler_(ros_time_handler) {
+  sample_pos_srv_ = nh_.advertiseService(
+      "sample_position", &PositionSampler::samplePositionCallback, this);
+}
+
+void PositionSampler::startSampling(const uint32_t num_desired_fixes) {
+  num_desired_fixes_ = num_desired_fixes;
+  num_fixes_ = 0;
+  x_.reset();
+  P_.reset();
+  y_.reset();
+  R_inv_.reset();
+  x_ml_.reset();
+  P_ml_.reset();
+}
+
+bool PositionSampler::getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov) {
+  ROS_ASSERT(x_ecef);
+  ROS_ASSERT(cov);
+
+  if (isSampling()) return false;
+
+  *x_ecef = x_ml_.value();
+  *cov = P_ml_.value();
+
+  return true;
+}
+
+bool PositionSampler::samplePositionCallback(
+    piksi_rtk_msgs::SamplePosition::Request& req,
+    piksi_rtk_msgs::SamplePosition::Response& res) {
+  startSampling(req.num_desired_fixes);
+  return true;
+}
 
 void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
   if (!num_desired_fixes_.has_value()) return;
@@ -69,12 +111,12 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
   }
 
   // Logging.
-  ROS_INFO_STREAM("Measurement: "
-                  << z.transpose() << "; 3-sigma bound: "
-                  << R.eigenvalues().real().cwiseSqrt().transpose()
-                  << "; temporary mean: " << x_.value().transpose()
-                  << "; 3-sigma bound: "
-                  << P_.value().eigenvalues().real().cwiseSqrt().transpose());
+  ROS_DEBUG_STREAM("Measurement: "
+                   << z.transpose() << "; 3-sigma bound: "
+                   << R.eigenvalues().real().cwiseSqrt().transpose()
+                   << "; temporary mean: " << x_.value().transpose()
+                   << "; 3-sigma bound: "
+                   << P_.value().eigenvalues().real().cwiseSqrt().transpose());
   publishPosition(kf_pos_pub_.value(), x_.value(), P_.value(), sbp_msg->tow);
 
   // Compute final least squares solution.
@@ -83,12 +125,15 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
         Eigen::Matrix3d::Identity().replicate(num_desired_fixes_.value(), 1);
     auto A = H.transpose() * R_inv_.value() * H;
     auto b = H.transpose() * R_inv_.value() * y_.value();
-    auto x_ml = A.colPivHouseholderQr().solve(b);
-    auto P_ml = A.inverse();
-    ROS_INFO_STREAM("ML estimate: "
-                    << x_ml.transpose() << "; 3-sigma bound: "
-                    << P_ml.eigenvalues().real().cwiseSqrt().transpose());
-    publishPosition(ml_pos_pub_.value(), x_ml, P_ml, sbp_msg->tow);
+    auto dec = A.colPivHouseholderQr();
+    x_ml_ = dec.solve(b);
+    P_ml_ = A.inverse();
+    ROS_INFO_STREAM(
+        "ML estimate: "
+        << x_ml_.value().transpose() << "; 3-sigma bound: "
+        << P_ml_.value().eigenvalues().real().cwiseSqrt().transpose());
+    publishPosition(ml_pos_pub_.value(), x_ml_.value(), P_ml_.value(),
+                    sbp_msg->tow);
   }
 }
 
