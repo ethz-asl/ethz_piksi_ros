@@ -21,11 +21,13 @@ class PositionSampler : public SBPCallbackHandler {
 
  private:
   void callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) override;
+  void publishPosition(const ros::Publisher& pub, const Eigen::Vector3d& x,
+                       const Eigen::Matrix3d& cov, const uint32_t tow) const;
 
   ros::NodeHandle nh_;
   RosTimeHandler::Ptr ros_time_handler_;
-  std::optional<ros::Publisher> final_pos_pub_;
-  std::optional<ros::Publisher> current_pos_pub_;
+  std::optional<ros::Publisher> ml_pos_pub_;
+  std::optional<ros::Publisher> kf_pos_pub_;
 
   // Sampler state.
   std::optional<uint32_t> num_desired_fixes_;

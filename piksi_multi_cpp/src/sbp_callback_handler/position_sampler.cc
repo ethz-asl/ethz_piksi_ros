@@ -25,15 +25,13 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
   }
 
   // Advertise topic on first callback.
-  if (!final_pos_pub_.has_value()) {
-    final_pos_pub_ =
-        nh_.advertise<piksi_rtk_msgs::PositionWithCovarianceStamped>(
-            "ros/final_sampled_position", kQueueSize, kLatchTopic);
+  if (!ml_pos_pub_.has_value()) {
+    ml_pos_pub_ = nh_.advertise<piksi_rtk_msgs::PositionWithCovarianceStamped>(
+        "position_sampler/ml_position", kQueueSize, kLatchTopic);
   }
-  if (!current_pos_pub_.has_value()) {
-    current_pos_pub_ =
-        nh_.advertise<piksi_rtk_msgs::PositionWithCovarianceStamped>(
-            "ros/current_sampled_position", kQueueSize, kLatchTopic);
+  if (!kf_pos_pub_.has_value()) {
+    kf_pos_pub_ = nh_.advertise<piksi_rtk_msgs::PositionWithCovarianceStamped>(
+        "position_sampler/kf_position", kQueueSize, kLatchTopic);
   }
 
   // Cast message.
@@ -77,21 +75,34 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
                   << "; temporary mean: " << x_.value().transpose()
                   << "; 3-sigma bound: "
                   << P_.value().eigenvalues().real().cwiseSqrt().transpose());
-
-  prm::PositionWithCovarianceStamped current_pos;
-  tf::pointEigenToMsg(x_.value(), current_pos.position.position);
-  typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> Matrix3dRow;
-  Matrix3dRow::Map(current_pos.position.covariance.data()) = P_.value();
-  current_pos.header.frame_id = "ecef";
-  current_pos.header.stamp = ros_time_handler_->lookupTime(sbp_msg->tow);
-  current_pos_pub_.value().publish(current_pos);
+  publishPosition(kf_pos_pub_.value(), x_.value(), P_.value(), sbp_msg->tow);
 
   // Compute final least squares solution.
   if (num_fixes_ >= num_desired_fixes_.value()) {
-  //  auto H =
-  //      Eigen::Matrix3d::Identity().replicate<num_desired_fixes_.value(), 1>();
-    // auto a =
+    auto H =
+        Eigen::Matrix3d::Identity().replicate(num_desired_fixes_.value(), 1);
+    auto A = H.transpose() * R_inv_.value() * H;
+    auto b = H.transpose() * R_inv_.value() * y_.value();
+    auto x_ml = A.colPivHouseholderQr().solve(b);
+    auto P_ml = A.inverse();
+    ROS_INFO_STREAM("ML estimate: "
+                    << x_ml.transpose() << "; 3-sigma bound: "
+                    << P_ml.eigenvalues().real().cwiseSqrt().transpose());
+    publishPosition(ml_pos_pub_.value(), x_ml, P_ml, sbp_msg->tow);
   }
+}
+
+void PositionSampler::publishPosition(const ros::Publisher& pub,
+                                      const Eigen::Vector3d& x,
+                                      const Eigen::Matrix3d& cov,
+                                      const uint32_t tow) const {
+  prm::PositionWithCovarianceStamped pos;
+  tf::pointEigenToMsg(x, pos.position.position);
+  typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> Matrix3dRow;
+  Matrix3dRow::Map(pos.position.covariance.data()) = cov;
+  pos.header.frame_id = "ecef";
+  pos.header.stamp = ros_time_handler_->lookupTime(tow);
+  pub.publish(pos);
 }
 
 }  // namespace piksi_multi_cpp
