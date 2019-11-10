@@ -46,6 +46,9 @@ bool SettingsIo::readSetting(const std::string& section,
     return false;
   }
 
+  // The writing sometimes fails with unspecified error. We wait a little.
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
   return true;
 }
 
