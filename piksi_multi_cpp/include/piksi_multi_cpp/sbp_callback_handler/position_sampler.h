@@ -24,7 +24,20 @@ class PositionSampler : public SBPCallbackHandler {
 
   ros::NodeHandle nh_;
   RosTimeHandler::Ptr ros_time_handler_;
-  std::optional<ros::Publisher> sampled_pos_pub_;
+  std::optional<ros::Publisher> final_pos_pub_;
+  std::optional<ros::Publisher> current_pos_pub_;
+
+  // Sampler state.
+  std::optional<uint32_t> num_desired_fixes_;
+  uint32_t num_fixes_ = 0;
+
+  // Kalman filter state.
+  std::optional<Eigen::Vector3d> x_;
+  std::optional<Eigen::Matrix3d> P_;
+
+  // Least square variables.
+  std::optional<Eigen::VectorXd> y_;
+  std::optional<Eigen::MatrixXd> R_inv_;
 };
 
 }  // namespace piksi_multi_cpp

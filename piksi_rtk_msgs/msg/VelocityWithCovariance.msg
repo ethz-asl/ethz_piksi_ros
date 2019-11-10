@@ -1,2 +1,2 @@
 geometry_msgs/Vector3 velocity
-float32[9] covariance
+float64[9] covariance

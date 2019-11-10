@@ -1,2 +1,2 @@
 geometry_msgs/Point position
-float32[9] covariance
+float64[9] covariance
