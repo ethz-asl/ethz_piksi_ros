@@ -92,6 +92,11 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
     return;
   }
 
+  if (((sbp_msg->flags >> 0) && 0x7) == 0) {
+    ROS_WARN_THROTTLE(5, "Cannot sample position. Fix mode invalid.");
+    return;
+  }
+
   // Convert measurement to Eigen.
   Eigen::Vector3d z;
   lrm::convertCartesianPoint<msg_pos_ecef_cov_t>(*sbp_msg, &z);
@@ -197,7 +202,7 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
 
   std::fstream fs;
   fs.open(file, std::fstream::out);
-  if(!fs.is_open()) return false;
+  if (!fs.is_open()) return false;
   fs << "x_ecef: " << boost::lexical_cast<std::string>(x.x()) << std::endl;
   fs << "y_ecef: " << boost::lexical_cast<std::string>(x.y()) << std::endl;
   fs << "z_ecef: " << boost::lexical_cast<std::string>(x.z()) << std::endl;
