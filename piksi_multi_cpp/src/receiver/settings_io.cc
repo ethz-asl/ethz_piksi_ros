@@ -31,6 +31,8 @@ bool SettingsIo::readSetting(const std::string& section,
       SBP_MSG_SETTINGS_READ_RESP, state_);
 
   // Send message.
+  // The reading sometimes fails with unspecified error. We wait a little.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   int req_success = sbp_send_message(
       state_.get(), SBP_MSG_SETTINGS_READ_REQ, SBP_SENDER_ID, kLen,
       (unsigned char*)(&read_req), &Device::write_redirect);
@@ -45,9 +47,6 @@ bool SettingsIo::readSetting(const std::string& section,
     ROS_ERROR("Did not receive setting %s.%s", section.c_str(), name.c_str());
     return false;
   }
-
-  // The writing sometimes fails with unspecified error. We wait a little.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
   return true;
 }

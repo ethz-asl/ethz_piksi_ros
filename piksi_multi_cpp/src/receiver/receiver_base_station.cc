@@ -82,7 +82,7 @@ void ReceiverBaseStation::sampledPositionCallback(
     const piksi_rtk_msgs::PositionWithCovarianceStamped::Ptr& msg) {
   if (!wait_for_sampled_position_) {
     ROS_WARN("Received sampled base position but not updating firmware.");
-    ROS_WARN("Call `overwrite_base_position` first.");
+    ROS_WARN("Call `overwrite_base_position` to resample base station.");
     return;
   }
   wait_for_sampled_position_ = false;
