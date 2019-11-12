@@ -9,14 +9,15 @@ namespace piksi_multi_cpp {
 namespace lrm = libsbp_ros_msgs;
 namespace gm = geometry_msgs;
 
-void RosPosEcefRelay::convertSbpMsgToRosMsg(const msg_pos_ecef_t& in,
+bool RosPosEcefRelay::convertSbpMsgToRosMsg(const msg_pos_ecef_t& in,
                                             const uint8_t len,
                                             geometry_msgs::PointStamped* out) {
   ROS_ASSERT(out);
   lrm::convertCartesianPoint<msg_pos_ecef_t, gm::Point>(in, &(out->point));
+  return true;
 }
 
-void RosPosEcefCovRelay::convertSbpMsgToRosMsg(
+bool RosPosEcefCovRelay::convertSbpMsgToRosMsg(
     const msg_pos_ecef_cov_t& in, const uint8_t len,
     piksi_rtk_msgs::PositionWithCovarianceStamped* out) {
   ROS_ASSERT(out);
@@ -24,9 +25,10 @@ void RosPosEcefCovRelay::convertSbpMsgToRosMsg(
       in, &(out->position.position));
   lrm::convertCartesianCov<msg_pos_ecef_cov_t, boost::array<double, 9>>(
       in, &(out->position.covariance));
+  return true;
 }
 
-void RosPosLlhCovRelay::convertSbpMsgToRosMsg(const msg_pos_llh_cov_t& in,
+bool RosPosLlhCovRelay::convertSbpMsgToRosMsg(const msg_pos_llh_cov_t& in,
                                               const uint8_t len,
                                               sensor_msgs::NavSatFix* out) {
   ROS_ASSERT(out);
@@ -49,19 +51,24 @@ void RosPosLlhCovRelay::convertSbpMsgToRosMsg(const msg_pos_llh_cov_t& in,
     default:
       ROS_ERROR("Cannot infer fix status.");
       out->status.status = sensor_msgs::NavSatStatus::STATUS_NO_FIX;
+      return false;
   }
 
   if (ros_receiver_state_.get()) {
     out->status.service = ros_receiver_state_->getNavSatServiceStatus();
+  } else {
+    return false;
   }
 
   lrm::convertWgs84Point<msg_pos_llh_cov_t, sensor_msgs::NavSatFix>(in, out);
   lrm::convertNedCov<msg_pos_llh_cov_t, boost::array<double, 9>>(
       in, &(out->position_covariance));
   out->position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_KNOWN;
+
+  return true;
 }
 
-void RosBaselineNedRelay::convertSbpMsgToRosMsg(
+bool RosBaselineNedRelay::convertSbpMsgToRosMsg(
     const msg_baseline_ned_t& in, const uint8_t len,
     piksi_rtk_msgs::PositionWithCovarianceStamped* out) {
   ROS_ASSERT(out);
@@ -69,16 +76,18 @@ void RosBaselineNedRelay::convertSbpMsgToRosMsg(
       in, &(out->position.position));
   lrm::convertNedAccuracyToNedCov<msg_baseline_ned_t, boost::array<double, 9>>(
       in, &(out->position.covariance));
+  return true;
 }
 
-void RosVelEcefRelay::convertSbpMsgToRosMsg(const msg_vel_ecef_t& in,
+bool RosVelEcefRelay::convertSbpMsgToRosMsg(const msg_vel_ecef_t& in,
                                             const uint8_t len,
                                             gm::Vector3Stamped* out) {
   ROS_ASSERT(out);
   lrm::convertCartesianVector<msg_vel_ecef_t, gm::Vector3>(in, &(out->vector));
+  return true;
 }
 
-void RosVelEcefCovRelay::convertSbpMsgToRosMsg(
+bool RosVelEcefCovRelay::convertSbpMsgToRosMsg(
     const msg_vel_ecef_cov_t& in, const uint8_t len,
     piksi_rtk_msgs::VelocityWithCovarianceStamped* out) {
   ROS_ASSERT(out);
@@ -86,16 +95,18 @@ void RosVelEcefCovRelay::convertSbpMsgToRosMsg(
       in, &(out->velocity.velocity));
   lrm::convertCartesianCovMm<msg_vel_ecef_cov_t, boost::array<double, 9>>(
       in, &(out->velocity.covariance));
+  return true;
 }
 
-void RosVelNedRelay::convertSbpMsgToRosMsg(const msg_vel_ned_t& in,
+bool RosVelNedRelay::convertSbpMsgToRosMsg(const msg_vel_ned_t& in,
                                            const uint8_t len,
                                            gm::Vector3Stamped* out) {
   ROS_ASSERT(out);
   lrm::convertNedVector<msg_vel_ned_t, gm::Vector3>(in, &(out->vector));
+  return true;
 }
 
-void RosVelNedCovRelay::convertSbpMsgToRosMsg(
+bool RosVelNedCovRelay::convertSbpMsgToRosMsg(
     const msg_vel_ned_cov_t& in, const uint8_t len,
     piksi_rtk_msgs::VelocityWithCovarianceStamped* out) {
   ROS_ASSERT(out);
@@ -103,6 +114,7 @@ void RosVelNedCovRelay::convertSbpMsgToRosMsg(
       in, &(out->velocity.velocity));
   lrm::convertNedCovMm<msg_vel_ned_cov_t, boost::array<double, 9>>(
       in, &(out->velocity.covariance));
+  return true;
 }
 
 }  // namespace piksi_multi_cpp

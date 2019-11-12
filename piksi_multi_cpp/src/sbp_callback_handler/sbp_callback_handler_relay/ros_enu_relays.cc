@@ -7,7 +7,7 @@ namespace piksi_multi_cpp {
 
 namespace lrm = libsbp_ros_msgs;
 
-void RosPosEnuRelay::convertSbpMsgToRosMsg(const msg_pos_ecef_t& in,
+bool RosPosEnuRelay::convertSbpMsgToRosMsg(const msg_pos_ecef_t& in,
                                            const uint8_t len,
                                            geometry_msgs::PointStamped* out) {
   ROS_ASSERT(out);
@@ -16,10 +16,12 @@ void RosPosEnuRelay::convertSbpMsgToRosMsg(const msg_pos_ecef_t& in,
   Eigen::Vector3d x_ecef, x_enu;
   lrm::convertCartesianPoint<msg_pos_ecef_t>(in, &x_ecef);
 
-  updateEnuOriginFromEcef(x_ecef);
-  convertPositionEcefToEnu(x_ecef, &x_enu);
+  if (!geotf_handler_.get()) return false;
+  if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "enu", &x_enu))
+    return false;
 
   tf::pointEigenToMsg(x_enu, out->point);
+  return true;
 }
 
 }  // namespace piksi_multi_cpp

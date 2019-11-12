@@ -22,7 +22,8 @@ SBPCallbackHandlerFactory::createAllSBPMessageRelays(
 std::vector<SBPCallbackHandler::Ptr>
 SBPCallbackHandlerFactory::createAllRosMessageRelays(
     const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
-    const RosTimeHandler::Ptr& ros_time_handler) {
+    const RosTimeHandler::Ptr& ros_time_handler,
+    const GeoTfHandler::Ptr& geotf_handler) {
   // Create all relays.
   std::vector<SBPCallbackHandler::Ptr> relays;
 
@@ -53,8 +54,8 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
   relays.push_back(SBPCallbackHandler::Ptr(
       new RosPosLlhCovRelay(nh, state, ros_time_handler, ros_receiver_state)));
 
-  relays.push_back(
-      SBPCallbackHandler::Ptr(new RosPosEnuRelay(nh, state, ros_time_handler)));
+  relays.push_back(SBPCallbackHandler::Ptr(
+      new RosPosEnuRelay(nh, state, ros_time_handler, geotf_handler)));
 
   return relays;
 }

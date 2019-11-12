@@ -4,6 +4,7 @@
 #include <geotf/geodetic_converter.h>
 #include <libsbp/navigation.h>
 #include <piksi_rtk_msgs/EnuOrigin.h>
+#include <ros/ros.h>
 #include <std_srvs/Empty.h>
 #include <Eigen/Dense>
 #include <memory>
@@ -17,7 +18,8 @@ namespace piksi_multi_cpp {
 class GeoTfHandler {
  public:
   typedef std::shared_ptr<GeoTfHandler> Ptr;
-  GeoTfHandler(const std::shared_ptr<sbp_state_t>& state);
+  GeoTfHandler(const ros::NodeHandle& nh,
+               const std::shared_ptr<sbp_state_t>& state);
 
   void setEnuOriginWgs84(const double lat, const double lon, const double alt);
   void resetEnuOrigin();
@@ -25,7 +27,7 @@ class GeoTfHandler {
   bool convertPosEcefToEnu(const Eigen::Vector3d& pos_ecef,
                            const Eigen::Vector3d* pos_enu);
 
-  inline geotf::GeodeticConverter getGeoTf() const {return geotf_;}
+  inline geotf::GeodeticConverter getGeoTf() const { return geotf_; }
 
   GeoTfHandler(GeoTfHandler const&) = delete;
   void operator=(GeoTfHandler const&) = delete;
@@ -41,6 +43,7 @@ class GeoTfHandler {
   geotf::GeodeticConverter geotf_;
   Eigen::Vector3d enu_origin_wgs84_;
 
+  ros::NodeHandle nh_;
   ros::ServiceServer set_enu_origin_srv_;
   ros::ServiceServer reset_enu_origin_srv_;
 };

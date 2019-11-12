@@ -5,18 +5,19 @@
 namespace piksi_multi_cpp {
 namespace s = std::placeholders;
 
-GeoTfHandler::GeoTfHandler(const std::shared_ptr<sbp_state_t>& state)
-    : base_pos_llh_handler_{
-          std::bind(&GeoTfHandler::callbackToBasePosLlh, this, s::_1, s::_2),
-          SBP_MSG_BASE_POS_LLH, state} {
+GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
+                           const std::shared_ptr<sbp_state_t>& state)
+    : base_pos_llh_handler_{std::bind(&GeoTfHandler::callbackToBasePosLlh, this,
+                                      s::_1, s::_2),
+                            SBP_MSG_BASE_POS_LLH, state},
+      nh_(nh) {
   geotf_.initFromRosParam();
   geotf_.addFrameByEPSG("ecef", 4978);
   geotf_.addFrameByEPSG("wgs84", 4326);
 
-  ros::NodeHandle nh_node("~");
-  set_enu_origin_srv_ = nh_node.advertiseService(
+  set_enu_origin_srv_ = nh_.advertiseService(
       "set_enu_origin", &GeoTfHandler::setEnuOriginCallback, this);
-  reset_enu_origin_srv_ = nh_node.advertiseService(
+  reset_enu_origin_srv_ = nh_.advertiseService(
       "reset_enu_origin", &GeoTfHandler::resetEnuOriginCallback, this);
 }
 
