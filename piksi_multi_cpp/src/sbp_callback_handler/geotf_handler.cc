@@ -2,11 +2,8 @@
 
 #include <functional>
 
-#include <libsbp_ros_msgs/ros_conversion.h>
-
 namespace piksi_multi_cpp {
 namespace s = std::placeholders;
-namespace lrm = libsbp_ros_msgs;
 
 GeoTfHandler::GeoTfHandler(const std::shared_ptr<sbp_state_t>& state)
     : base_pos_llh_handler_{
@@ -34,9 +31,7 @@ void GeoTfHandler::resetEnuOrigin() { geotf_.removeFrame("enu"); }
 void GeoTfHandler::callbackToBasePosLlh(const msg_base_pos_llh_t& msg,
                                         const uint8_t len) {
   if (geotf_.hasFrame("enu")) return;  // ENU origin already set.
-  Eigen::Vector3d x_wgs84;
-  lrm::convertWgs84Point<msg_base_pos_llh_t>(msg, &x_wgs84);
-  geotf_.addFrameByENUOrigin("enu", x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
+  geotf_.addFrameByENUOrigin("enu", msg.lat, msg.lon, msg.height);
 }
 
 bool GeoTfHandler::setEnuOriginCallback(

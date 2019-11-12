@@ -7,6 +7,7 @@
 #include <thread>
 #include <vector>
 #include "piksi_multi_cpp/receiver/settings_io.h"
+#include "piksi_multi_cpp/sbp_callback_handler/geotf_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_observation_callback_handler.h"
@@ -33,6 +34,8 @@ class ReceiverRos : public SettingsIo {
 
   // Averages the position over multiple ECEF messages.
   PositionSampler::Ptr position_sampler_;
+  // Manages geotf transformations.
+  GeoTfHandler::Ptr geotf_handler_;
 
  private:
   // Relaying all SBP messages. Common for all receivers.

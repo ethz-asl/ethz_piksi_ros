@@ -1,5 +1,4 @@
 #include <eigen_conversions/eigen_msg.h>
-#include <geotf/geodetic_converter.h>
 #include <piksi_multi_cpp/observations/udp_observation_sender.h>
 #include <piksi_rtk_msgs/SamplePosition.h>
 #include <boost/algorithm/string.hpp>
@@ -87,13 +86,14 @@ void ReceiverBaseStation::sampledPositionCallback(
   }
   wait_for_sampled_position_ = false;
 
+  if (!geotf_handler_.get()) {
+    ROS_ERROR("Geotf not set.");
+    return;
+  }
+
   Eigen::Vector3d x_ecef, x_wgs84;
   tf::pointMsgToEigen(msg->position.position, x_ecef);
-  geotf::GeodeticConverter geotf;
-  geotf.addFrameByEPSG("ecef", 4978);
-  geotf.addFrameByEPSG("wgs84", 4326);
-
-  if (!geotf.convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
+  if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
     ROS_ERROR("Failed to convert ECEF to WGS84.");
     return;
   }

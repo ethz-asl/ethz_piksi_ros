@@ -22,6 +22,7 @@ ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
       nh, state_, ros_time_handler);
   position_sampler_ =
       std::make_shared<PositionSampler>(nh, state_, ros_time_handler);
+  geotf_handler_ = std::make_shared<GeoTfHandler>(state_);
 
   // Create observation callbacks
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);

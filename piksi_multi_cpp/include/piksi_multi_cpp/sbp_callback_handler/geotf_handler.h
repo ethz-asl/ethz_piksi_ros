@@ -25,6 +25,8 @@ class GeoTfHandler {
   bool convertPosEcefToEnu(const Eigen::Vector3d& pos_ecef,
                            const Eigen::Vector3d* pos_enu);
 
+  inline geotf::GeodeticConverter getGeoTf() const {return geotf_;}
+
   GeoTfHandler(GeoTfHandler const&) = delete;
   void operator=(GeoTfHandler const&) = delete;
 
