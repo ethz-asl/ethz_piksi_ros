@@ -24,19 +24,21 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
                                          ros_time_handler, "enu") {
     geotf_.addFrameByEPSG("ecef", 4978);
     geotf_.addFrameByEPSG("wgs84", 4326);
+    ros::NodeHandle nh_node("~");
+    nh_node.param<bool>("use_base_enu_origin", use_base_enu_origin_,
+                        use_base_enu_origin_);
   }
 
  public:
-  inline void setEnuOrigin(const double lat, const double lon,
-                           const double alt) {
-    enu_origin_wgs84_ = Eigen::Vector3d(lat, lon, alt);
+  inline void setEnuOriginWgs84(const double lat, const double lon,
+                                const double alt) {
+    geotf_.addFrameByENUOrigin("enu", lat, lon, alt);
   }
 
-  inline void resetEnuOrigin() { enu_origin_wgs84_.reset(); }
+  inline void resetEnuOrigin() { geotf_.removeFrame("enu"); }
 
  protected:
   bool use_base_enu_origin_ = true;  // False: ENU origin is first position.
-  std::optional<Eigen::Vector3d> enu_origin_wgs84_;
   geotf::GeodeticConverter geotf_;
 
  private:
