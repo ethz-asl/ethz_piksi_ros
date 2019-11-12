@@ -12,7 +12,7 @@ bool RosPosEnuRelay::convertSbpMsgToRosMsg(const msg_pos_ecef_t& in,
                                            geometry_msgs::PointStamped* out) {
   ROS_ASSERT(out);
 
-  // Convert measurement to Eigen.
+  // Convert position.
   Eigen::Vector3d x_ecef, x_enu;
   lrm::convertCartesianPoint<msg_pos_ecef_t>(in, &x_ecef);
 

@@ -45,6 +45,7 @@ void GeoTfHandler::callbackToBasePosLlh(const msg_base_pos_llh_t& msg,
 void GeoTfHandler::callbackToPosLlh(const msg_pos_llh_t& msg,
                                     const uint8_t len) {
   if (reset_position_ != ResetEnuOrigin::kFromCurrentPos) return;
+  if (((msg.flags >> 0) & 0x7) == 0) return;  // Fix invalid.
   setEnuOriginWgs84(msg.lat, msg.lon, msg.height);
 }
 
