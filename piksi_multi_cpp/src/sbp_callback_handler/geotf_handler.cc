@@ -9,9 +9,12 @@ namespace s = std::placeholders;
 namespace lrm = libsbp_ros_msgs;
 
 GeoTfHandler::GeoTfHandler(const std::shared_ptr<sbp_state_t>& state)
-    : pos_llh_handler_{
-          std::bind(&GeoTfHandler::callbackToPosLlh, this, s::_1, s::_2),
-          SBP_MSG_POS_LLH, state} {
+    : pos_llh_handler_{std::bind(&GeoTfHandler::callbackToPosLlh, this, s::_1,
+                                 s::_2),
+                       SBP_MSG_POS_LLH, state},
+      base_pos_llh_handler_{
+          std::bind(&GeoTfHandler::callbackToBasePosLlh, this, s::_1, s::_2),
+          SBP_MSG_BASE_POS_LLH, state} {
   geotf_.addFrameByEPSG("ecef", 4978);
   geotf_.addFrameByEPSG("wgs84", 4326);
 
@@ -19,6 +22,14 @@ GeoTfHandler::GeoTfHandler(const std::shared_ptr<sbp_state_t>& state)
   nh_node.param<bool>("use_base_enu_origin", use_base_enu_origin_,
                       use_base_enu_origin_);
 }
+
+void GeoTfHandler::setEnuOriginWgs84(const double lat, const double lon,
+                                     const double alt) {
+  resetEnuOrigin();
+  geotf_.addFrameByENUOrigin("enu", lat, lon, alt);
+}
+
+void GeoTfHandler::resetEnuOrigin() { geotf_.removeFrame("enu"); }
 
 void GeoTfHandler::callbackToPosLlh(const msg_pos_llh_t& msg,
                                     const uint8_t len) {
@@ -29,6 +40,19 @@ void GeoTfHandler::callbackToPosLlh(const msg_pos_llh_t& msg,
   Eigen::Vector3d x_wgs84;
   lrm::convertWgs84Point<msg_pos_llh_t>(msg, &x_wgs84);
   geotf_.addFrameByENUOrigin("enu", x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
+}
+
+void GeoTfHandler::callbackToBasePosLlh(const msg_base_pos_llh_t& msg,
+                                        const uint8_t len) {
+  if (!use_base_enu_origin_) return;  // Get base position by other means.
+
+  Eigen::Vector3d x_wgs84;
+  lrm::convertWgs84Point<msg_base_pos_llh_t>(msg, &x_wgs84);
+
+  // Check whether the enu origin needs to be updated.
+  if (!geotf_.hasFrame("enu") || enu_origin_wgs84_ != x_wgs84) {
+    setEnuOriginWgs84(x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
+  }
 }
 
 }  // namespace piksi_multi_cpp

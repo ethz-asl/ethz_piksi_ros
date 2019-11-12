@@ -26,10 +26,13 @@ class GeoTfHandler {
 
  private:
   void callbackToPosLlh(const msg_pos_llh_t& msg, const uint8_t len);
+  void callbackToBasePosLlh(const msg_base_pos_llh_t& msg, const uint8_t len);
 
   bool use_base_enu_origin_ = true;  // False: ENU origin is first position.
   SBPLambdaCallbackHandler<msg_pos_llh_t> pos_llh_handler_;
+  SBPLambdaCallbackHandler<msg_base_pos_llh_t> base_pos_llh_handler_;
   geotf::GeodeticConverter geotf_;
+  Eigen::Vector3d enu_origin_wgs84_;
 };
 
 }  // namespace piksi_multi_cpp
