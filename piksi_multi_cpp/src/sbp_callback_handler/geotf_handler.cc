@@ -10,29 +10,42 @@ GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
     : base_pos_llh_handler_{std::bind(&GeoTfHandler::callbackToBasePosLlh, this,
                                       s::_1, s::_2),
                             SBP_MSG_BASE_POS_LLH, state},
+      pos_llh_handler_{
+          std::bind(&GeoTfHandler::callbackToPosLlh, this, s::_1, s::_2),
+          SBP_MSG_POS_LLH, state},
       nh_(nh) {
   geotf_.initFromRosParam();
+  if (geotf_.hasFrame("enu")) reset_position_ = ResetEnuOrigin::kNo;
   geotf_.addFrameByEPSG("ecef", 4978);
   geotf_.addFrameByEPSG("wgs84", 4326);
 
   set_enu_origin_srv_ = nh_.advertiseService(
       "set_enu_origin", &GeoTfHandler::setEnuOriginCallback, this);
-  reset_enu_origin_srv_ = nh_.advertiseService(
-      "reset_enu_origin", &GeoTfHandler::resetEnuOriginCallback, this);
+  set_enu_from_base_srv_ =
+      nh_.advertiseService("set_enu_origin_from_base_station",
+                           &GeoTfHandler::setEnuOriginFromBaseStation, this);
+  set_enu_from_current_srv_ =
+      nh_.advertiseService("set_enu_origin_from_current_pos",
+                           &GeoTfHandler::setEnuOriginFromCurrentPos, this);
 }
 
 void GeoTfHandler::setEnuOriginWgs84(const double lat, const double lon,
                                      const double alt) {
-  resetEnuOrigin();
+  geotf_.removeFrame("enu");
   geotf_.addFrameByENUOrigin("enu", lat, lon, alt);
+  reset_position_ = ResetEnuOrigin::kNo;
 }
-
-void GeoTfHandler::resetEnuOrigin() { geotf_.removeFrame("enu"); }
 
 void GeoTfHandler::callbackToBasePosLlh(const msg_base_pos_llh_t& msg,
                                         const uint8_t len) {
-  if (geotf_.hasFrame("enu")) return;  // ENU origin already set.
-  geotf_.addFrameByENUOrigin("enu", msg.lat, msg.lon, msg.height);
+  if (reset_position_ != ResetEnuOrigin::kFromBase) return;
+  setEnuOriginWgs84(msg.lat, msg.lon, msg.height);
+}
+
+void GeoTfHandler::callbackToPosLlh(const msg_pos_llh_t& msg,
+                                    const uint8_t len) {
+  if (reset_position_ != ResetEnuOrigin::kFromCurrentPos) return;
+  setEnuOriginWgs84(msg.lat, msg.lon, msg.height);
 }
 
 bool GeoTfHandler::setEnuOriginCallback(
@@ -42,9 +55,15 @@ bool GeoTfHandler::setEnuOriginCallback(
   return true;
 }
 
-bool GeoTfHandler::resetEnuOriginCallback(std_srvs::Empty::Request& req,
-                                          std_srvs::Empty::Response& res) {
-  resetEnuOrigin();
+bool GeoTfHandler::setEnuOriginFromBaseStation(std_srvs::Empty::Request& req,
+                                               std_srvs::Empty::Response& res) {
+  reset_position_ = ResetEnuOrigin::kFromBase;
+  return true;
+}
+
+bool GeoTfHandler::setEnuOriginFromCurrentPos(std_srvs::Empty::Request& req,
+                                              std_srvs::Empty::Response& res) {
+  reset_position_ = ResetEnuOrigin::kFromCurrentPos;
   return true;
 }
 
