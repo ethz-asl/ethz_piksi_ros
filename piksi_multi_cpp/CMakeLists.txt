@@ -33,6 +33,7 @@ cs_add_library(${PROJECT_NAME}
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_enu_relays.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_mag_relay.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_receiver_state.cc
+        src/sbp_callback_handler/geotf_handler.cc
         src/sbp_callback_handler/position_sampler.cc
         src/sbp_callback_handler/ros_time_handler.cc
         src/sbp_callback_handler/sbp_callback_handler.cc
