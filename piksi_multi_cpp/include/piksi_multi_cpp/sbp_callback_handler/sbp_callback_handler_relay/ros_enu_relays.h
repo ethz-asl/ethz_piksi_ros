@@ -5,6 +5,7 @@
 #include <geotf/geodetic_converter.h>
 #include <libsbp/navigation.h>
 #include <piksi_rtk_msgs/PositionWithCovarianceStamped.h>
+#include <ros/assert.h>
 #include <Eigen/Dense>
 #include <optional>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_relay.h"
@@ -38,6 +39,37 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
   inline void resetEnuOrigin() { geotf_.removeFrame("enu"); }
 
  protected:
+  // Updates ENU origin if it is not to be set from base station position.
+  inline void updateEnuOriginFromEcef(const Eigen::Vector3d& x_ecef) {
+    if (use_base_enu_origin_)
+      return;  // Wait for base station position instead.
+    if (geotf_.hasFrame("enu")) return;  // Already set.
+
+    Eigen::Vector3d x_wgs84;
+    if (!geotf_.convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
+      ROS_ERROR("Failed to convert ECEF to WGS84.");
+      return;
+    }
+
+    geotf_.addFrameByENUOrigin("enu", x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
+  }
+
+  inline void convertPositionEcefToEnu(const Eigen::Vector3d& x_ecef,
+                                       Eigen::Vector3d* x_enu) {
+    ROS_ASSERT(x_enu);
+
+    if (!geotf_.canConvert("ecef", "enu")) {
+      ROS_WARN_THROTTLE(
+          5.0, "Cannot convert ECEF to ENU. Waiting for ENU to be set.");
+      return;
+    }
+
+    if (!geotf_.convert("ecef", x_ecef, "enu", x_enu)) {
+      ROS_ERROR("Failed to convert ECEF to ENU.");
+      return;
+    }
+  }
+
   bool use_base_enu_origin_ = true;  // False: ENU origin is first position.
   geotf::GeodeticConverter geotf_;
 
