@@ -11,6 +11,7 @@ echo "Installing libsbp_ros_msgs dependencies."
 sudo apt install -y python-pip
 pip install jinja2
 pip install setuptools
+pip install voluptuous
 
 echo "Installing geodetic_utils and geotf dependencies."
 sudo apt install ros-${ROS_VERSION}-tf-conversions -y
@@ -18,3 +19,7 @@ sudo apt install libgdal-dev -y
 
 echo "Installing rqt_gps_rtk_plugin dependencies."
 sudo apt install ros-${ROS_VERSION}-rqt-gui ros-${ROS_VERSION}-rqt-gui-cpp qt5-default -y
+
+echo "Installing piksi_multi_cpp dependencies."
+sudo apt install ros-${ROS_VERSION}-eigen-conversions -y
+sudo apt install libserialport-dev -y
