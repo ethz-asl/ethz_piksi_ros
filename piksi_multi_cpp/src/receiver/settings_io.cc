@@ -67,6 +67,8 @@ bool SettingsIo::writeSetting(const std::string& section,
       SBP_MSG_SETTINGS_WRITE_RESP, state_);
 
   // Send message.
+  // The writing sometimes fails with unspecified error. We wait a little.
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   int req_success = sbp_send_message(
       state_.get(), SBP_MSG_SETTINGS_WRITE, SBP_SENDER_ID, kLen,
       (unsigned char*)(&write_req), &Device::write_redirect);
@@ -93,9 +95,6 @@ bool SettingsIo::writeSetting(const std::string& section,
               value.c_str(), req_success);
     return false;
   }
-
-  // The writing sometimes fails with unspecified error. We wait a little.
-  std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
   return true;
 }
