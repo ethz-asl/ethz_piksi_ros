@@ -8,4 +8,6 @@ sudo apt-get install -y python-wstool python-catkin-tools
 
 # Package dependencies.
 echo "Installing libsbp_ros_msgs dependencies."
-sudo apt install -y setuptools jinja2
+sudo apt install -y python-pip
+pip install jinja2
+pip install setuptools
