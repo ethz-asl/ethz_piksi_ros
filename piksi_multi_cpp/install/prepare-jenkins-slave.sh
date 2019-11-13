@@ -19,3 +19,7 @@ sudo apt install libgdal-dev -y
 
 echo "Installing rqt_gps_rtk_plugin dependencies."
 sudo apt install ros-${ROS_VERSION}-rqt-gui ros-${ROS_VERSION}-rqt-gui-cpp qt5-default -y
+
+echo "Installing piksi_multi_cpp dependencies."
+sudo apt install ros-${ROS_VERSION}-eigen-conversions -y
+sudo apt install libserialport-dev -y
