@@ -1,6 +1,6 @@
 <launch>
   <arg name="device_ids" default="usb://*"/> <!-- E.g. "usb://*;tcp://192.168.222.0:55555;serial:///dev/ttyS5:115200" -->
-  <node name="piksi_multi_cpp_base" pkg="piksi_multi_cpp" type="piksi_multi" output="log" respawn="true" respawn_delay="15">
+  <node name="piksi_multi_cpp_base" pkg="piksi_multi_cpp" type="piksi_multi" output="log" required="true">
       <param name="device_ids" value="$(arg device_ids)" />
       <param name="use_gps_time" value="true" />
       <param name="autostart_base_sampling" value="true" />

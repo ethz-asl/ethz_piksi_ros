@@ -2,4 +2,9 @@
 Description=Start base station automatically on startup.
 
 [Service]
-ExecStart=roslaunch piksi_multi base.launch
+Type=forking
+ExecStart=/home/findmine-rtk-base/catkin_ws/src/ethz_piksi_ros/piksi_multi_cpp/install/startup_base_station.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
