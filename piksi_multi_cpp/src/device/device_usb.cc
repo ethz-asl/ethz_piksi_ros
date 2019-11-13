@@ -33,6 +33,8 @@ Identifiers DeviceUSB::discoverAllSerialNumbers() {
 
   // Identify Piksi Multi among ports.
   for (int i = 0; ports[i]; i++) {
+    if (sp_get_port_transport(ports[i]) != sp_transport::SP_TRANSPORT_USB)
+      continue;
     // Check if port belongs to a Piksi Multi and get serial number.
     Identifier id = "usb://" + identifyPiksiAndGetSerialNumber(ports[i]);
     // Add serial to identifier set.
@@ -101,7 +103,8 @@ Identifier DeviceUSB::identifyPiksiAndGetSerialNumber(struct sp_port* port) {
   int usb_pid = -1;
   sp_return result = sp_get_port_usb_vid_pid(port, &usb_vid, &usb_pid);
   if (result != SP_OK) {
-    ROS_ERROR("Cannot get vendor ID and product ID for port %s: %d", sp_get_port_name(port), result);
+    ROS_ERROR("Cannot get vendor ID and product ID for port %s: %d",
+              sp_get_port_name(port), result);
     return nullptr;
   }
   std::tuple<uint16_t, uint16_t> usb_vidpid = {usb_vid, usb_pid};
