@@ -10,7 +10,7 @@
              value="26078"/> <!-- Port on which UDP broadcasts are sent -->
 
       <param name="base_station_receiver_0/udp_broadcast_interfaces"
-             value="lo;enp1s0::"/> <!-- Semicolon separate list of interfaces on which observations should be sent via network broadcast -->
+             value="lo;enp1s0"/> <!-- Semicolon separate list of interfaces on which observations should be sent via network broadcast -->
 
       <param name="base_station_receiver_0/udp_unicast_targets"
              value=""/> <!-- Additional hosts to which observations are sent via unicast -->
