@@ -12,6 +12,7 @@ find_package (Eigen3 REQUIRED)
 ###################
 ## AUTOGENERATION #
 ###################
+# REQUIRES CATKIN MERGE DEVEL SPACE
 catkin_python_setup() # Must be called before generate_messages (inside catkin_simple) and must be called before running rosrun libsbp_ros_msgs generator
 execute_process(
   COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/msg

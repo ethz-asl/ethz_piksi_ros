@@ -11,6 +11,7 @@ echo "Installing libsbp_ros_msgs dependencies."
 sudo apt install -y python-pip
 pip install jinja2
 pip install setuptools
+pip install voluptuous
 
 echo "Installing geodetic_utils and geotf dependencies."
 sudo apt install ros-${ROS_VERSION}-tf-conversions -y
