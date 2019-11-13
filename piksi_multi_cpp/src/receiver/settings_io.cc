@@ -10,7 +10,7 @@
 #include <thread>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h"
 
-const int kSleepMs = 10;
+const int kSleepMs = 30;
 
 namespace piksi_multi_cpp {
 
