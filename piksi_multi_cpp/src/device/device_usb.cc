@@ -33,8 +33,6 @@ Identifiers DeviceUSB::discoverAllSerialNumbers() {
 
   // Identify Piksi Multi among ports.
   for (int i = 0; ports[i]; i++) {
-    if (sp_get_port_transport(ports[i]) != sp_transport::SP_TRANSPORT_USB)
-      continue;
     // Check if port belongs to a Piksi Multi and get serial number.
     Identifier id = "usb://" + identifyPiksiAndGetSerialNumber(ports[i]);
     // Add serial to identifier set.
@@ -97,6 +95,8 @@ bool DeviceUSB::allocatePort() {
 
 Identifier DeviceUSB::identifyPiksiAndGetSerialNumber(struct sp_port* port) {
   if (!port) return Identifier();
+  if (sp_get_port_transport(ports[i]) != sp_transport::SP_TRANSPORT_USB)
+    return Identifier();
 
   // Get vendor and product id to identify Piksi Multi.
   int usb_vid = -1;
