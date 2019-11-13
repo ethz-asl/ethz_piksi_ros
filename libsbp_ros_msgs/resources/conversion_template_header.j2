@@ -1,0 +1,29 @@
+// This message is automatically generated using generator.py
+// PLEASE DO NOT MODIFY MANUALLY.
+
+#ifndef LIBSBP_ROS_MSGS_CONVERSION_H_
+#define LIBSBP_ROS_MSGS_CONVERSION_H_
+
+// Include all SBP headers.
+((*- for spec in all_specs *))
+#include <libsbp/((((((spec.identifier)))|to_sbp_file_name))).h>
+((*- endfor *))
+
+// Include all generated SBP ROS messages.
+((*- for spec in all_specs -*))
+((*- for definition in spec.definitions *))
+#include <libsbp_ros_msgs/((((((definition.identifier)))|to_identifier))).h>
+((*- endfor -*))
+((*- endfor *))
+
+// Autocreated conversions.
+namespace libsbp_ros_msgs {
+((* for spec in all_specs -*))
+((*- for definition in spec.definitions *))
+((((((definition.identifier)))|to_identifier))) convertSbpMsgToRosMsg(const ((((((definition.identifier)))|to_sbp_struct)))& sbp_msg, const uint8_t len = 0);
+((*- endfor -*))
+((*- endfor *))
+
+} // namespace libsbp_ros_msgs
+
+#endif // LIBSBP_ROS_MSGS_CONVERSION_H_

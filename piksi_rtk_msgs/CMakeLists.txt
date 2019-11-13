@@ -28,6 +28,7 @@ add_message_files(
     DeviceMonitor_V2_4_1.msg
     Dops.msg
     DopsMulti.msg
+    ExtEvent.msg
     GpsTime.msg
     GpsTimeMulti.msg
     Heartbeat.msg
@@ -37,25 +38,37 @@ add_message_files(
     INSStatus.msg
     Log.msg
     MagRaw.msg
+    MeasurementState_V2_4_1.msg
     Observation.msg
     PosEcef.msg
+    PosEcefCov.msg
+    PositionWithCovariance.msg
+    PositionWithCovarianceStamped.msg
     PosLlh.msg
+    PosLlhCov.msg
     PosLlhMulti.msg
     ReceiverState.msg
     ReceiverState_V2_2_15.msg
     ReceiverState_V2_3_15.msg
     ReceiverState_V2_4_1.msg
+
+    ReceiverState_V2_6_5.msg
     TrackingState.msg
     TrackingState_V2_2_15.msg
     TrackingState_V2_3_15.msg
     TrackingState_V2_4_1.msg
+    TrackingState_V2_6_3.msg
     UartState.msg
     UartState_V2_3_15.msg
     UartState_V2_4_1.msg
     UtcTimeMulti.msg
     VelBody.msg
     VelEcef.msg
+    VelEcefCov.msg
     VelNed.msg
+    VelNedCov.msg
+    VelocityWithCovariance.msg
+    VelocityWithCovarianceStamped.msg
 )
 
 ## Generate services in the 'srv' folder

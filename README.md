@@ -46,7 +46,7 @@ Build Status
 
 Credits
 -------
-Marco Tranzatto, Kai Holtmann, Michael Pantic - ETHZ ASL & RSL - 30 November 2017
+Marco Tranzatto, Kai Holtmann, Michael Pantic, Rik Baehnemann - ETHZ ASL & RSL - 28 April 2019
 
 Based on the initial work of Daniel Eckert.
 

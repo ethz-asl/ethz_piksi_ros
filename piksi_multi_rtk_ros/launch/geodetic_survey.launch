@@ -9,14 +9,18 @@
        create the origin of the ENU frame on the ground below the antenna of the base station.
        The surveyed position of the antenna is NOT affected by this parameter. -->
   <arg name="height_base_station_from_ground"         default="1.89"/>
+  <arg name="use_covariance"                          default="False" />
 
   <!-- Piksi. -->
-  <include file="$(find piksi_multi_rtk_ros)/launch/piksi_multi_base_station.launch"/>
+  <include file="$(find piksi_multi_rtk_ros)/launch/piksi_multi_base_station.launch">
+    <arg name="publish_covariances" value="$(arg use_covariance)"/>
+  </include>
 
   <!-- Geodetic Survey. -->
   <node pkg="piksi_multi_rtk_ros" type="geodetic_survey" name="geodetic_survey" output="screen">
     <param name="number_of_desired_fixes"             value="$(arg number_of_desired_fixes)"/>
     <param name="height_base_station_from_ground"     value="$(arg height_base_station_from_ground)"/>
+    <param name="use_covariance"                      value="$(arg use_covariance)"/>
   </node>
 
 </launch>

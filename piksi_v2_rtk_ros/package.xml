@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>piksi_v2_rtk_ros</name>
-  <version>1.8.1</version>
+  <version>1.10.0</version>
   <description>
     ROS driver for Piksi V2 RTK GPS Receiver.
   </description>

@@ -1,0 +1,52 @@
+// This message is automatically generated using generator.py
+// PLEASE DO NOT MODIFY MANUALLY.
+
+#ifndef LIBSBP_ROS_MSGS_SBP_RELAYS_H_
+#define LIBSBP_ROS_MSGS_SBP_RELAYS_H_
+
+#include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_relay.h>
+#include <libsbp_ros_msgs/conversion.h>
+
+namespace piksi_multi_cpp {
+
+// Declare all relays.
+((*- for spec in all_specs *))
+((*- for definition in spec.definitions *))
+((*- if (((definition.sbp_id)))*))
+class SbpRelay((((((definition.identifier)))|to_identifier)))
+    : public SbpRelay<((((((definition.identifier)))|to_sbp_struct))),
+                                     libsbp_ros_msgs::((((((definition.identifier)))|to_identifier)))> {
+  public:
+    inline SbpRelay((((((definition.identifier)))|to_identifier)))(
+        const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state)
+        : SbpRelay(nh, ((((((definition.identifier)))|to_msg_definition))), state, "((((((definition.identifier)))|to_topic)))") {}
+};
+((* endif *))
+((*- endfor -*))
+((*- endfor *))
+
+// Create all relays
+std::vector<SBPCallbackHandler::Ptr> createAllSbpRelays(const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state) {
+  std::vector<SBPCallbackHandler::Ptr> relays;
+
+  ((* for spec in all_specs -*))
+  ((*- if spec.render_source -*))
+  ((*- for definition in spec.definitions -*))
+  ((*- if (((definition.sbp_id)))-*))
+
+  relays.push_back(SBPCallbackHandler::Ptr(new SbpRelay((((((definition.identifier)))|to_identifier)))(nh, state)));
+  ((* endif -*))
+  ((*- endfor -*))
+  ((*- endif -*))
+  ((*- endfor *))
+  // Remove all invalid (nullptr) callbacks.
+  relays.erase(std::remove_if(
+  relays.begin(), relays.end(),
+  [](const SBPCallbackHandler::Ptr& relay) { return relay.get() == nullptr; }));
+
+  return relays;
+}
+
+} // namespace piksi_multi_cpp
+
+#endif  // LIBSBP_ROS_MSGS_SBP_RELAYS_H_

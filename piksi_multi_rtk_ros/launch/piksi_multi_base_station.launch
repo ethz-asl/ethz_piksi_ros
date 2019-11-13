@@ -11,6 +11,8 @@
   <arg name="tcp_addr"                    default="192.168.0.222"/>
   <!-- Broadcast address for corrections: used to send corrections over WiFi. -->
   <arg name="broadcast_addr"              default="192.168.0.255"/>
+  <!-- Publish topics with covariance information. -->
+  <arg name="publish_covariances"         default="False"/>
 
   <!-- Piksi Multi ROS driver node: base station mode -->
   <node pkg="piksi_multi_rtk_ros" type="piksi_multi" name="piksi_multi_base_station" output="screen" respawn="true">
@@ -24,6 +26,7 @@
     <param name="broadcast_addr"          value="$(arg broadcast_addr)"/>
     <!-- Force base station mode -->
     <param name="base_station_mode"       value="true"/>
+    <param name="publish_covariances"     value="$arg publish_covariances"/>
   </node>
 
 </launch>
