@@ -95,7 +95,7 @@ bool DeviceUSB::allocatePort() {
 
 Identifier DeviceUSB::identifyPiksiAndGetSerialNumber(struct sp_port* port) {
   if (!port) return Identifier();
-  if (sp_get_port_transport(ports[i]) != sp_transport::SP_TRANSPORT_USB)
+  if (sp_get_port_transport(port) != sp_transport::SP_TRANSPORT_USB)
     return Identifier();
 
   // Get vendor and product id to identify Piksi Multi.
