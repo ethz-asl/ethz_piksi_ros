@@ -101,7 +101,7 @@ Identifier DeviceUSB::identifyPiksiAndGetSerialNumber(struct sp_port* port) {
   int usb_pid = -1;
   sp_return result = sp_get_port_usb_vid_pid(port, &usb_vid, &usb_pid);
   if (result != SP_OK) {
-    ROS_ERROR_STREAM("Cannot get vendor ID and product ID." << result);
+    ROS_ERROR("Cannot get vendor ID and product ID for port %s: %d", sp_get_port_name(port), result);
     return nullptr;
   }
   std::tuple<uint16_t, uint16_t> usb_vidpid = {usb_vid, usb_pid};
