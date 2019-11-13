@@ -86,7 +86,7 @@ END"
 fi
 
 sudo systemctl daemon-reload
-sudo systemctl enable pps-gpio-modprobe.service
+sudo systemctl enable pps-modprobe.service
 
 # Install PPS debug tools.
 sudo apt install pps-tools gpsd-clients -y
