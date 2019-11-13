@@ -126,5 +126,6 @@ dmypy.json
 
 # Ignore auto generated files
 *.msg
-*.h
-*.cc
+sbp_relays.h
+conversion.h
+conversion.cc
