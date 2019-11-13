@@ -112,16 +112,18 @@ ReceiverFactory::ReceiverType ReceiverFactory::inferType(
   if (!settings_io.init()) return ReceiverType::kUnknown;
 
   // Identify base station.
-  if (settings_io.readSetting("surveyed_position", "broadcast") &&
-      settings_io.checkBoolTrue())
-    return ReceiverType::kBaseStationReceiver;
+  while (!settings_io.readSetting("surveyed_position", "broadcast")) {
+  }
+  if (settings_io.checkBoolTrue()) return ReceiverType::kBaseStationReceiver;
   // Identify position receiver.
-  else if (settings_io.readSetting("solution", "dgnss_solution_mode") &&
-           settings_io.compareValue("Low Latency"))
+  while (!settings_io.readSetting("solution", "dgnss_solution_mode")) {
+  }
+  if (settings_io.compareValue("Low Latency"))
     return ReceiverType::kPositionReceiver;
   // Identify attitude receiver.
-  else if (settings_io.readSetting("solution", "dgnss_solution_mode") &&
-           settings_io.compareValue("Time Matched"))
+  while (!settings_io.readSetting("solution", "dgnss_solution_mode")) {
+  }
+  if (settings_io.compareValue("Time Matched"))
     return ReceiverType::kAttitudeReceiver;
 
   ROS_WARN("Cannot infer receiver type.");
