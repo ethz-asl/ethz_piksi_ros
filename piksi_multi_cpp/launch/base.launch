@@ -1,16 +1,18 @@
-<arg name="device_ids" default="usb://*"/> <!-- E.g. "usb://*;tcp://192.168.222.0:55555;serial:///dev/ttyS5:115200" -->
-
 <launch>
-    <node name="piksi_multi_cpp_base" pkg="piksi_multi_cpp" type="piksi_multi" output="screen">
-        <param name="device_ids" value="$(arg device_ids)" />
+  <arg name="device_ids" default="usb://*"/> <!-- E.g. "usb://*;tcp://192.168.222.0:55555;serial:///dev/ttyS5:115200" -->
+  <node name="piksi_multi_cpp_base" pkg="piksi_multi_cpp" type="piksi_multi" output="screen">
+      <param name="device_ids" value="$(arg device_ids)" />
+      <param name="use_gps_time" value="true" />
+      <param name="autostart_base_sampling" value="true" />
+      <param name="num_desired_fixes" value="2000" />
 
-        <param name="base_station_receiver_0/udp_port"
-               value="26078"/> <!-- Port on which UDP broadcasts are sent -->
+      <param name="base_station_receiver_0/udp_port"
+             value="26078"/> <!-- Port on which UDP broadcasts are sent -->
 
-        <param name="base_station_receiver_0/udp_broadcast_interfaces"
-               value="lo;enp1s0::"/> <!-- Semicolon separate list of interfaces on which observations should be sent via network broadcast -->
+      <param name="base_station_receiver_0/udp_broadcast_interfaces"
+             value="lo;enp1s0::"/> <!-- Semicolon separate list of interfaces on which observations should be sent via network broadcast -->
 
-        <param name="base_station_receiver_0/udp_unicast_targets"
-               value=""/> <!-- Additional hosts to which observations are sent via unicast -->
-    </node>
+      <param name="base_station_receiver_0/udp_unicast_targets"
+             value=""/> <!-- Additional hosts to which observations are sent via unicast -->
+  </node>
 </launch>
