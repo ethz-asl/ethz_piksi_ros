@@ -11,10 +11,10 @@ namespace lrm = libsbp_ros_msgs;
 
 RosTimeHandler::RosTimeHandler(const std::shared_ptr<sbp_state_t>& state)
     : gps_time_handler_{std::bind(&RosTimeHandler::callbackToGpsTime, this,
-                                  s::_1),
+                                  s::_1, s::_2),
                         SBP_MSG_GPS_TIME, state},
       utc_time_handler_{
-          std::bind(&RosTimeHandler::callbackToUtcTime, this, s::_1),
+          std::bind(&RosTimeHandler::callbackToUtcTime, this, s::_1, s::_2),
           SBP_MSG_UTC_TIME, state} {
   // Check if user wants to stamp data with GPS time.
   ros::NodeHandle nh_node("~");
@@ -28,7 +28,8 @@ RosTimeHandler::RosTimeHandler(const std::shared_ptr<sbp_state_t>& state)
 bool RosTimeHandler::utcTimeReady() const { return leap_seconds_.has_value(); }
 
 // This callback should always arrive before UTC time.
-void RosTimeHandler::callbackToGpsTime(const msg_gps_time_t& msg) {
+void RosTimeHandler::callbackToGpsTime(const msg_gps_time_t& msg,
+                                       const uint8_t len) {
   if (((msg.flags >> 0) & 0x7) == 0) {  // No GNSS time.
     last_gps_time_.reset();
     tow_to_utc_.reset();
@@ -43,7 +44,8 @@ void RosTimeHandler::callbackToGpsTime(const msg_gps_time_t& msg) {
         msg.tow, lrm::convertGpsTimeToUtcRosTime(msg, leap_seconds_.value())));
 }
 
-void RosTimeHandler::callbackToUtcTime(const msg_utc_time_t& msg) {
+void RosTimeHandler::callbackToUtcTime(const msg_utc_time_t& msg,
+                                       const uint8_t len) {
   if (((msg.flags >> 0) & 0x7) == 0) {  // No GNSS time.
     return;
   }

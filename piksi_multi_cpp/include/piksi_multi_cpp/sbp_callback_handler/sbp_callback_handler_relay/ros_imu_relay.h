@@ -19,7 +19,7 @@ class RosImuRelay
   bool convertSbpToRos(const msg_imu_raw_t& sbp_msg, const uint8_t len,
                        sensor_msgs::Imu* ros_msg) override;
 
-  void callbackToImuAux(const msg_imu_aux_t& msg);
+  void callbackToImuAux(const msg_imu_aux_t& msg, const uint8_t len);
 
   RosTimeHandler::Ptr ros_time_handler_;
   SBPLambdaCallbackHandler<msg_imu_aux_t> imu_aux_handler_;

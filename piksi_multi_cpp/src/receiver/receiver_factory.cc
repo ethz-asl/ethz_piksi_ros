@@ -1,17 +1,17 @@
-#include "piksi_multi_cpp/receiver/receiver_factory.h"
 #include <ros/console.h>
 #include "piksi_multi_cpp/device/device_factory.h"
-#include "piksi_multi_cpp/receiver/receiver.h"
 #include "piksi_multi_cpp/receiver/receiver_attitude.h"
 #include "piksi_multi_cpp/receiver/receiver_base_station.h"
+#include "piksi_multi_cpp/receiver/receiver_factory.h"
 #include "piksi_multi_cpp/receiver/receiver_position.h"
+#include "piksi_multi_cpp/receiver/receiver_ros.h"
+#include "piksi_multi_cpp/receiver/settings_io.h"
 
 namespace piksi_multi_cpp {
 
 Receiver::Ptr ReceiverFactory::createReceiverByReceiverType(
     const ros::NodeHandle& nh, const Device::Ptr& device,
     const ReceiverType type) {
-  return Receiver::Ptr(new ReceiverBaseStation(nh, device));  // debug
   switch (type) {
     case ReceiverType::kBaseStationReceiver:
       return Receiver::Ptr(new ReceiverBaseStation(nh, device));
@@ -19,8 +19,10 @@ Receiver::Ptr ReceiverFactory::createReceiverByReceiverType(
       return Receiver::Ptr(new ReceiverPosition(nh, device));
     case ReceiverType::kAttitudeReceiver:
       return Receiver::Ptr(new ReceiverAttitude(nh, device));
+    case ReceiverType::kSettingIo:
+      return Receiver::Ptr(new SettingsIo(device));
     case ReceiverType::kUnknown:
-      return Receiver::Ptr(new Receiver(nh, device));
+      return Receiver::Ptr(new ReceiverRos(nh, device));
     default:
       return nullptr;
   }
@@ -34,9 +36,9 @@ Receiver::Ptr ReceiverFactory::createReceiverByDevice(
 
 std::vector<Receiver::Ptr>
 ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
-    const ros::NodeHandle& nh, const Identifiers& id) {
+    const ros::NodeHandle& nh, const Identifiers& ids) {
   // Create all devices.
-  auto devices = DeviceFactory::createByIdentifiers(id);
+  auto devices = DeviceFactory::createByIdentifiers(ids);
 
   // A counter variable to assign unique ids.
   std::map<ReceiverType, size_t> counter;
@@ -51,6 +53,7 @@ ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
     }
 
     std::string ns = createNameSpace(type, counter[type]);
+    ROS_INFO("Creating %s", ns.c_str());
     ros::NodeHandle nh_private(nh, ns);
     auto receiver = createReceiverByReceiverType(nh_private, dev, type);
     if (receiver.get()) receivers.push_back(receiver);
@@ -59,6 +62,22 @@ ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
   }
 
   ROS_WARN_COND(receivers.empty(), "No receiver created.");
+  return receivers;
+}
+
+std::vector<SettingsIo::Ptr> ReceiverFactory::createSettingIoReceivers(
+    const Identifiers& ids) {
+  // Create all devices.
+  auto devices = DeviceFactory::createByIdentifiers(ids);
+
+  // Create all receivers.
+  std::vector<std::shared_ptr<SettingsIo>> receivers;
+  for (auto dev : devices) {
+    auto settings_io = std::make_shared<SettingsIo>(dev);
+    if (settings_io.get()) receivers.push_back(settings_io);
+  }
+
+  ROS_WARN_COND(receivers.empty(), "No settings_io receivers created.");
   return receivers;
 }
 
@@ -88,7 +107,24 @@ ReceiverFactory::ReceiverType ReceiverFactory::inferType(
     const Device::Ptr& dev) {
   if (!dev.get()) return ReceiverType::kUnknown;
 
-  ROS_WARN("inferType not implemented.");
+  // Create settings object.
+  SettingsIo settings_io(dev);
+  if (!settings_io.init()) return ReceiverType::kUnknown;
+
+  // Identify base station.
+  if (settings_io.readSetting("surveyed_position", "broadcast") &&
+      settings_io.checkBoolTrue())
+    return ReceiverType::kBaseStationReceiver;
+  // Identify position receiver.
+  else if (settings_io.readSetting("solution", "dgnss_solution_mode") &&
+           settings_io.compareValue("Low Latency"))
+    return ReceiverType::kPositionReceiver;
+  // Identify attitude receiver.
+  else if (settings_io.readSetting("solution", "dgnss_solution_mode") &&
+           settings_io.compareValue("Time Matched"))
+    return ReceiverType::kAttitudeReceiver;
+
+  ROS_WARN("Cannot infer receiver type.");
   return ReceiverType::kUnknown;
 }
 

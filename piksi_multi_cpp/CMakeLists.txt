@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(piksi_multi_cpp)
 
-add_definitions(-std=c++17)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_BUILD_TYPE Release)
 
@@ -25,7 +25,9 @@ cs_add_library(${PROJECT_NAME}
         src/receiver/receiver_base_station.cc
         src/receiver/receiver_factory.cc
         src/receiver/receiver_position.cc
+        src/receiver/receiver_ros.cc
         src/receiver/receiver.cc
+        src/receiver/settings_io.cc
         src/sbp_callback_handler/sbp_callback_handler.cc
         src/sbp_callback_handler/sbp_callback_handler_factory.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.cc
@@ -35,13 +37,16 @@ cs_add_library(${PROJECT_NAME}
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.cc
         src/sbp_callback_handler/sbp_observation_callback_handler.cc
         )
-target_link_libraries(${PROJECT_NAME} serialport)
+target_link_libraries(${PROJECT_NAME} serialport stdc++fs)
 
 ############
 # BINARIES #
 ############
 cs_add_executable(piksi_multi src/piksi_multi_node.cc)
 target_link_libraries(piksi_multi ${PROJECT_NAME})
+
+cs_add_executable(piksi_multi_config src/piksi_multi_config_node.cc)
+target_link_libraries(piksi_multi_config ${PROJECT_NAME})
 
 cs_install()
 cs_export()

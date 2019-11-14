@@ -89,7 +89,7 @@ bool DeviceSerial::open() {
   }
 
   // Open port.
-  sp_return result = sp_open(port_, SP_MODE_READ);
+  sp_return result = sp_open(port_, SP_MODE_READ_WRITE);
   if (result != SP_OK) {
     ROS_ERROR("Cannot open port %s: %d", sp_get_port_name(port_), result);
     close();
@@ -114,12 +114,16 @@ bool DeviceSerial::open() {
   return true;
 }
 
-void DeviceSerial::write(std::vector<uint8_t> buff) const {
+int32_t DeviceSerial::write(std::vector<uint8_t> buff) const {
   if (!port_) {
-    ROS_ERROR_STREAM("Port not opened.");
+    ROS_ERROR("Port not opened.");
   }
-  // try nonblocking for now.
-  sp_nonblocking_write(port_, buff.data(), buff.size());
+  // Use blocking write.
+  const int kTimeoutMs = 1000;
+  int result = sp_blocking_write(port_, buff.data(), buff.size(), kTimeoutMs);
+  ROS_ERROR_COND(result < 0, "Serial write failed.");
+  ROS_ERROR_COND(result == SP_ERR_FAIL, "%s", sp_last_error_message());
+  return result;
 }
 
 int32_t DeviceSerial::read(uint8_t* buff, uint32_t n) const {
@@ -136,6 +140,8 @@ void DeviceSerial::close() {
     sp_return result = sp_close(port_);
     if (result != SP_OK) {
       ROS_ERROR("Cannot close %s properly.", sp_get_port_name(port_));
+    } else {
+      ROS_INFO("Closing port %s", sp_get_port_name(port_));
     }
     sp_free_port(port_);
     port_ = nullptr;

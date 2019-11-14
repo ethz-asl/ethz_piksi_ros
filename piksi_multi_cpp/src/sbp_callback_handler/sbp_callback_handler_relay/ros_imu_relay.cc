@@ -9,7 +9,7 @@ RosImuRelay::RosImuRelay(const ros::NodeHandle& nh,
           nh, SBP_MSG_IMU_RAW, state, "ros/imu"),
       ros_time_handler_(ros_time_handler),
       imu_aux_handler_{std::bind(&RosImuRelay::callbackToImuAux, this,
-                                 std::placeholders::_1),
+                                 std::placeholders::_1, std::placeholders::_2),
                        SBP_MSG_IMU_AUX, state} {}
 
 bool RosImuRelay::convertSbpToRos(const msg_imu_raw_t& sbp_msg,
@@ -47,7 +47,8 @@ bool RosImuRelay::convertSbpToRos(const msg_imu_raw_t& sbp_msg,
   return true;
 }
 
-void RosImuRelay::callbackToImuAux(const msg_imu_aux_t& msg) {
+void RosImuRelay::callbackToImuAux(const msg_imu_aux_t& msg,
+                                   const uint8_t len) {
   // Update configurations once at startup and then only if someone is
   // subscribing.
   if ((acc_scale_.has_value() && gyro_scale_.has_value()) &&

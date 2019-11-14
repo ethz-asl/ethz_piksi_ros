@@ -31,8 +31,8 @@ class RosTimeHandler {
                            const int32_t ns_residual) const;
 
  private:
-  void callbackToGpsTime(const msg_gps_time_t& msg);
-  void callbackToUtcTime(const msg_utc_time_t& msg);
+  void callbackToGpsTime(const msg_gps_time_t& msg, const uint8_t len);
+  void callbackToUtcTime(const msg_utc_time_t& msg, const uint8_t len);
 
   bool use_gps_time_ = false;
   SBPLambdaCallbackHandler<msg_gps_time_t> gps_time_handler_;
