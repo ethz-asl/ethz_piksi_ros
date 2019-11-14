@@ -15,4 +15,10 @@
       <param name="base_station_receiver_0/udp_unicast_targets"
              value=""/> <!-- Additional hosts to which observations are sent via unicast -->
   </node>
+
+  <!-- Arduino for LED status indication -->
+  <node name="rosserial_server" pkg="rosserial_server" type="serial_node" output="log">
+    <param name="port" value="/dev/ttyUSB0" />
+    <param name="baud" value="9600" />
+  </node>
 </launch>
