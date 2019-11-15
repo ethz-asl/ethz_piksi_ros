@@ -24,7 +24,7 @@ class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
 
  private:
   // Implement this method to convert the message to the desired output type.
-  virtual void convertSbpMsgToRosMsg(const SbpMsgType& sbp_msg,
+  virtual bool convertSbpMsgToRosMsg(const SbpMsgType& sbp_msg,
                                      const uint8_t len,
                                      RosMsgType* ros_msg) = 0;
 
@@ -44,7 +44,7 @@ class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
     ros_msg->header.frame_id = frame_id_;
 
     // Manual conversion.
-    convertSbpMsgToRosMsg(sbp_msg, len, ros_msg);
+    if(!convertSbpMsgToRosMsg(sbp_msg, len, ros_msg)) return false;
     return true;
   }
 

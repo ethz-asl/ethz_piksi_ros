@@ -83,6 +83,17 @@ bool SettingsIo::writeSetting(const std::string& section,
     return false;
   }
 
+  // Save to persistent memory.
+  char empty_req[0];
+  int save_success =
+      sbp_send_message(state_.get(), SBP_MSG_SETTINGS_SAVE, SBP_SENDER_ID, 0,
+                       (unsigned char*)(&empty_req), &Device::write_redirect);
+  if (save_success != SBP_OK) {
+    ROS_ERROR("Cannot save setting %s.%s.%s, %d", section.c_str(), name.c_str(),
+              value.c_str(), req_success);
+    return false;
+  }
+
   // The writing sometimes fails with unspecified error. We wait a little.
   std::this_thread::sleep_for(std::chrono::milliseconds(1));
 

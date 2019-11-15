@@ -32,7 +32,7 @@ class RosPosEcefRelay
                  "ecef") {}
 
  private:
-  void convertSbpMsgToRosMsg(const msg_pos_ecef_t& in, const uint8_t len,
+  bool convertSbpMsgToRosMsg(const msg_pos_ecef_t& in, const uint8_t len,
                              geometry_msgs::PointStamped* out) override;
 };
 
@@ -47,7 +47,7 @@ class RosPosEcefCovRelay
                  ros_time_handler, "ecef") {}
 
  private:
-  void convertSbpMsgToRosMsg(
+  bool convertSbpMsgToRosMsg(
       const msg_pos_ecef_cov_t& in, const uint8_t len,
       piksi_rtk_msgs::PositionWithCovarianceStamped* out) override;
 };
@@ -64,7 +64,7 @@ class RosPosLlhCovRelay
         ros_receiver_state_(ros_receiver_state) {}
 
  private:
-  void convertSbpMsgToRosMsg(const msg_pos_llh_cov_t& in, const uint8_t len,
+  bool convertSbpMsgToRosMsg(const msg_pos_llh_cov_t& in, const uint8_t len,
                              sensor_msgs::NavSatFix* out) override;
   RosReceiverState::Ptr ros_receiver_state_;
 };
@@ -80,7 +80,7 @@ class RosBaselineNedRelay
                  ros_time_handler, "ned_base_station") {}
 
  private:
-  void convertSbpMsgToRosMsg(
+  bool convertSbpMsgToRosMsg(
       const msg_baseline_ned_t& in, const uint8_t len,
       piksi_rtk_msgs::PositionWithCovarianceStamped* out) override;
 };
@@ -95,7 +95,7 @@ class RosVelEcefRelay
                  "ecef") {}
 
  private:
-  void convertSbpMsgToRosMsg(const msg_vel_ecef_t& in, const uint8_t len,
+  bool convertSbpMsgToRosMsg(const msg_vel_ecef_t& in, const uint8_t len,
                              geometry_msgs::Vector3Stamped* out) override;
 };
 
@@ -110,7 +110,7 @@ class RosVelEcefCovRelay
                  ros_time_handler, "ecef") {}
 
  private:
-  void convertSbpMsgToRosMsg(
+  bool convertSbpMsgToRosMsg(
       const msg_vel_ecef_cov_t& in, const uint8_t len,
       piksi_rtk_msgs::VelocityWithCovarianceStamped* out) override;
 };
@@ -125,7 +125,7 @@ class RosVelNedRelay
                  "ned") {}
 
  private:
-  void convertSbpMsgToRosMsg(const msg_vel_ned_t& in, const uint8_t len,
+  bool convertSbpMsgToRosMsg(const msg_vel_ned_t& in, const uint8_t len,
                              geometry_msgs::Vector3Stamped* out) override;
 };
 
@@ -140,7 +140,7 @@ class RosVelNedCovRelay
                  ros_time_handler, "ned") {}
 
  private:
-  void convertSbpMsgToRosMsg(
+  bool convertSbpMsgToRosMsg(
       const msg_vel_ned_cov_t& in, const uint8_t len,
       piksi_rtk_msgs::VelocityWithCovarianceStamped* out) override;
 };
