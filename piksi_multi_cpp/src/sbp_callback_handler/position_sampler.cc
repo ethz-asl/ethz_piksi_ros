@@ -29,6 +29,12 @@ PositionSampler::PositionSampler(const ros::NodeHandle& nh,
 void PositionSampler::startSampling(const uint32_t num_desired_fixes,
                                     const std::string& file) {
   num_desired_fixes_ = num_desired_fixes;
+  if (num_desired_fixes_ < 1) {
+    ROS_ERROR(
+        "Cannot sample position. num_desired_fixes needs to be greater than "
+        "0.");
+    return;
+  }
   num_fixes_ = 0;
   file_ = file;
   x_.reset();
@@ -92,6 +98,7 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
     return;
   }
 
+  // Check if fix mode is valid.
   if (((sbp_msg->flags >> 0) && 0x7) == 0) {
     ROS_WARN_THROTTLE(5, "Cannot sample position. Fix mode invalid.");
     return;
@@ -108,8 +115,8 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
   y_.value().segment(block_idx, 3) = z;
   R_inv_.value().block<3, 3>(block_idx, block_idx) = R.inverse();
 
+  // Kalman filter measurement update.
   if (x_.has_value() && P_.has_value()) {
-    // Measurement update.
     // Innovation.
     auto y = z - x_.value();
     auto S = P_.value() + R;

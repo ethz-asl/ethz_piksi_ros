@@ -16,8 +16,14 @@ GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
       nh_(nh) {
   geotf_.initFromRosParam();
   if (geotf_.hasFrame("enu")) reset_position_ = ResetEnuOrigin::kNo;
-  geotf_.addFrameByEPSG("ecef", 4978);
-  geotf_.addFrameByEPSG("wgs84", 4326);
+  ROS_ERROR_COND(
+      !geotf_.addFrameByEPSG("ecef", 4978),
+      "Failed to add frame ecef as EPSG:4978. Be careful using converted "
+      "positions");
+  ROS_ERROR_COND(
+      !geotf_.addFrameByEPSG("wgs84", 4326),
+      "Failed to add frame ecef as EPSG:4326. Be careful using converted "
+      "positions");
 
   set_enu_origin_srv_ = nh_.advertiseService(
       "set_enu_origin", &GeoTfHandler::setEnuOriginCallback, this);
