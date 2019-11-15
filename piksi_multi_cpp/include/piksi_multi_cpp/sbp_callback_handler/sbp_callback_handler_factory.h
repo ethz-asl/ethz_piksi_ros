@@ -4,6 +4,7 @@
 #include <libsbp/sbp.h>
 #include <memory>
 #include <vector>
+#include "piksi_multi_cpp/sbp_callback_handler/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
 namespace piksi_multi_cpp {
@@ -19,7 +20,8 @@ class SBPCallbackHandlerFactory {
       const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state);
 
   static std::vector<SBPCallbackHandler::Ptr> createAllRosMessageRelays(
-      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state);
+      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
+      const RosTimeHandler::Ptr& ros_time_handler);
 };
 }  // namespace piksi_multi_cpp
 

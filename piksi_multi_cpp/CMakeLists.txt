@@ -28,13 +28,14 @@ cs_add_library(${PROJECT_NAME}
         src/receiver/receiver_ros.cc
         src/receiver/receiver.cc
         src/receiver/settings_io.cc
-        src/sbp_callback_handler/sbp_callback_handler.cc
-        src/sbp_callback_handler/sbp_callback_handler_factory.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_imu_relay.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_mag_relay.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_receiver_state.cc
-        src/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.cc
+        src/sbp_callback_handler/position_sampler.cc
+        src/sbp_callback_handler/ros_time_handler.cc
+        src/sbp_callback_handler/sbp_callback_handler.cc
+        src/sbp_callback_handler/sbp_callback_handler_factory.cc
         src/sbp_callback_handler/sbp_observation_callback_handler.cc
         )
 target_link_libraries(${PROJECT_NAME} serialport stdc++fs)

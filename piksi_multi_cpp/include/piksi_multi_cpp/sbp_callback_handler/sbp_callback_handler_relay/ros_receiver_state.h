@@ -5,7 +5,7 @@
 #include <libsbp/tracking.h>
 #include <memory.h>
 #include <piksi_rtk_msgs/ReceiverState_V2_6_5.h>
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.h"
+#include "piksi_multi_cpp/sbp_callback_handler/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h"
 

@@ -8,7 +8,6 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_mag_relay.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_receiver_state.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.h"
 
 namespace piksi_multi_cpp {
 
@@ -21,10 +20,8 @@ SBPCallbackHandlerFactory::createAllSBPMessageRelays(
 
 std::vector<SBPCallbackHandler::Ptr>
 SBPCallbackHandlerFactory::createAllRosMessageRelays(
-    const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state) {
-  // Handle (GPS) time stamping.
-  auto ros_time_handler = std::make_shared<RosTimeHandler>(state);
-
+    const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
+    const RosTimeHandler::Ptr& ros_time_handler) {
   // Create all relays.
   std::vector<SBPCallbackHandler::Ptr> relays;
 

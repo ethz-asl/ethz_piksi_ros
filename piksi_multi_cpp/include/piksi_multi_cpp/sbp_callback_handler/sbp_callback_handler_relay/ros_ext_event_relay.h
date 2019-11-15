@@ -4,7 +4,7 @@
 #include <libsbp/ext_events.h>
 #include <piksi_rtk_msgs/ExtEvent.h>
 #include <ros/assert.h>
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_time_handler.h"
+#include "piksi_multi_cpp/sbp_callback_handler/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/sbp_callback_handler_relay.h"
 
 namespace piksi_multi_cpp {
