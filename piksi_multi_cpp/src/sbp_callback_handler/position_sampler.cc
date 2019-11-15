@@ -29,6 +29,12 @@ PositionSampler::PositionSampler(const ros::NodeHandle& nh,
 void PositionSampler::startSampling(const uint32_t num_desired_fixes,
                                     const std::string& file) {
   num_desired_fixes_ = num_desired_fixes;
+  if (num_desired_fixes_ < 1) {
+    ROS_ERROR(
+        "Cannot sample position. num_desired_fixes needs to be greater than "
+        "0.");
+    return;
+  }
   num_fixes_ = 0;
   file_ = file;
   x_.reset();
