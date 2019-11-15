@@ -13,12 +13,17 @@ ReceiverBaseStation::ReceiverBaseStation(const ros::NodeHandle& nh,
   setupBaseStationSampling();
 }
 
+// The base station can either be sampled automatically at startup with
+// `autostart_base_sampling` rosparam or with a service call
+// `resample_base_position`.
+// The number of desired fixes is determined through the parameter
+// `num_desired_fixes` when autosampling or defined in the service call.
 void ReceiverBaseStation::setupBaseStationSampling() {
   // Subscribe to maximum likelihood estimate and advertise service to overwrite
   // current base station position.
-  overwrite_base_position_srv_ = nh_.advertiseService(
-      "overwrite_base_position",
-      &ReceiverBaseStation::overwriteBasePositionCallback, this);
+  resample_base_position_srv_ = nh_.advertiseService(
+      "resample_base_position",
+      &ReceiverBaseStation::resampleBasePositionCallback, this);
   const uint32_t kQueueSizeMlEstimate = 0;
   ml_estimate_sub_ =
       nh_.subscribe("position_sampler/ml_position", kQueueSizeMlEstimate,
@@ -29,8 +34,10 @@ void ReceiverBaseStation::setupBaseStationSampling() {
   auto autostart_base_sampling =
       nh_node.param<bool>("autostart_base_sampling", true);
   if (autostart_base_sampling) {
-    std_srvs::Empty srv;
-    overwriteBasePositionCallback(srv.request, srv.response);
+    piksi_rtk_msgs::SamplePosition srv;
+    srv.request.num_desired_fixes =
+        nh_node.param<int>("num_desired_fixes", 2000);
+    resampleBasePositionCallback(srv.request, srv.response);
   }
 }
 
@@ -64,24 +71,24 @@ void ReceiverBaseStation::setupUDPSenders() {
   }
 }
 
-bool ReceiverBaseStation::overwriteBasePositionCallback(
-    std_srvs::Empty::Request& req, std_srvs::Empty::Response& res) {
+bool ReceiverBaseStation::resampleBasePositionCallback(
+    piksi_rtk_msgs::SamplePosition::Request& req,
+    piksi_rtk_msgs::SamplePosition::Response& res) {
   // Set flag to wait for sampling to be finished.
   wait_for_sampled_position_ = true;
   // Start sampling.
   ros::NodeHandle nh_node("~");
-  uint32_t num_desired_fixes = nh_node.param<int>("num_desired_fixes", 2000);
-  position_sampler_->startSampling(num_desired_fixes);
+  position_sampler_->startSampling(req.num_desired_fixes, req.file);
   ROS_INFO("Start sampling base station position with %d desired fixes.",
-           num_desired_fixes);
+           req.num_desired_fixes);
   return true;
 }
 
 void ReceiverBaseStation::sampledPositionCallback(
     const piksi_rtk_msgs::PositionWithCovarianceStamped::Ptr& msg) {
   if (!wait_for_sampled_position_) {
-    ROS_WARN("Received sampled base position but not updating firmware.");
-    ROS_WARN("Call `overwrite_base_position` to resample base station.");
+    ROS_WARN("Received sampled base position but not saving to settings.");
+    ROS_WARN("Call `resample_base_position` to resample base station.");
     return;
   }
   wait_for_sampled_position_ = false;
