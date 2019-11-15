@@ -14,6 +14,11 @@ ReceiverBaseStation::ReceiverBaseStation(const ros::NodeHandle& nh,
   setupBaseStationSampling();
 }
 
+// The base station can either be sampled automatically at startup with
+// `autostart_base_sampling` rosparam or with a service call
+// `resample_base_position`.
+// The number of desired fixes is determined through the parameter
+// `num_desired_fixes` when autosampling or defined in the service call.
 void ReceiverBaseStation::setupBaseStationSampling() {
   // Subscribe to maximum likelihood estimate and advertise service to overwrite
   // current base station position.
