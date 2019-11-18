@@ -1,0 +1,4 @@
+- git: {local-name: catkin_simple, uri: 'https://github.com/catkin/catkin_simple.git'}
+- git: {local-name: libsbp_catkin, uri: 'https://github.com/ethz-asl/libsbp_catkin.git', version: v2.6.5}
+- git: {local-name: geodetic_utils, uri: 'https://github.com/ethz-asl/geodetic_utils.git'}
+- git: {local-name: eigen_catkin, uri: 'https://github.com/ethz-asl/eigen_catkin.git'}
