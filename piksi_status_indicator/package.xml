@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>piksi_status_indicator</name>
+  <version>1.0.0</version>
+  <description>
+    ROS script which uses the neostate package to indicate the status of the base station.
+  </description>
+
+  <author email="christian.lanegger@mavt.ethz.ch">Christian Lanegger</author>
+  <maintainer email="christian.lanegger@mavt.ethz.ch">Christian Lanegger</maintainer>
+  
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>piksi_rtk_msgs</depend>
+  <depend>roslib</depend>
+  <depend>rospy</depend>
+  <depend>neostate</depend>
+
+</package>
