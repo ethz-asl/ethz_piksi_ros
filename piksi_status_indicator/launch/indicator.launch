@@ -1,0 +1,10 @@
+<launch>
+  <node name="piksi_multi_cpp_base" pkg="piksi_status_indicator" type="start_status_indicator" output="screen" required="true">
+      <param name="number_of_leds" value="8" />
+  </node>
+
+  <!-- Run Status Indicator Link. -->
+  <node name="rosserial_python" pkg="rosserial_python" type="serial_node.py"
+    args="_port:=/dev/ttyACM0 _baud:=56700" respawn="true" output="screen" />
+
+</launch>
