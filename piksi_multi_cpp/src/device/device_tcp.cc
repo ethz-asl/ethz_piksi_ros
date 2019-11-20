@@ -30,12 +30,12 @@ bool DeviceTCP::openSocket() {
   connection_settings.ai_protocol = IPPROTO_TCP;  // TCP
 
   // Set up endpoint address
-  struct addrinfo* resolved;
+  struct addrinfo* resolved = nullptr;
   int result_addrinfo =
       getaddrinfo(host_.c_str(), std::to_string(tcp_port_).c_str(),
                   &connection_settings, &resolved);
   if (result_addrinfo != 0) {
-    freeaddrinfo(resolved);
+    if (resolved) freeaddrinfo(resolved);
     ROS_ERROR_STREAM("Could not resolve address for device "
                      << id_ << ". Error:" << gai_strerror(result_addrinfo));
     return false;

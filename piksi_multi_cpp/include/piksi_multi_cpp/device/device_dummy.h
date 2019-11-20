@@ -1,6 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_DEVICE_DEVICE_DUMMY_H_
 #define PIKSI_MULTI_CPP_DEVICE_DEVICE_DUMMY_H_
 
+#include <unistd.h>
 #include "piksi_multi_cpp/device/device.h"
 
 namespace piksi_multi_cpp {
