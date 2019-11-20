@@ -15,14 +15,21 @@ UDPObservationReceiver::UDPObservationReceiver(
 
 void UDPObservationReceiver::start(int port) {
   // set up socket
-  struct addrinfo hints, *res;
+  struct addrinfo hints, *res = nullptr;
 
   // set port
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;     // use IPv4 or IPv6, whichever
   hints.ai_socktype = SOCK_DGRAM;  // get full datagramm without IP header.
   hints.ai_flags = AI_PASSIVE;
-  getaddrinfo(nullptr, std::to_string(port).c_str(), &hints, &res);
+  int result_addrinfo =
+      getaddrinfo(nullptr, std::to_string(port).c_str(), &hints, &res);
+  if (result_addrinfo != 0) {
+    if (res) freeaddrinfo(res);
+    ROS_ERROR_STREAM("Could not resolve address for port "
+                     << port << ". Error:" << gai_strerror(result_addrinfo));
+    return;
+  }
 
   // get socket & bind
   fd_socket_ = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -80,4 +87,4 @@ void UDPObservationReceiver::process() {
 }
 
 uint64_t UDPObservationReceiver::getPacketCount() { return received_packets_; }
-}
+}  // namespace piksi_multi_cpp
