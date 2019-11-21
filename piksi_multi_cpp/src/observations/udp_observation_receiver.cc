@@ -23,7 +23,7 @@ void UDPObservationReceiver::start(int port) {
   hints.ai_socktype = SOCK_DGRAM;  // get full datagramm without IP header.
   hints.ai_flags = AI_PASSIVE;
   int result_addrinfo =
-      getaddrinfo("255.255.255.255", std::to_string(port).c_str(), &hints, &res);
+      getaddrinfo(nullptr, std::to_string(port).c_str(), &hints, &res);
   if (result_addrinfo != 0) {
     if (res) freeaddrinfo(res);
     ROS_ERROR_STREAM("Could not resolve address for port "
@@ -39,22 +39,6 @@ void UDPObservationReceiver::start(int port) {
     close(fd_socket_);
     return;
   }
-
-  // set socket to receive any broadcast/multicast
-/*  struct ip_mreq mreq;
-  mreq.imr_multiaddr.s_addr = inet_addr("10.10.10.255");
-  // mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-  int success = setsockopt(fd_socket_, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-                           (char*)&mreq, sizeof(mreq));
-  if (success < 0) {
-    ROS_ERROR_STREAM(
-        "Could not set UDP listener to Multicast. Observations will not "
-        "be received."
-        << success);
-    ROS_ERROR_STREAM("Error = " << std::strerror(errno));
-    close(fd_socket_);
-    return;
-  }*/
 
   // start thread.
   process_thread_ = std::thread(&UDPObservationReceiver::process, this);
@@ -78,9 +62,9 @@ void UDPObservationReceiver::process() {
     RawObservation buffer;
     buffer.resize(1600);  // larger than largest udp packets usually are.
     // TCP/IP usually has a MTU (maximum transmission unit) of about 1500
-
     if (recvfrom(fd_socket_, buffer.data(), buffer.size(), 0, (sockaddr*)&addr,
                  &fromlen)) {
+
       // visit consumer and insert data.
       consumer_->insertObservation(buffer);
 
