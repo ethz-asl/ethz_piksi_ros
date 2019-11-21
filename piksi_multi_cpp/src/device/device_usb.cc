@@ -34,10 +34,10 @@ Identifiers DeviceUSB::discoverAllSerialNumbers() {
   // Identify Piksi Multi among ports.
   for (int i = 0; ports[i]; i++) {
     // Check if port belongs to a Piksi Multi and get serial number.
-    Identifier id = "usb://" + identifyPiksiAndGetSerialNumber(ports[i]);
+    Identifier id = identifyPiksiAndGetSerialNumber(ports[i]);
     // Add serial to identifier set.
     if (!id.empty()) {
-      identifiers.insert(id);
+      identifiers.insert("usb://" + id);
     }
   }
 
@@ -105,7 +105,7 @@ Identifier DeviceUSB::identifyPiksiAndGetSerialNumber(struct sp_port* port) {
   if (result != SP_OK) {
     ROS_ERROR("Cannot get vendor ID and product ID for port %s: %d",
               sp_get_port_name(port), result);
-    return nullptr;
+    return Identifier();
   }
   std::tuple<uint16_t, uint16_t> usb_vidpid = {usb_vid, usb_pid};
 

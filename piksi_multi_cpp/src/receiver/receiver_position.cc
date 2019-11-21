@@ -16,7 +16,8 @@ bool ReceiverPosition::init() {
   }
 
   // start udp observation receiver.
-  udp_receiver_.start(nh_.param("udp_observation_port", 26078));
+  ros::NodeHandle nh_private("~");
+  udp_receiver_.start(nh_private.param("udp_observation_port", 26078));
 
   return true;
 }
