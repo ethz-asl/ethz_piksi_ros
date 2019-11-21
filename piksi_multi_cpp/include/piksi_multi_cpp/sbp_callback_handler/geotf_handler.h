@@ -32,7 +32,7 @@ class GeoTfHandler {
   void operator=(GeoTfHandler const&) = delete;
 
  private:
-  void callbackToBasePosLlh(const msg_base_pos_llh_t& msg, const uint8_t len);
+  void callbackToBasePosEcef(const msg_base_pos_ecef_t& msg, const uint8_t len);
   void callbackToPosLlh(const msg_pos_llh_t& msg, const uint8_t len);
   bool setEnuOriginCallback(piksi_rtk_msgs::EnuOrigin::Request& req,
                             piksi_rtk_msgs::EnuOrigin::Response& res);
@@ -41,7 +41,7 @@ class GeoTfHandler {
   bool setEnuOriginFromCurrentPos(std_srvs::Empty::Request& req,
                                   std_srvs::Empty::Response& res);
 
-  SBPLambdaCallbackHandler<msg_base_pos_llh_t> base_pos_llh_handler_;
+  SBPLambdaCallbackHandler<msg_base_pos_ecef_t> base_pos_ecef_handler_;
   SBPLambdaCallbackHandler<msg_pos_llh_t> pos_llh_handler_;
   geotf::GeodeticConverter geotf_;
   Eigen::Vector3d enu_origin_wgs84_;
@@ -51,7 +51,7 @@ class GeoTfHandler {
   ros::ServiceServer set_enu_from_base_srv_;
   ros::ServiceServer set_enu_from_current_srv_;
 
-  enum ResetEnuOrigin {kNo = 0, kFromBase, kFromCurrentPos};
+  enum ResetEnuOrigin { kNo = 0, kFromBase, kFromCurrentPos };
   ResetEnuOrigin reset_position_ = ResetEnuOrigin::kFromCurrentPos;
 };
 

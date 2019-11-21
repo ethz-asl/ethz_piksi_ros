@@ -1,5 +1,6 @@
 #include "piksi_multi_cpp/sbp_callback_handler/geotf_handler.h"
 
+#include <libsbp_ros_msgs/ros_conversion.h>
 #include <functional>
 
 namespace piksi_multi_cpp {
@@ -7,9 +8,9 @@ namespace s = std::placeholders;
 
 GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
                            const std::shared_ptr<sbp_state_t>& state)
-    : base_pos_llh_handler_{std::bind(&GeoTfHandler::callbackToBasePosLlh, this,
-                                      s::_1, s::_2),
-                            SBP_MSG_BASE_POS_LLH, state},
+    : base_pos_ecef_handler_{std::bind(&GeoTfHandler::callbackToBasePosEcef,
+                                       this, s::_1, s::_2),
+                             SBP_MSG_BASE_POS_ECEF, state},
       pos_llh_handler_{
           std::bind(&GeoTfHandler::callbackToPosLlh, this, s::_1, s::_2),
           SBP_MSG_POS_LLH, state},
@@ -42,10 +43,17 @@ void GeoTfHandler::setEnuOriginWgs84(const double lat, const double lon,
   reset_position_ = ResetEnuOrigin::kNo;
 }
 
-void GeoTfHandler::callbackToBasePosLlh(const msg_base_pos_llh_t& msg,
-                                        const uint8_t len) {
+void GeoTfHandler::callbackToBasePosEcef(const msg_base_pos_ecef_t& msg,
+                                         const uint8_t len) {
   if (reset_position_ != ResetEnuOrigin::kFromBase) return;
-  setEnuOriginWgs84(msg.lat, msg.lon, msg.height);
+  Eigen::Vector3d x_ecef, x_wgs84;
+  libsbp_ros_msgs::convertCartesianPoint<msg_base_pos_ecef_t>(msg, &x_ecef);
+  if (!geotf_.convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
+    ROS_ERROR("Cannot convert ECEF to WGS84.");
+    ROS_ERROR("Cannot set ENU origin.");
+    return;
+  }
+  setEnuOriginWgs84(x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
 }
 
 void GeoTfHandler::callbackToPosLlh(const msg_pos_llh_t& msg,
