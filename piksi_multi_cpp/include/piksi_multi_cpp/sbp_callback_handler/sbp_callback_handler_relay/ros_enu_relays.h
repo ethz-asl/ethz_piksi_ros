@@ -7,7 +7,9 @@
 #include <Eigen/Dense>
 #include <optional>
 
+#include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/Vector3.h>
 #include <piksi_rtk_msgs/PositionWithCovarianceStamped.h>
 
 #include "piksi_multi_cpp/sbp_callback_handler/geotf_handler.h"
@@ -36,19 +38,39 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
 
  protected:
   inline bool convertEcefToEnu(const SbpMsgType& in,
-                               geometry_msgs::Point* out) const {
+                               Eigen::Vector3d* x_enu) const {
     ROS_ASSERT(out);
 
     // Convert position.
-    Eigen::Vector3d x_ecef, x_enu;
+    Eigen::Vector3d x_ecef;
     libsbp_ros_msgs::convertCartesianPoint<msg_pos_ecef_t>(in, &x_ecef);
 
     if (!geotf_handler_.get()) return false;
-    if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "enu", &x_enu))
+    if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "enu", x_enu))
       return false;
 
-    tf::pointEigenToMsg(x_enu, *out);
+    return true;
+  }
 
+  inline bool convertEcefToEnu(const SbpMsgType& in,
+                               geometry_msgs::Point* out) {
+    ROS_ASSERT(out)
+
+    Eigen::Vector3d x_enu;
+    if (!convertEcefToEnu(in, &x_enu)) return false;
+
+    tf::pointEigenToMsg(x_enu, *out);
+    return true;
+  }
+
+  inline bool convertEcefToEnu(const SbpMsgType& in,
+                               geometry_msgs::Vector3* out) {
+    ROS_ASSERT(out)
+
+    Eigen::Vector3d x_enu;
+    if (!convertEcefToEnu(in, &x_enu)) return false;
+
+    tf::vectorEigenToMsg(x_enu, *out);
     return true;
   }
 
@@ -68,6 +90,21 @@ class RosPosEnuRelay
  private:
   bool convertSbpMsgToRosMsg(const msg_pos_ecef_t& in, const uint8_t len,
                              geometry_msgs::PointStamped* out) override;
+};
+
+class RosTransformEnuRelay
+    : public RosEnuRelay<msg_pos_ecef_t, geometry_msgs::TransformStamped> {
+ public:
+  inline RosTransformEnuRelay(const ros::NodeHandle& nh,
+                              const std::shared_ptr<sbp_state_t>& state,
+                              const RosTimeHandler::Ptr& ros_time_handler,
+                              const GeoTfHandler::Ptr& geotf_handler)
+      : RosEnuRelay(nh, SBP_MSG_POS_ECEF, state, "transform_enu",
+                    ros_time_handler, geotf_handler) {}
+
+ private:
+  bool convertSbpMsgToRosMsg(const msg_pos_ecef_t& in, const uint8_t len,
+                             geometry_msgs::TransformStamped* out) override;
 };
 
 }  // namespace piksi_multi_cpp
