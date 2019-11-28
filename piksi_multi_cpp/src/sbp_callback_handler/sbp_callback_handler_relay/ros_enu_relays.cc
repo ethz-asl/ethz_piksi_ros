@@ -15,6 +15,7 @@ bool RosTransformEnuRelay::convertSbpMsgToRosMsg(
     geometry_msgs::TransformStamped* out) {
   ROS_ASSERT(out);
 
+  // TODO(rikba): Also add orientation information if available.
   return convertEcefToEnu(in, &out->transform.translation);
 }
 
