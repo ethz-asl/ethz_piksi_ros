@@ -14,6 +14,10 @@
 #include "piksi_multi_cpp/sbp_callback_handler/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_relay.h"
 
+#include <eigen_conversions/eigen_msg.h>
+#include <libsbp_ros_msgs/ros_conversion.h>
+#include <ros/assert.h>
+
 namespace piksi_multi_cpp {
 
 // Per default the ENU origin will be the base station position. But it can also
@@ -31,6 +35,23 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
         geotf_handler_(geotf_handler) {}
 
  protected:
+  inline bool convertEcefToEnu(const SbpMsgType& in,
+                               geometry_msgs::Point* out) const {
+    ROS_ASSERT(out);
+
+    // Convert position.
+    Eigen::Vector3d x_ecef, x_enu;
+    libsbp_ros_msgs::convertCartesianPoint<msg_pos_ecef_t>(in, &x_ecef);
+
+    if (!geotf_handler_.get()) return false;
+    if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "enu", &x_enu))
+      return false;
+
+    tf::pointEigenToMsg(x_enu, *out);
+
+    return true;
+  }
+
   GeoTfHandler::Ptr geotf_handler_;
 };
 
