@@ -44,7 +44,6 @@ class GeoTfHandler {
   SBPLambdaCallbackHandler<msg_base_pos_ecef_t> base_pos_ecef_handler_;
   SBPLambdaCallbackHandler<msg_pos_llh_t> pos_llh_handler_;
   geotf::GeodeticConverter geotf_;
-  Eigen::Vector3d enu_origin_wgs84_;
 
   ros::NodeHandle nh_;
   ros::ServiceServer set_enu_origin_srv_;
