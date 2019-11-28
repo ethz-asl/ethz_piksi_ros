@@ -20,8 +20,6 @@ int main(int argc, char** argv) {
   if (receivers.empty()) {
     ROS_FATAL("No receivers.");
     exit(1);
-  } else {
-    ROS_INFO("Created %d receivers.", receivers.size());
   }
 
   // Start all receivers.
