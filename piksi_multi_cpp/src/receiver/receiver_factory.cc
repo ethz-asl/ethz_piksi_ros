@@ -48,6 +48,7 @@ ReceiverFactory::createAllReceiversByIdentifiersAndNaming(
   std::vector<std::shared_ptr<Receiver>> receivers;
   for (auto dev : devices) {
     ReceiverType type = inferType(dev);
+    if (type == ReceiverType::kError) continue;
     // Initialize counter
     if (counter.find(type) == counter.end()) {
       // Initialize type counter.
