@@ -46,7 +46,7 @@ bool DeviceSerial::setPortDefaults() {
   sp_return result = sp_set_flowcontrol(port_, SP_FLOWCONTROL_NONE);
   if (result != SP_OK) {
     ROS_ERROR_STREAM("Cannot set flow control: " << result);
-    close();
+    closeImpl();
     return false;
   }
   ROS_DEBUG("Configured the flow control.");
@@ -54,7 +54,7 @@ bool DeviceSerial::setPortDefaults() {
   result = sp_set_bits(port_, 8);
   if (result != SP_OK) {
     ROS_ERROR_STREAM("Cannot set data bits: " << result);
-    close();
+    closeImpl();
     return false;
   }
   ROS_DEBUG("Configured the number of data bits.");
@@ -62,7 +62,7 @@ bool DeviceSerial::setPortDefaults() {
   result = sp_set_parity(port_, SP_PARITY_NONE);
   if (result != SP_OK) {
     ROS_ERROR_STREAM("Cannot set parity: " << result);
-    close();
+    closeImpl();
     return false;
   }
   ROS_DEBUG("Configured the parity.");
@@ -70,21 +70,21 @@ bool DeviceSerial::setPortDefaults() {
   result = sp_set_stopbits(port_, 1);
   if (result != SP_OK) {
     ROS_ERROR_STREAM("Cannot set stop bits: " << result);
-    close();
+    closeImpl();
     return false;
   }
   ROS_DEBUG("Configured the number of stop bits.");
   return true;
 }
 
-bool DeviceSerial::open() {
+bool DeviceSerial::openImpl() {
   if (!parseId()) {
     return false;
   }
 
   // Allocate port.
   if (!allocatePort()) {
-    close();
+    closeImpl();
     return false;
   }
 
@@ -92,21 +92,21 @@ bool DeviceSerial::open() {
   sp_return result = sp_open(port_, SP_MODE_READ_WRITE);
   if (result != SP_OK) {
     ROS_ERROR("Cannot open port %s: %d", sp_get_port_name(port_), result);
-    close();
+    closeImpl();
     return false;
   }
   ROS_INFO_STREAM("Opened port: " << sp_get_port_name(port_));
 
   // set Baudrate
   if (!setPortDefaults()) {
-    close();
+    closeImpl();
     ROS_ERROR_STREAM("Cannot set port defaults on port "
                      << sp_get_port_name(port_));
     return false;
   }
 
   if (!setBaudRate()) {
-    close();
+    closeImpl();
     ROS_ERROR_STREAM("Cannot set baudrate on port " << sp_get_port_name(port_));
     return false;
   }
@@ -114,7 +114,7 @@ bool DeviceSerial::open() {
   return true;
 }
 
-int32_t DeviceSerial::write(std::vector<uint8_t> buff) const {
+int32_t DeviceSerial::writeImpl(std::vector<uint8_t> buff) const {
   if (!port_) {
     ROS_ERROR("Port not opened.");
   }
@@ -126,7 +126,7 @@ int32_t DeviceSerial::write(std::vector<uint8_t> buff) const {
   return result;
 }
 
-int32_t DeviceSerial::read(uint8_t* buff, uint32_t n) const {
+int32_t DeviceSerial::readImpl(uint8_t* buff, uint32_t n) const {
   if (!port_) {
     ROS_ERROR_STREAM("Port not opened.");
     return 0;
@@ -135,7 +135,7 @@ int32_t DeviceSerial::read(uint8_t* buff, uint32_t n) const {
   return sp_blocking_read(port_, buff, n, 10000);
 }
 
-void DeviceSerial::close() {
+void DeviceSerial::closeImpl() {
   if (port_) {
     sp_return result = sp_close(port_);
     if (result != SP_OK) {
