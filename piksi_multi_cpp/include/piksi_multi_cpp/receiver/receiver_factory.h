@@ -30,7 +30,8 @@ class ReceiverFactory {
     kAttitudeReceiver,
     kSettingIo,  // An abstract receiver that allows reading and writing
                  // settings.
-    kUnknown
+    kUnknown,
+    kError // Occurs when unable to open device.
   };
   // Factory method to create a receiver by setting node handle, hardware
   // device, and receiver type.

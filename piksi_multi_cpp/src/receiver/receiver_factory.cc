@@ -23,6 +23,8 @@ Receiver::Ptr ReceiverFactory::createReceiverByReceiverType(
       return Receiver::Ptr(new SettingsIo(device));
     case ReceiverType::kUnknown:
       return Receiver::Ptr(new ReceiverRos(nh, device));
+    case ReceiverType::kError:
+      return nullptr;
     default:
       return nullptr;
   }
@@ -105,11 +107,11 @@ std::string ReceiverFactory::createNameSpace(const ReceiverType type,
 
 ReceiverFactory::ReceiverType ReceiverFactory::inferType(
     const Device::Ptr& dev) {
-  if (!dev.get()) return ReceiverType::kUnknown;
+  if (!dev.get()) return ReceiverType::kError;
 
   // Create settings object.
   SettingsIo settings_io(dev);
-  if (!settings_io.init()) return ReceiverType::kUnknown;
+  if (!settings_io.init()) return ReceiverType::kError;
 
   // Identify base station.
   while (!settings_io.readSetting("surveyed_position", "broadcast")) {
