@@ -214,14 +214,14 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
   if (geotf_handler_.get()) {
     Eigen::Vector3d x_wgs84_temp;
     if (geotf_handler_->getGeoTf().convert("ecef", x, "wgs84", &x_wgs84_temp))
-      x_wgs84.value() = x_wgs84_temp;
+      x_wgs84 = std::make_optional(x_wgs84_temp);
   }
 
   std::optional<Eigen::Vector3d> x_enu;
   if (geotf_handler_.get()) {
     Eigen::Vector3d x_enu_temp;
     if (geotf_handler_->getGeoTf().convert("ecef", x, "enu", &x_enu_temp))
-      x_enu.value() = x_enu_temp;
+      x_enu = std::make_optional(x_enu_temp);
   }
 
   std::fstream fs;
