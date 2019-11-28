@@ -1,7 +1,6 @@
 #include "piksi_multi_cpp/receiver/settings_io.h"
 
 #include <libsbp/settings.h>
-#include <libsettings/settings_util.h>
 #include <ros/assert.h>
 #include <ros/console.h>
 #include <chrono>
@@ -23,8 +22,8 @@ bool SettingsIo::readSetting(const std::string& section,
   // Parse request to format setting\0name\0
   size_t kLen = section.size() + name.size() + 2;
   char read_req[kLen] = {0};
-  settings_format(section.c_str(), name.c_str(), nullptr, nullptr, read_req,
-                  kLen);
+  formatSettings(section.c_str(), name.c_str(), nullptr, nullptr, read_req,
+                 kLen);
 
   // Register setting listener.
   SBPLambdaCallbackHandler<msg_settings_read_resp_t> settings_listener(
@@ -59,8 +58,8 @@ bool SettingsIo::writeSetting(const std::string& section,
   // Parse request to format setting\0name\0value\0
   size_t kLen = section.size() + name.size() + value.size() + 3;
   char write_req[kLen] = {0};
-  settings_format(section.c_str(), name.c_str(), value.c_str(), nullptr,
-                  write_req, kLen);
+  formatSettings(section.c_str(), name.c_str(), value.c_str(), nullptr,
+                 write_req, kLen);
 
   // Register setting listener.
   SBPLambdaCallbackHandler<msg_settings_write_resp_t> write_resp_listener(
@@ -107,7 +106,7 @@ void SettingsIo::receiveReadResponse(const msg_settings_read_resp_t& msg,
   const char *section = nullptr, *name = nullptr, *value = nullptr,
              *type = nullptr;
   int num_tokens =
-      settings_parse(&msg.setting[0], len, &section, &name, &value, &type);
+      parseSettings(&msg.setting[0], len, &section, &name, &value, &type);
   if (num_tokens < 0) {
     ROS_ERROR("Failed to parse settings %d", num_tokens);
     return;
@@ -129,7 +128,7 @@ void SettingsIo::receiveWriteResponse(const msg_settings_write_resp_t& msg,
   const char *section = nullptr, *name = nullptr, *value = nullptr,
              *type = nullptr;
   int num_tokens =
-      settings_parse(&msg.setting[0], len - 1, &section, &name, &value, &type);
+      parseSettings(&msg.setting[0], len - 1, &section, &name, &value, &type);
   if (num_tokens < 0) {
     ROS_ERROR("Failed to parse settings %d", num_tokens);
     return;
@@ -258,6 +257,64 @@ bool SettingsIo::updateConfig(const std::string& file) {
     writeSetting(section, name, value);
   }
   return true;
+}
+
+int SettingsIo::formatSettings(const char* section, const char* name,
+                               const char* value, const char* type, char* buf,
+                               size_t blen) {
+  int n = 0;
+  int l = 0;
+
+  const char* tokens[] = {section, name, value, type};
+
+  for (uint8_t i = 0; i < sizeof(tokens) / sizeof(tokens[0]); ++i) {
+    const char* token = tokens[i];
+
+    if (token == NULL) {
+      break;
+    }
+
+    l = snprintf(&buf[n], blen - n, "%s", token);
+
+    if ((l < 0) || ((size_t)l >= blen - n)) {
+      return -1;
+    }
+
+    n += l + 1;
+  }
+
+  return n;
+}
+
+SettingsIo::settings_tokens_e SettingsIo::parseSettings(
+    const char* buf, size_t blen, const char** section, const char** name,
+    const char** value, const char** type) {
+  if (section) *section = NULL;
+  if (name) *name = NULL;
+  if (value) *value = NULL;
+  if (type) *type = NULL;
+
+  /* All strings must be NULL terminated */
+  if ((blen > 0) && (buf[blen - 1] != '\0')) {
+    return SETTINGS_TOKENS_INVALID;
+  }
+
+  const char** tokens[] = {section, name, value, type};
+  settings_tokens_e tok = SETTINGS_TOKENS_EMPTY;
+  size_t str_start = 0;
+  for (size_t idx = 0; idx < blen; ++idx) {
+    if (buf[idx] != '\0') {
+      continue;
+    }
+    if ((size_t)tok < sizeof(tokens) / sizeof(tokens[0]) &&
+        tokens[tok] != NULL) {
+      *(tokens[tok]) = &buf[str_start];
+    }
+    str_start = idx + 1;
+    tok = static_cast<settings_tokens_e>(static_cast<int>(tok) + 1);
+  }
+
+  return (tok <= SETTINGS_TOKENS_EXTRA_NULL) ? tok : SETTINGS_TOKENS_INVALID;
 }
 
 }  // namespace piksi_multi_cpp
