@@ -34,6 +34,11 @@ GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
   set_enu_from_current_srv_ =
       nh_.advertiseService("set_enu_origin_from_current_pos",
                            &GeoTfHandler::setEnuOriginFromCurrentPos, this);
+
+  bool set_enu_origin_from_base = reset_position_ == ResetEnuOrigin::kFromBase;
+  nh_.param("set_enu_origin_from_base", set_enu_origin_from_base,
+            set_enu_origin_from_base);
+  if (set_enu_origin_from_base) reset_position_ = ResetEnuOrigin::kFromBase;
 }
 
 void GeoTfHandler::setEnuOriginWgs84(const double lat, const double lon,
