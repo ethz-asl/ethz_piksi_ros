@@ -18,10 +18,12 @@ namespace fs = std::experimental::filesystem;
 
 PositionSampler::PositionSampler(const ros::NodeHandle& nh,
                                  const std::shared_ptr<sbp_state_t>& state,
-                                 const RosTimeHandler::Ptr& ros_time_handler)
+                                 const RosTimeHandler::Ptr& ros_time_handler,
+                                 const GeoTfHandler::Ptr& geotf_handler)
     : SBPCallbackHandler(SBP_MSG_POS_ECEF_COV, state),
       nh_(nh),
-      ros_time_handler_(ros_time_handler) {
+      ros_time_handler_(ros_time_handler),
+      geotf_handler_(geotf_handler) {
   sample_pos_srv_ = nh_.advertiseService(
       "sample_position", &PositionSampler::samplePositionCallback, this);
 }
@@ -190,13 +192,13 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
                                          const Eigen::Matrix3d& cov,
                                          const uint32_t num_fixes) const {
   std::string file = file_;
+  std::string current_time = getTimeStr();
   if (file.empty()) {
     // Save to default path.
     file = std::string(std::getenv("HOME")) + "/.ros/position_samples/";
-    file += getTimeStr();
+    file += current_time;
     file += "_sampled_position_";
     file += nh_.getUnresolvedNamespace();
-    file += "_" + std::to_string(num_fixes);
     file += ".txt";
   }
   ROS_INFO("Saving sampled position to %s", file.c_str());
@@ -207,9 +209,40 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
     if (!fs::create_directories(path.parent_path())) return false;
   }
 
+  // Convert to common coordinate frames.
+  std::optional<Eigen::Vector3d> x_wgs84;
+  if (geotf_handler_.get()) {
+    Eigen::Vector3d x_wgs84_temp;
+    if (geotf_handler_->getGeoTf().convert("ecef", x, "wgs84", &x_wgs84_temp))
+      x_wgs84.value() = x_wgs84_temp;
+  }
+
+  std::optional<Eigen::Vector3d> x_enu;
+  if (geotf_handler_.get()) {
+    Eigen::Vector3d x_enu_temp;
+    if (geotf_handler_->getGeoTf().convert("ecef", x, "enu", &x_enu_temp))
+      x_enu.value() = x_enu_temp;
+  }
+
   std::fstream fs;
   fs.open(file, std::fstream::out);
   if (!fs.is_open()) return false;
+  if (x_wgs84.has_value()) {
+    fs << "x_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().x())
+       << std::endl;
+    fs << "y_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().y())
+       << std::endl;
+    fs << "z_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().z())
+       << std::endl;
+  }
+  if (x_enu.has_value()) {
+    fs << "x_enu: " << boost::lexical_cast<std::string>(x_enu.value().x())
+       << std::endl;
+    fs << "y_enu: " << boost::lexical_cast<std::string>(x_enu.value().y())
+       << std::endl;
+    fs << "z_enu: " << boost::lexical_cast<std::string>(x_enu.value().z())
+       << std::endl;
+  }
   fs << "x_ecef: " << boost::lexical_cast<std::string>(x.x()) << std::endl;
   fs << "y_ecef: " << boost::lexical_cast<std::string>(x.y()) << std::endl;
   fs << "z_ecef: " << boost::lexical_cast<std::string>(x.z()) << std::endl;
@@ -224,6 +257,10 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
   fs << "cov_y_z_ecef: " << boost::lexical_cast<std::string>(cov(1, 2))
      << std::endl;
   fs << "cov_z_z_ecef: " << boost::lexical_cast<std::string>(cov(2, 2))
+     << std::endl;
+  fs << "num_fixes: " << boost::lexical_cast<std::string>(num_fixes)
+     << std::endl;
+  fs << "datetime: " << boost::lexical_cast<std::string>(current_time)
      << std::endl;
   fs.close();
 

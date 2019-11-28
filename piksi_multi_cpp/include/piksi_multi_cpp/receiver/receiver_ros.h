@@ -32,10 +32,10 @@ class ReceiverRos : public SettingsIo {
   std::vector<std::string> getVectorParam(
       const std::string& name, const std::string& default_value = "");
 
-  // Averages the position over multiple ECEF messages.
-  PositionSampler::Ptr position_sampler_;
   // Manages geotf transformations.
   GeoTfHandler::Ptr geotf_handler_;
+  // Averages the position over multiple ECEF messages.
+  PositionSampler::Ptr position_sampler_;
 
  private:
   // Relaying all SBP messages. Common for all receivers.
