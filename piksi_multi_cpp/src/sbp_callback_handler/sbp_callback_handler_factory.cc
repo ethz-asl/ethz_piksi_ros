@@ -56,6 +56,8 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
 
   relays.push_back(SBPCallbackHandler::Ptr(
       new RosPosEnuRelay(nh, state, ros_time_handler, geotf_handler)));
+  relays.push_back(SBPCallbackHandler::Ptr(
+      new RosTransformEnuRelay(nh, state, ros_time_handler, geotf_handler)));
 
   return relays;
 }
