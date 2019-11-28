@@ -119,6 +119,11 @@ void ReceiverBaseStation::sampledPositionCallback(
   ROS_ERROR_COND(!writeSetting("surveyed_position", "surveyed_alt",
                                boost::lexical_cast<std::string>(x_wgs84.z())),
                  "Failed to overwrite surveyed_alt.");
+
+  ROS_INFO("Resetting ENU frame to current base station position.");
+  if (geotf_handler_.get()) {
+    geotf_handler_->setEnuOriginWgs84(x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
+  }
 }
 
 }  // namespace piksi_multi_cpp

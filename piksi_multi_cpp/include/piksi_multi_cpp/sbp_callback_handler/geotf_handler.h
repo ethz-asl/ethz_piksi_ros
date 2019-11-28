@@ -52,7 +52,7 @@ class GeoTfHandler {
   ros::ServiceServer set_enu_from_current_srv_;
 
   enum ResetEnuOrigin { kNo = 0, kFromBase, kFromCurrentPos };
-  ResetEnuOrigin reset_position_ = ResetEnuOrigin::kFromCurrentPos;
+  ResetEnuOrigin reset_position_ = ResetEnuOrigin::kFromBase;
 };
 
 }  // namespace piksi_multi_cpp
