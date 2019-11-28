@@ -224,15 +224,24 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
       x_enu = std::make_optional(x_enu_temp);
   }
 
+  std::optional<Eigen::Vector3d> x_enu_origin_wgs84;
+  if (geotf_handler_.get() && x_enu.has_value()) {
+    Eigen::Vector3d x_enu_origin_enu = Eigen::Vector3d::Zero();
+    Eigen::Vector3d x_enu_origin_wgs84_temp;
+    if (geotf_handler_->getGeoTf().convert("enu", x_enu_origin_enu, "wgs84",
+                                           &x_enu_origin_wgs84_temp))
+      x_enu_origin_wgs84 = std::make_optional(x_enu_origin_wgs84_temp);
+  }
+
   std::fstream fs;
   fs.open(file, std::fstream::out);
   if (!fs.is_open()) return false;
   if (x_wgs84.has_value()) {
-    fs << "x_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().x())
+    fs << "lat_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().x())
        << std::endl;
-    fs << "y_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().y())
+    fs << "lon_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().y())
        << std::endl;
-    fs << "z_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().z())
+    fs << "alt_wgs84: " << boost::lexical_cast<std::string>(x_wgs84.value().z())
        << std::endl;
   }
   if (x_enu.has_value()) {
@@ -241,6 +250,17 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
     fs << "y_enu: " << boost::lexical_cast<std::string>(x_enu.value().y())
        << std::endl;
     fs << "z_enu: " << boost::lexical_cast<std::string>(x_enu.value().z())
+       << std::endl;
+  }
+  if (x_enu_origin_wgs84.has_value()) {
+    fs << "lat_enu_origin_wgs84: "
+       << boost::lexical_cast<std::string>(x_enu_origin_wgs84.value().x())
+       << std::endl;
+    fs << "lon_enu_origin_wgs84: "
+       << boost::lexical_cast<std::string>(x_enu_origin_wgs84.value().y())
+       << std::endl;
+    fs << "alt_enu_origin_wgs84: "
+       << boost::lexical_cast<std::string>(x_enu_origin_wgs84.value().z())
        << std::endl;
   }
   fs << "x_ecef: " << boost::lexical_cast<std::string>(x.x()) << std::endl;
