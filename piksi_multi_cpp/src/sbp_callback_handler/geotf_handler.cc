@@ -8,12 +8,9 @@ namespace s = std::placeholders;
 
 GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
                            const std::shared_ptr<sbp_state_t>& state)
-    : base_pos_ecef_handler_{std::bind(&GeoTfHandler::callbackToBasePosEcef,
-                                       this, s::_1, s::_2),
-                             SBP_MSG_BASE_POS_ECEF, state},
-      pos_llh_handler_{
-          std::bind(&GeoTfHandler::callbackToPosLlh, this, s::_1, s::_2),
-          SBP_MSG_POS_LLH, state},
+    : pos_llh_handler_{std::bind(&GeoTfHandler::callbackToPosLlh, this, s::_1,
+                                 s::_2),
+                       SBP_MSG_POS_LLH, state},
       nh_(nh) {
   geotf_.initFromRosParam();
   if (geotf_.hasFrame("enu")) reset_position_ = ResetEnuOrigin::kNo;
@@ -35,10 +32,18 @@ GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
       nh_.advertiseService("set_enu_origin_from_current_pos",
                            &GeoTfHandler::setEnuOriginFromCurrentPos, this);
 
-  bool set_enu_origin_from_base = reset_position_ == ResetEnuOrigin::kFromBase;
-  nh_.param("set_enu_origin_from_base", set_enu_origin_from_base,
-            set_enu_origin_from_base);
-  if (set_enu_origin_from_base) reset_position_ = ResetEnuOrigin::kFromBase;
+  ros::NodeHandle nh_private("~");
+  base_pos_sub_ =
+      nh_private.subscribe("position_receiver_0/sbp/base_pos_ecef", 1,
+                           &GeoTfHandler::callbackToBasePosEcef, this);
+
+  bool set_enu_origin_from_current_pos =
+      reset_position_ == ResetEnuOrigin::kFromCurrentPos;
+  nh_private.param("set_enu_origin_from_current_pos",
+                   set_enu_origin_from_current_pos,
+                   set_enu_origin_from_current_pos);
+  if (set_enu_origin_from_current_pos)
+    reset_position_ = ResetEnuOrigin::kFromCurrentPos;
 }
 
 void GeoTfHandler::setEnuOriginWgs84(const double lat, const double lon,
@@ -48,11 +53,11 @@ void GeoTfHandler::setEnuOriginWgs84(const double lat, const double lon,
   reset_position_ = ResetEnuOrigin::kNo;
 }
 
-void GeoTfHandler::callbackToBasePosEcef(const msg_base_pos_ecef_t& msg,
-                                         const uint8_t len) {
+void GeoTfHandler::callbackToBasePosEcef(
+    const libsbp_ros_msgs::MsgBasePosEcef::Ptr& msg) {
   if (reset_position_ != ResetEnuOrigin::kFromBase) return;
   Eigen::Vector3d x_ecef, x_wgs84;
-  libsbp_ros_msgs::convertCartesianPoint<msg_base_pos_ecef_t>(msg, &x_ecef);
+  x_ecef << msg->x, msg->y, msg->z;
   if (!geotf_.convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
     ROS_ERROR("Cannot convert ECEF to WGS84.");
     ROS_ERROR("Cannot set ENU origin.");

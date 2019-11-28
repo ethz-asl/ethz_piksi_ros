@@ -9,7 +9,6 @@
 
         <param name="udp_observation_port"
                value="26078"/> <!-- Port on which UDP broadcasts are received -->
-
     </node>
   </group>
 </launch>
