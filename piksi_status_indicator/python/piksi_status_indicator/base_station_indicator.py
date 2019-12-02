@@ -28,8 +28,8 @@ class BaseStationIndicator(object):
         self.finished_sampling = False
         self.finished_survey = False
 
-        self.green_color_ = [0, 10, 0] 
-        self.blue_color_ = [0, 0, 10] 
+        self.green_color_ = [0, 155, 0] 
+        self.blue_color_ = [0, 0, 155] 
         
         #TODO(clanegge): Search for namespace of base station
         self.kf_pos_sub_ = rospy.Subscriber(
