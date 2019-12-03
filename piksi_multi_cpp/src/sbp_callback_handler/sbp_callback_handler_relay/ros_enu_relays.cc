@@ -15,8 +15,12 @@ bool RosTransformEnuRelay::convertSbpMsgToRosMsg(
     geometry_msgs::TransformStamped* out) {
   ROS_ASSERT(out);
 
+  if (!convertEcefToEnu(in, &out->transform.translation)) return false;
+
   // TODO(rikba): Also add orientation information if available.
-  return convertEcefToEnu(in, &out->transform.translation);
+  out->transform.rotation.w = 1.0;
+
+  return true;
 }
 
 }  // namespace piksi_multi_cpp
