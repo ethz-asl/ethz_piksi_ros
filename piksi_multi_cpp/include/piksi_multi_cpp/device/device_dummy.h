@@ -10,13 +10,15 @@ class DeviceDummy : public Device {
  public:
   inline DeviceDummy(const Identifier& id) : Device(id) {}
 
-  inline bool open() override { return true; }
-  inline int32_t read(uint8_t* buff, uint32_t n) const override {
+  inline bool openImpl() override { return true; }
+  inline int32_t readImpl(uint8_t* buff, uint32_t n) const override {
     usleep(100);
     return 0;
   }
-  inline int32_t write(std::vector<uint8_t> buff) const override { return 0; }
-  inline void close() override {}
+  inline int32_t writeImpl(std::vector<uint8_t> buff) const override {
+    return 0;
+  }
+  inline void closeImpl() override {}
 };
 }  // namespace piksi_multi_cpp
 

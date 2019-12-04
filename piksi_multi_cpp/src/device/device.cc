@@ -31,4 +31,31 @@ int32_t Device::write_redirect(uint8_t* buff, uint32_t n, void* context) {
   return instance->write(std::vector<uint8_t>(&buff[0], &buff[n]));
 }
 
+bool Device::open() {
+  mtx_.lock();
+  bool success = openImpl();
+  mtx_.unlock();
+  return success;
+}
+
+int32_t Device::read(uint8_t* buff, uint32_t n) {
+  mtx_.lock();
+  int32_t result = readImpl(buff, n);
+  mtx_.unlock();
+  return result;
+}
+
+int32_t Device::write(std::vector<uint8_t> buff) {
+  mtx_.lock();
+  int32_t result = writeImpl(buff);
+  mtx_.unlock();
+  return result;
+}
+
+void Device::close() {
+  mtx_.lock();
+  closeImpl();
+  mtx_.unlock();
+}
+
 }  // namespace piksi_multi_cpp

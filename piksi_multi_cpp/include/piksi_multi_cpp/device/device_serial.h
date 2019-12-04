@@ -10,10 +10,10 @@ class DeviceSerial : public Device {
  public:
   DeviceSerial(const Identifier& id);
 
-  bool open() override;
-  int32_t read(uint8_t* buff, uint32_t n) const override;
-  int32_t write(std::vector<uint8_t> buff) const override;
-  void close() override;
+  bool openImpl() override;
+  int32_t readImpl(uint8_t* buff, uint32_t n) const override;
+  int32_t writeImpl(std::vector<uint8_t> buff) const override;
+  void closeImpl() override;
 
  protected:
   virtual bool allocatePort();
