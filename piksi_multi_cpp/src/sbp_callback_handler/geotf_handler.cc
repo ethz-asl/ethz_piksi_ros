@@ -53,6 +53,20 @@ void GeoTfHandler::setEnuOriginWgs84(const double lat, const double lon,
   reset_position_ = ResetEnuOrigin::kNo;
 }
 
+void GeoTfHandler::setEnuOriginEcef(const double x, const double y,
+                                    const double z) {
+  setEnuOriginEcef(Eigen::Vector3d(x, y, z));
+}
+
+void GeoTfHandler::setEnuOriginEcef(const Eigen::Vector3d& x_ecef) {
+  Eigen::Vector3d x_wgs84;
+  if (!geotf_.convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
+    ROS_ERROR("Failed to convert ECEF to WGS84.");
+    return;
+  }
+  setEnuOriginWgs84(x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
+}
+
 void GeoTfHandler::callbackToBasePosEcef(
     const libsbp_ros_msgs::MsgBasePosEcef::Ptr& msg) {
   if (reset_position_ != ResetEnuOrigin::kFromBase) return;
