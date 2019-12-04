@@ -78,7 +78,8 @@ bool ReceiverBaseStation::resampleBasePositionCallback(
   wait_for_sampled_position_ = true;
   // Start sampling.
   ros::NodeHandle nh_node("~");
-  position_sampler_->startSampling(req.num_desired_fixes, req.file);
+  const bool kSetEnu = true;
+  position_sampler_->startSampling(req.num_desired_fixes, req.file, kSetEnu);
   ROS_INFO("Start sampling base station position with %d desired fixes.",
            req.num_desired_fixes);
   return true;
@@ -119,11 +120,6 @@ void ReceiverBaseStation::sampledPositionCallback(
   ROS_ERROR_COND(!writeSetting("surveyed_position", "surveyed_alt",
                                boost::lexical_cast<std::string>(x_wgs84.z())),
                  "Failed to overwrite surveyed_alt.");
-
-  ROS_INFO("Resetting ENU frame to current base station position.");
-  if (geotf_handler_.get()) {
-    geotf_handler_->setEnuOriginWgs84(x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
-  }
 }
 
 }  // namespace piksi_multi_cpp

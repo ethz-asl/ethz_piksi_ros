@@ -29,7 +29,8 @@ PositionSampler::PositionSampler(const ros::NodeHandle& nh,
 }
 
 void PositionSampler::startSampling(const uint32_t num_desired_fixes,
-                                    const std::string& file) {
+                                    const std::string& file, bool set_enu) {
+  set_enu_ = set_enu;
   num_desired_fixes_ = num_desired_fixes;
   if (num_desired_fixes_ < 1) {
     ROS_ERROR(
@@ -62,7 +63,7 @@ bool PositionSampler::getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov) {
 bool PositionSampler::samplePositionCallback(
     piksi_rtk_msgs::SamplePosition::Request& req,
     piksi_rtk_msgs::SamplePosition::Response& res) {
-  startSampling(req.num_desired_fixes, req.file);
+  startSampling(req.num_desired_fixes, req.file, req.set_enu);
   return true;
 }
 
@@ -157,6 +158,11 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
         << P_ml_.value().eigenvalues().real().cwiseSqrt().transpose());
     publishPosition(ml_pos_pub_.value(), x_ml_.value(), P_ml_.value(),
                     sbp_msg->tow);
+    // (Re)Set ENU origin.
+    if (geotf_handler_.get() && set_enu_)
+      geotf_handler_->setEnuOriginEcef(x_ml_.value());
+    set_enu_ = false;
+    // Save to file.
     ROS_ERROR_COND(
         !savePositionToFile(x_ml_.value(), P_ml_.value(), num_fixes_),
         "Failed to save position to file.");

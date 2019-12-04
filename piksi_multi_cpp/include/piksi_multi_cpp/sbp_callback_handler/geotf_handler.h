@@ -23,6 +23,8 @@ class GeoTfHandler {
                const std::shared_ptr<sbp_state_t>& state);
 
   void setEnuOriginWgs84(const double lat, const double lon, const double alt);
+  void setEnuOriginEcef(const double x, const double y, const double z);
+  void setEnuOriginEcef(const Eigen::Vector3d& x_ecef);
 
   bool convertPosEcefToEnu(const Eigen::Vector3d& pos_ecef,
                            const Eigen::Vector3d* pos_enu);

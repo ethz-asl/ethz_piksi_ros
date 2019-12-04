@@ -1,3 +1,4 @@
 uint32 num_desired_fixes
 string file
+bool set_enu
 ---
