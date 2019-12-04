@@ -39,7 +39,7 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
  protected:
   inline bool convertEcefToEnu(const SbpMsgType& in,
                                Eigen::Vector3d* x_enu) const {
-    ROS_ASSERT(out);
+    ROS_ASSERT(x_enu);
 
     // Convert position.
     Eigen::Vector3d x_ecef;
