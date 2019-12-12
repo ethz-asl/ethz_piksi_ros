@@ -3,12 +3,12 @@
 
 #include <geotf/geodetic_converter.h>
 #include <libsbp/navigation.h>
+#include <libsbp_ros_msgs/MsgBasePosEcef.h>
 #include <piksi_rtk_msgs/EnuOrigin.h>
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
 #include <Eigen/Dense>
 #include <memory>
-#include <libsbp_ros_msgs/MsgBasePosEcef.h>
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h"
 
 namespace piksi_multi_cpp {
@@ -25,6 +25,8 @@ class GeoTfHandler {
   void setEnuOriginWgs84(const double lat, const double lon, const double alt);
   void setEnuOriginEcef(const double x, const double y, const double z);
   void setEnuOriginEcef(const Eigen::Vector3d& x_ecef);
+
+  bool getEnuOriginWgs84(Eigen::Vector3d* enu_origin_wgs84);
 
   bool convertPosEcefToEnu(const Eigen::Vector3d& pos_ecef,
                            const Eigen::Vector3d* pos_enu);

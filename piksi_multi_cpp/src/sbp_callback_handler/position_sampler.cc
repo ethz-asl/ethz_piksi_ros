@@ -231,12 +231,10 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
   }
 
   std::optional<Eigen::Vector3d> x_enu_origin_wgs84;
-  if (geotf_handler_.get() && x_enu.has_value()) {
-    Eigen::Vector3d x_enu_origin_enu = Eigen::Vector3d::Zero();
-    Eigen::Vector3d x_enu_origin_wgs84_temp;
-    if (geotf_handler_->getGeoTf().convert("enu", x_enu_origin_enu, "wgs84",
-                                           &x_enu_origin_wgs84_temp))
-      x_enu_origin_wgs84 = std::make_optional(x_enu_origin_wgs84_temp);
+  Eigen::Vector3d x_enu_origin_wgs84_temp;
+  if (geotf_handler_.get() &&
+      geotf_handler_->getEnuOriginWgs84(&x_enu_origin_wgs84_temp)) {
+    x_enu_origin_wgs84 = std::make_optional(x_enu_origin_wgs84_temp);
   }
 
   std::fstream fs;

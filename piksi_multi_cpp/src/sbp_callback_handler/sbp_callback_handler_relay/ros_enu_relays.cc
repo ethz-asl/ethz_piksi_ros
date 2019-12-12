@@ -36,11 +36,8 @@ bool RosPoseWithCovarianceEnuRelay::convertSbpMsgToRosMsg(
   // Populate covariance.
   // Get rotation matrix.
   if (!geotf_handler_.get()) return false;
-  Eigen::Vector3d x_enu_origin_enu = Eigen::Vector3d::Zero();
   Eigen::Vector3d x_enu_origin_wgs84;
-  if (!geotf_handler_->getGeoTf().convert("enu", x_enu_origin_enu, "wgs84",
-                                          &x_enu_origin_wgs84))
-    return false;
+  if (!geotf_handler_->getEnuOriginWgs84(&x_enu_origin_wgs84)) return false;
 
   Eigen::Matrix3d R_ENU_ECEF = libsbp_ros_msgs::getRotationEcefToEnu(
       x_enu_origin_wgs84.x(), x_enu_origin_wgs84.y());
@@ -52,7 +49,7 @@ bool RosPoseWithCovarianceEnuRelay::convertSbpMsgToRosMsg(
   Eigen::Matrix3d cov_enu = R_ENU_ECEF * cov_ecef * R_ENU_ECEF.transpose();
   typedef Eigen::Matrix<double, 6, 6, Eigen::RowMajor> Matrix6dRow;
   Matrix6dRow cov = Matrix6dRow::Zero();
-  cov.block<3,3>(0,0) = cov_enu;
+  cov.block<3, 3>(0, 0) = cov_enu;
   Matrix6dRow::Map(out->pose.covariance.data()) = cov;
 
   return true;
