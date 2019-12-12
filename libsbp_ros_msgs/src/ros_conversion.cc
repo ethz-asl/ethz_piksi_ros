@@ -76,25 +76,27 @@ Eigen::Matrix3d getRotationEcefToEnu(const double lat_deg,
                                      const double lon_deg) {
   // https://gssc.esa.int/navipedia/index.php/Transformations_between_ECEF_and_ENU_coordinates
   const double kDegToRad = M_PI / 180;
-  const double lat = lat_deg * kDegToRad;
-  const double lon = lon_deg * kDegToRad;
-  const double s_lat = std::sin(lat);
-  const double c_lat = std::cos(lat);
-  const double s_lon = std::sin(lon);
-  const double c_lon = std::cos(lon);
+
+  const double phi = lat_deg * kDegToRad;
+  const double s_phi = std::sin(phi);
+  const double c_phi = std::cos(phi);
+
+  const double lambda = lon_deg * kDegToRad;
+  const double s_lambda = std::sin(lambda);
+  const double c_lambda = std::cos(lambda);
 
   Eigen::Matrix3d R_ENU_ECEF;
-  R_ENU_ECEF(0,0) = -s_lat;
-  R_ENU_ECEF(0,1) =  c_lat;
-  R_ENU_ECEF(0,2) = 0.0;
+  R_ENU_ECEF(0, 0) = -s_lambda;
+  R_ENU_ECEF(0, 1) = c_lambda;
+  R_ENU_ECEF(0, 2) = 0.0;
 
-  R_ENU_ECEF(1,0) = -s_lon * c_lat;
-  R_ENU_ECEF(1,1) = -s_lon * s_lat;
-  R_ENU_ECEF(1,2) = c_lon;
+  R_ENU_ECEF(1, 0) = -s_phi * c_lambda;
+  R_ENU_ECEF(1, 1) = -s_phi * s_lambda;
+  R_ENU_ECEF(1, 2) = c_phi;
 
-  R_ENU_ECEF(2,0) = c_lon * c_lat;
-  R_ENU_ECEF(2,1) = c_lon * s_lat;
-  R_ENU_ECEF(2,2) = s_lon;
+  R_ENU_ECEF(2, 0) = c_phi * c_lambda;
+  R_ENU_ECEF(2, 1) = c_phi * s_lambda;
+  R_ENU_ECEF(2, 2) = s_phi;
 
   return R_ENU_ECEF;
 }
