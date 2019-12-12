@@ -33,7 +33,8 @@ RosReceiverState::RosReceiverState(const ros::NodeHandle& nh,
           std::bind(&RosReceiverState::callbackToHeartbeat, this,
                     std::placeholders::_1, std::placeholders::_2),
           SBP_MSG_HEARTBEAT, state} {
-  // Initialize receiver state.receiver_state_.rtk_mode_fix = false;
+  // Initialize receiver
+  receiver_state_.rtk_mode_fix = false;
   receiver_state_.system_error = ReceiverState::STATUS_UNKNOWN;
   receiver_state_.io_error = ReceiverState::STATUS_UNKNOWN;
   receiver_state_.swift_nap_error = ReceiverState::STATUS_UNKNOWN;
