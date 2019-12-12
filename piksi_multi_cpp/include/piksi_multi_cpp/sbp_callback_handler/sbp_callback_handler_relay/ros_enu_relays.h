@@ -108,6 +108,23 @@ class RosTransformEnuRelay
                              geometry_msgs::TransformStamped* out) override;
 };
 
+class RosPositionWithCovarianceEnuRelay
+    : public RosEnuRelay<msg_pos_ecef_cov_t,
+                         piksi_rtk_msgs::PositionWithCovarianceStamped> {
+ public:
+  inline RosPositionWithCovarianceEnuRelay(
+      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
+      const RosTimeHandler::Ptr& ros_time_handler,
+      const GeoTfHandler::Ptr& geotf_handler)
+      : RosEnuRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pos_enu_cov",
+                    ros_time_handler, geotf_handler) {}
+
+ private:
+  bool convertSbpMsgToRosMsg(
+      const msg_pos_ecef_cov_t& in, const uint8_t len,
+      piksi_rtk_msgs::PositionWithCovarianceStamped* out) override;
+};
+
 class RosPoseWithCovarianceEnuRelay
     : public RosEnuRelay<msg_pos_ecef_cov_t,
                          geometry_msgs::PoseWithCovarianceStamped> {
@@ -116,7 +133,7 @@ class RosPoseWithCovarianceEnuRelay
       const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
       const RosTimeHandler::Ptr& ros_time_handler,
       const GeoTfHandler::Ptr& geotf_handler)
-      : RosEnuRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pose_enu",
+      : RosEnuRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pose_enu_cov",
                     ros_time_handler, geotf_handler) {}
 
  private:

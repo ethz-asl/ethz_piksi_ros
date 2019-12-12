@@ -23,6 +23,32 @@ bool RosTransformEnuRelay::convertSbpMsgToRosMsg(
   return true;
 }
 
+bool RosPositionWithCovarianceEnuRelay::convertSbpMsgToRosMsg(
+    const msg_pos_ecef_cov_t& in, const uint8_t len,
+    piksi_rtk_msgs::PositionWithCovarianceStamped* out) {
+  ROS_ASSERT(out);
+
+  if (!convertEcefToEnu(in, &out->position.position)) return false;
+
+  // Populate covariance.
+  // Get rotation matrix.
+  if (!geotf_handler_.get()) return false;
+  Eigen::Vector3d x_enu_origin_wgs84;
+  if (!geotf_handler_->getEnuOriginWgs84(&x_enu_origin_wgs84)) return false;
+
+  Eigen::Matrix3d R_ENU_ECEF = libsbp_ros_msgs::getRotationEcefToEnu(
+      x_enu_origin_wgs84.x(), x_enu_origin_wgs84.y());
+
+  Eigen::Matrix3d cov_ecef;
+  libsbp_ros_msgs::convertCartesianCov<msg_pos_ecef_cov_t>(in, &cov_ecef);
+  // https://robotics.stackexchange.com/a/2557
+  typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> Matrix3dRow;
+  Matrix3dRow cov_enu = R_ENU_ECEF * cov_ecef * R_ENU_ECEF.transpose();
+  Matrix3dRow::Map(out->position.covariance.data()) = cov_enu;
+
+  return true;
+}
+
 bool RosPoseWithCovarianceEnuRelay::convertSbpMsgToRosMsg(
     const msg_pos_ecef_cov_t& in, const uint8_t len,
     geometry_msgs::PoseWithCovarianceStamped* out) {
