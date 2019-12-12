@@ -39,7 +39,7 @@ bool RosPoseWithCovarianceEnuRelay::convertSbpMsgToRosMsg(
   typedef Eigen::Matrix<double, 6, 6, Eigen::RowMajor> Matrix6dRow;
   Matrix6dRow cov = Matrix6dRow::Zero();
   cov(0, 0) = in.cov_y_y;
-  cov(1, 1) = in.cov_z_z;
+  cov(1, 1) = in.cov_y_y;
   cov(2, 2) = in.cov_x_x;
   Matrix6dRow::Map(out->pose.covariance.data()) = cov;
 
