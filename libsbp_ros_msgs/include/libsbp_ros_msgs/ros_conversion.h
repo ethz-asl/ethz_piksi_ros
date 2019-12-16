@@ -26,6 +26,9 @@ ros::Time convertTowToRosTime(const uint32_t tow, const uint32_t leap_seconds);
 ros::Time convertTowTowfToRosTime(const uint32_t tow, const uint8_t tow_f,
                                   const uint32_t leap_seconds);
 
+Eigen::Matrix3d getRotationEcefToEnu(const double lat_deg,
+                                     const double lon_deg);
+
 template <class CartesianPointIn, class CartesianPointOut>
 inline void convertCartesianPoint(const CartesianPointIn& in,
                                   CartesianPointOut* out) {

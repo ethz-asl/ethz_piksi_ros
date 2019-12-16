@@ -9,6 +9,7 @@
 
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Vector3.h>
 #include <piksi_rtk_msgs/PositionWithCovarianceStamped.h>
 
@@ -43,7 +44,7 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
 
     // Convert position.
     Eigen::Vector3d x_ecef;
-    libsbp_ros_msgs::convertCartesianPoint<msg_pos_ecef_t>(in, &x_ecef);
+    libsbp_ros_msgs::convertCartesianPoint<SbpMsgType>(in, &x_ecef);
 
     if (!geotf_handler_.get()) return false;
     if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "enu", x_enu))
@@ -105,6 +106,40 @@ class RosTransformEnuRelay
  private:
   bool convertSbpMsgToRosMsg(const msg_pos_ecef_t& in, const uint8_t len,
                              geometry_msgs::TransformStamped* out) override;
+};
+
+class RosPositionWithCovarianceEnuRelay
+    : public RosEnuRelay<msg_pos_ecef_cov_t,
+                         piksi_rtk_msgs::PositionWithCovarianceStamped> {
+ public:
+  inline RosPositionWithCovarianceEnuRelay(
+      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
+      const RosTimeHandler::Ptr& ros_time_handler,
+      const GeoTfHandler::Ptr& geotf_handler)
+      : RosEnuRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pos_enu_cov",
+                    ros_time_handler, geotf_handler) {}
+
+ private:
+  bool convertSbpMsgToRosMsg(
+      const msg_pos_ecef_cov_t& in, const uint8_t len,
+      piksi_rtk_msgs::PositionWithCovarianceStamped* out) override;
+};
+
+class RosPoseWithCovarianceEnuRelay
+    : public RosEnuRelay<msg_pos_ecef_cov_t,
+                         geometry_msgs::PoseWithCovarianceStamped> {
+ public:
+  inline RosPoseWithCovarianceEnuRelay(
+      const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
+      const RosTimeHandler::Ptr& ros_time_handler,
+      const GeoTfHandler::Ptr& geotf_handler)
+      : RosEnuRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pose_enu_cov",
+                    ros_time_handler, geotf_handler) {}
+
+ private:
+  bool convertSbpMsgToRosMsg(
+      const msg_pos_ecef_cov_t& in, const uint8_t len,
+      geometry_msgs::PoseWithCovarianceStamped* out) override;
 };
 
 }  // namespace piksi_multi_cpp

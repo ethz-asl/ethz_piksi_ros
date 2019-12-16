@@ -67,6 +67,13 @@ void GeoTfHandler::setEnuOriginEcef(const Eigen::Vector3d& x_ecef) {
   setEnuOriginWgs84(x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
 }
 
+bool GeoTfHandler::getEnuOriginWgs84(Eigen::Vector3d* enu_origin_wgs84) {
+  ROS_ASSERT(enu_origin_wgs84);
+
+  Eigen::Vector3d x_enu_origin_enu = Eigen::Vector3d::Zero();
+  return geotf_.convert("enu", x_enu_origin_enu, "wgs84", enu_origin_wgs84);
+}
+
 void GeoTfHandler::callbackToBasePosEcef(
     const libsbp_ros_msgs::MsgBasePosEcef::Ptr& msg) {
   if (reset_position_ != ResetEnuOrigin::kFromBase) return;
