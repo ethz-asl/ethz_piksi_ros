@@ -85,14 +85,11 @@ int32_t DeviceTCP::readImpl(uint8_t* buff, uint32_t n) const {
   ssize_t received_length =
       recvfrom(socket_fd_, (void*)buff, n, 0, nullptr, nullptr);
 
-  if (received_length >= 0) {
-    // all good or no data received
-    return received_length;
-  } else {
-    ROS_WARN_STREAM("TCP error " << received_length << " while reading device "
-                                 << id_);
-    return 0;
-  }
+  ROS_ERROR_STREAM_COND(
+      received_length < 0,
+      "TCP error " << received_length << " while reading device " << id_);
+
+  return received_length;
 }
 
 void DeviceTCP::closeImpl() {

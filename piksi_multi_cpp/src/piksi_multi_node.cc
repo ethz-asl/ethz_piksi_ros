@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
         [](auto receiver) { return receiver.get() && receiver->isRunning(); });
 
     if (running_receivers < 1) {
-      ROS_FATAL("No receivers initialized. stopping.");
+      ROS_FATAL("No receivers initialized. Stopping.");
       exit(1);
     } else {
       ROS_INFO_STREAM_ONCE("Found and initialized " << running_receivers

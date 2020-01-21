@@ -135,8 +135,10 @@ int32_t DeviceSerial::readImpl(uint8_t* buff, uint32_t n) const {
   auto received = sp_blocking_read(port_, buff, n, 10000);
 
   if (received >= 0 && static_cast<uint32_t>(received) < n) {
-    ROS_ERROR("Reading timed out.");
-    return SP_ERR_FAIL;
+    ROS_ERROR_STREAM("Serial read timeout received bytes:"
+                     << received << " requested bytes: " << n
+                     << " device: " << id_);
+    received = SP_ERR_FAIL;
   }
 
   return received;
