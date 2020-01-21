@@ -29,20 +29,25 @@ int main(int argc, char** argv) {
     }
   }
 
-  // check how many are running.
-  int running_receivers = std::count_if(
-      receivers.begin(), receivers.end(),
-      [](auto receiver) { return receiver.get() && receiver->isRunning(); });
+  // Watchdog to count running receivers.
+  ros::Rate loop_rate(1);
+  while (ros::ok()) {
+    // check how many are running.
+    int running_receivers = std::count_if(
+        receivers.begin(), receivers.end(),
+        [](auto receiver) { return receiver.get() && receiver->isRunning(); });
 
-  if (running_receivers < 1) {
-    ROS_FATAL("No receivers initialized. stopping.");
-    exit(1);
-  } else {
-    ROS_INFO_STREAM("Found and initialized " << running_receivers
-                                             << " Receivers");
+    if (running_receivers < 1) {
+      ROS_FATAL("No receivers initialized. stopping.");
+      exit(1);
+    } else {
+      ROS_INFO_STREAM_ONCE("Found and initialized " << running_receivers
+                                                    << " Receivers");
+    }
+
+    ros::spinOnce();
+    loop_rate.sleep();
   }
-
-  ros::spin();
 
   return 0;
 }
