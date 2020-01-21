@@ -7,6 +7,8 @@ if [[ $configure_base_autostart == "Y" || $configure_base_autostart == "y" ]]; t
   sudo sh -c "tee -a /etc/systemd/system/base_station.service << END
 [Unit]
 Description=Start base station automatically on startup.
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=forking
