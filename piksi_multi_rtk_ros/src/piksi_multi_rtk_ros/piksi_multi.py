@@ -531,6 +531,8 @@ class PiksiMulti:
             if pub.get_num_connections() == 0:
                 return
             sbp_message = sbp_type(msg)
+            ros_message.header.stamp = self.get_time_stamp(
+                sbp_message.tow if hasattr(sbp_message, 'tow') else None)
             ros_message.header.stamp = rospy.Time.now()
             for attr in attrs:
                 if attr == 'flags':
@@ -749,7 +751,7 @@ class PiksiMulti:
 
     def get_time_stamp(self, tow):
         stamp = rospy.Time.now()
-        if self.use_gps_time:
+        if self.use_gps_time and (tow is not None) and not (tow & (1 << (32 - 1))):
             stamp = self.utc_times.get(tow, None)
             if stamp is None:
                 rospy.logwarn("Cannot find GPS time stamp. Converting manually up to ms precision.")
