@@ -66,13 +66,14 @@ inline void convertNedVector(const NedVectorIn& in, NedPositionOut* out) {
 
 template <class NedAccuracyIn, class NedCovOut>
 inline void convertNedAccuracyToNedCov(const NedAccuracyIn& in,
-                                       NedCovOut* out) {
+                                       const double scale, NedCovOut* out) {
   ROS_ASSERT(out);
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> Matrix3dRow;
   Matrix3dRow cov = Matrix3dRow::Zero();
   cov(0, 0) = in.h_accuracy * in.h_accuracy * kFromMilli;
   cov(1, 1) = cov(0, 0);
   cov(2, 2) = in.v_accuracy * in.v_accuracy * kFromMilli;
+  cov *= scale;
   Matrix3dRow::Map(out->data()) = cov;
 }
 
@@ -93,61 +94,63 @@ inline void convertWgs84Point(const Wgs84PointIn& in, Eigen::Vector3d* out) {
 }
 
 template <class CartesianCovIn, class CartesianCovOut>
-inline void convertCartesianCov(const CartesianCovIn& in,
+inline void convertCartesianCov(const CartesianCovIn& in, const double scale,
                                 CartesianCovOut* out) {
   ROS_ASSERT(out);
   // First row.
-  (*out)[0] = in.cov_x_x;
-  (*out)[1] = in.cov_x_y;
-  (*out)[2] = in.cov_x_z;
+  (*out)[0] = in.cov_x_x * scale;
+  (*out)[1] = in.cov_x_y * scale;
+  (*out)[2] = in.cov_x_z * scale;
   // Second row.
-  (*out)[3] = in.cov_x_y;
-  (*out)[4] = in.cov_y_y;
-  (*out)[5] = in.cov_y_z;
+  (*out)[3] = in.cov_x_y * scale;
+  (*out)[4] = in.cov_y_y * scale;
+  (*out)[5] = in.cov_y_z * scale;
   // Third row.
-  (*out)[6] = in.cov_x_z;
-  (*out)[7] = in.cov_y_z;
-  (*out)[8] = in.cov_z_z;
+  (*out)[6] = in.cov_x_z * scale;
+  (*out)[7] = in.cov_y_z * scale;
+  (*out)[8] = in.cov_z_z * scale;
 }
 
 template <class CartesianCovIn>
-inline void convertCartesianCov(const CartesianCovIn& in,
+inline void convertCartesianCov(const CartesianCovIn& in, const double scale,
                                 Eigen::Matrix3d* out) {
   ROS_ASSERT(out);
   std::vector<double> cov(9);
-  convertCartesianCov<CartesianCovIn, std::vector<double>>(in, &cov);
+  convertCartesianCov<CartesianCovIn, std::vector<double>>(in, scale, &cov);
   *out = Eigen::Matrix<double, 3, 3, Eigen::RowMajor>(cov.data());
 }
 
 template <class CartesianCovIn, class CartesianCovOut>
-inline void convertCartesianCovMm(const CartesianCovIn& in,
+inline void convertCartesianCovMm(const CartesianCovIn& in, const double scale,
                                   CartesianCovOut* out) {
-  convertCartesianCov<CartesianCovIn, CartesianCovOut>(in, out);
+  convertCartesianCov<CartesianCovIn, CartesianCovOut>(in, scale, out);
   for (auto& cov : *out) {
     cov *= kFromMilliSq;
   }
 }
 
 template <class CovarianceNedIn, class CovarianceNedOut>
-inline void convertNedCov(const CovarianceNedIn& in, CovarianceNedOut* out) {
+inline void convertNedCov(const CovarianceNedIn& in, const double scale,
+                          CovarianceNedOut* out) {
   ROS_ASSERT(out);
   // First row.
-  (*out)[0] = in.cov_n_n;
-  (*out)[1] = in.cov_n_e;
-  (*out)[2] = in.cov_n_d;
+  (*out)[0] = in.cov_n_n * scale;
+  (*out)[1] = in.cov_n_e * scale;
+  (*out)[2] = in.cov_n_d * scale;
   // Second row.
-  (*out)[3] = in.cov_n_e;
-  (*out)[4] = in.cov_e_e;
-  (*out)[5] = in.cov_e_d;
+  (*out)[3] = in.cov_n_e * scale;
+  (*out)[4] = in.cov_e_e * scale;
+  (*out)[5] = in.cov_e_d * scale;
   // Third row.
-  (*out)[6] = in.cov_n_d;
-  (*out)[7] = in.cov_e_d;
-  (*out)[8] = in.cov_d_d;
+  (*out)[6] = in.cov_n_d * scale;
+  (*out)[7] = in.cov_e_d * scale;
+  (*out)[8] = in.cov_d_d * scale;
 }
 
 template <class CovarianceNedIn, class CovarianceNedOut>
-inline void convertNedCovMm(const CovarianceNedIn& in, CovarianceNedOut* out) {
-  convertNedCov<CovarianceNedIn, CovarianceNedOut>(in, out);
+inline void convertNedCovMm(const CovarianceNedIn& in, const double scale,
+                            CovarianceNedOut* out) {
+  convertNedCov<CovarianceNedIn, CovarianceNedOut>(in, scale, out);
   for (auto& cov : *out) {
     cov *= kFromMilliSq;
   }

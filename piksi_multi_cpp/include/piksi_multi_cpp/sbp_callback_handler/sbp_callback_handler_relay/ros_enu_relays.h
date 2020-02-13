@@ -54,7 +54,7 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
   }
 
   inline bool convertEcefToEnu(const SbpMsgType& in,
-                               geometry_msgs::Point* out) {
+                               geometry_msgs::Point* out) const {
     ROS_ASSERT(out)
 
     Eigen::Vector3d x_enu;
@@ -65,7 +65,7 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
   }
 
   inline bool convertEcefToEnu(const SbpMsgType& in,
-                               geometry_msgs::Vector3* out) {
+                               geometry_msgs::Vector3* out) const {
     ROS_ASSERT(out)
 
     Eigen::Vector3d x_enu;
@@ -76,6 +76,26 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
   }
 
   GeoTfHandler::Ptr geotf_handler_;
+};
+
+template <class SbpMsgType, class RosMsgType>
+class RosEnuCovRelay : public RosEnuRelay<SbpMsgType, RosMsgType> {
+ public:
+  inline RosEnuCovRelay(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
+                        const std::shared_ptr<sbp_state_t>& state,
+                        const std::string& topic,
+                        const RosTimeHandler::Ptr& ros_time_handler,
+                        const GeoTfHandler::Ptr& geotf_handler)
+      : RosEnuRelay<SbpMsgType, RosMsgType>(nh, sbp_msg_type, state, topic,
+                                            ros_time_handler, geotf_handler) {
+    ros::NodeHandle nh_node("~");
+    ROS_INFO_COND(nh_node.getParam("ros_cov_scale", cov_scale_),
+                  "Scaling covariance matrix of topic ros/%s by %.1f",
+                  topic.c_str(), cov_scale_);
+  }
+
+ protected:
+  double cov_scale_ = 1.0;
 };
 
 class RosPosEnuRelay
@@ -109,15 +129,15 @@ class RosTransformEnuRelay
 };
 
 class RosPositionWithCovarianceEnuRelay
-    : public RosEnuRelay<msg_pos_ecef_cov_t,
-                         piksi_rtk_msgs::PositionWithCovarianceStamped> {
+    : public RosEnuCovRelay<msg_pos_ecef_cov_t,
+                            piksi_rtk_msgs::PositionWithCovarianceStamped> {
  public:
   inline RosPositionWithCovarianceEnuRelay(
       const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
       const RosTimeHandler::Ptr& ros_time_handler,
       const GeoTfHandler::Ptr& geotf_handler)
-      : RosEnuRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pos_enu_cov",
-                    ros_time_handler, geotf_handler) {}
+      : RosEnuCovRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pos_enu_cov",
+                       ros_time_handler, geotf_handler) {}
 
  private:
   bool convertSbpMsgToRosMsg(
@@ -126,15 +146,15 @@ class RosPositionWithCovarianceEnuRelay
 };
 
 class RosPoseWithCovarianceEnuRelay
-    : public RosEnuRelay<msg_pos_ecef_cov_t,
-                         geometry_msgs::PoseWithCovarianceStamped> {
+    : public RosEnuCovRelay<msg_pos_ecef_cov_t,
+                            geometry_msgs::PoseWithCovarianceStamped> {
  public:
   inline RosPoseWithCovarianceEnuRelay(
       const ros::NodeHandle& nh, const std::shared_ptr<sbp_state_t>& state,
       const RosTimeHandler::Ptr& ros_time_handler,
       const GeoTfHandler::Ptr& geotf_handler)
-      : RosEnuRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pose_enu_cov",
-                    ros_time_handler, geotf_handler) {}
+      : RosEnuCovRelay(nh, SBP_MSG_POS_ECEF_COV, state, "pose_enu_cov",
+                       ros_time_handler, geotf_handler) {}
 
  private:
   bool convertSbpMsgToRosMsg(

@@ -15,6 +15,9 @@
 
       	<!-- Autoset ENU origin to startup position. Otherwise it waits for base station position. -->
       	<param name="set_enu_origin_from_current_pos" value="false" />
+
+        <!-- Scales the covariance of the published ROS messages (*/ros/*) -->
+        <param name="ros_cov_scale" value="1.0" />
     </node>
   </group>
 </launch>

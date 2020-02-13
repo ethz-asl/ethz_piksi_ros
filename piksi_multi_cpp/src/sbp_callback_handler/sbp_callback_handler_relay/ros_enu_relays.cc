@@ -40,7 +40,8 @@ bool RosPositionWithCovarianceEnuRelay::convertSbpMsgToRosMsg(
       x_enu_origin_wgs84.x(), x_enu_origin_wgs84.y());
 
   Eigen::Matrix3d cov_ecef;
-  libsbp_ros_msgs::convertCartesianCov<msg_pos_ecef_cov_t>(in, &cov_ecef);
+  libsbp_ros_msgs::convertCartesianCov<msg_pos_ecef_cov_t>(in, cov_scale_,
+                                                           &cov_ecef);
   // https://robotics.stackexchange.com/a/2557
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> Matrix3dRow;
   Matrix3dRow cov_enu = R_ENU_ECEF * cov_ecef * R_ENU_ECEF.transpose();
@@ -69,7 +70,8 @@ bool RosPoseWithCovarianceEnuRelay::convertSbpMsgToRosMsg(
       x_enu_origin_wgs84.x(), x_enu_origin_wgs84.y());
 
   Eigen::Matrix3d cov_ecef;
-  libsbp_ros_msgs::convertCartesianCov<msg_pos_ecef_cov_t>(in, &cov_ecef);
+  libsbp_ros_msgs::convertCartesianCov<msg_pos_ecef_cov_t>(in, cov_scale_,
+                                                           &cov_ecef);
 
   // https://robotics.stackexchange.com/a/2557
   Eigen::Matrix3d cov_enu = R_ENU_ECEF * cov_ecef * R_ENU_ECEF.transpose();

@@ -44,13 +44,34 @@ class RosRelay : public SBPCallbackHandlerRelay<SbpMsgType, RosMsgType> {
     ros_msg->header.frame_id = frame_id_;
 
     // Manual conversion.
-    if(!convertSbpMsgToRosMsg(sbp_msg, len, ros_msg)) return false;
+    if (!convertSbpMsgToRosMsg(sbp_msg, len, ros_msg)) return false;
     return true;
   }
 
   RosTimeHandler::Ptr ros_time_handler_;
   std::string frame_id_;
 };
+
+template <class SbpMsgType, class RosMsgType>
+class RosCovRelay : public RosRelay<SbpMsgType, RosMsgType> {
+ public:
+  inline RosCovRelay(const ros::NodeHandle& nh, const uint16_t sbp_msg_type,
+                     const std::shared_ptr<sbp_state_t>& state,
+                     const std::string& topic,
+                     const RosTimeHandler::Ptr& ros_time_handler,
+                     const std::string& frame_id)
+      : RosRelay<SbpMsgType, RosMsgType>(nh, sbp_msg_type, state, topic,
+                                         ros_time_handler, frame_id) {
+    ros::NodeHandle nh_node("~");
+    ROS_INFO_COND(nh_node.getParam("ros_cov_scale", cov_scale_),
+                  "Scaling covariance matrix of topic ros/%s by %.1f",
+                  topic.c_str(), cov_scale_);
+  }
+
+ protected:
+  double cov_scale_ = 1.0;
+};
+
 }  // namespace piksi_multi_cpp
 
 #endif  // PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_RELAY_H_

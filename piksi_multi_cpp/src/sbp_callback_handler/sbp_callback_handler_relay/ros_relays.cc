@@ -24,7 +24,7 @@ bool RosPosEcefCovRelay::convertSbpMsgToRosMsg(
   lrm::convertCartesianPoint<msg_pos_ecef_cov_t, gm::Point>(
       in, &(out->position.position));
   lrm::convertCartesianCov<msg_pos_ecef_cov_t, boost::array<double, 9>>(
-      in, &(out->position.covariance));
+      in, cov_scale_, &(out->position.covariance));
   return true;
 }
 
@@ -62,7 +62,7 @@ bool RosPosLlhCovRelay::convertSbpMsgToRosMsg(const msg_pos_llh_cov_t& in,
 
   lrm::convertWgs84Point<msg_pos_llh_cov_t, sensor_msgs::NavSatFix>(in, out);
   lrm::convertNedCov<msg_pos_llh_cov_t, boost::array<double, 9>>(
-      in, &(out->position_covariance));
+      in, cov_scale_, &(out->position_covariance));
   out->position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_KNOWN;
 
   return true;
@@ -75,7 +75,7 @@ bool RosBaselineNedRelay::convertSbpMsgToRosMsg(
   lrm::convertNedVector<msg_baseline_ned_t, gm::Point>(
       in, &(out->position.position));
   lrm::convertNedAccuracyToNedCov<msg_baseline_ned_t, boost::array<double, 9>>(
-      in, &(out->position.covariance));
+      in, cov_scale_, &(out->position.covariance));
   return true;
 }
 
@@ -94,7 +94,7 @@ bool RosVelEcefCovRelay::convertSbpMsgToRosMsg(
   lrm::convertCartesianVector<msg_vel_ecef_cov_t, gm::Vector3>(
       in, &(out->velocity.velocity));
   lrm::convertCartesianCovMm<msg_vel_ecef_cov_t, boost::array<double, 9>>(
-      in, &(out->velocity.covariance));
+      in, cov_scale_, &(out->velocity.covariance));
   return true;
 }
 
@@ -113,7 +113,7 @@ bool RosVelNedCovRelay::convertSbpMsgToRosMsg(
   lrm::convertNedVector<msg_vel_ned_cov_t, gm::Vector3>(
       in, &(out->velocity.velocity));
   lrm::convertNedCovMm<msg_vel_ned_cov_t, boost::array<double, 9>>(
-      in, &(out->velocity.covariance));
+      in, cov_scale_, &(out->velocity.covariance));
   return true;
 }
 

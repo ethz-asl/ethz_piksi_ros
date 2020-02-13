@@ -111,7 +111,8 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
   Eigen::Vector3d z;
   lrm::convertCartesianPoint<msg_pos_ecef_cov_t>(*sbp_msg, &z);
   Eigen::Matrix3d R;
-  lrm::convertCartesianCov<msg_pos_ecef_cov_t>(*sbp_msg, &R);
+  const double kCovScale = 1.0;
+  lrm::convertCartesianCov<msg_pos_ecef_cov_t>(*sbp_msg, kCovScale, &R);
 
   // Cache least square measurement values.
   size_t block_idx = 3 * num_fixes_++;
