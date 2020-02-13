@@ -1,0 +1,7 @@
+geotf:
+  Frames:
+    enu:
+      Type: ENUOrigin
+      LatOrigin: 47.4091960517
+      LonOrigin: 8.4968005008
+      AltOrigin: 570.499753042
