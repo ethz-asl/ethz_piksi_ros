@@ -59,6 +59,7 @@ class RosReceiverState
                                      const uint8_t len) {
     uint8_t fix_mode = (gnss_msg.flags >> 0) & 0x7;
 
+    receiver_state_.rtk_mode_fix = false;
     switch (fix_mode) {
       case FixModeValues::kInvalid:
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_INVALID;
@@ -70,11 +71,10 @@ class RosReceiverState
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_DGNSS;
         break;
       case FixModeValues::kFloatRtk:
-        receiver_state_.rtk_mode_fix = 0;
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_FLOAT_RTK;
         break;
       case FixModeValues::kFixedRtk:
-        receiver_state_.rtk_mode_fix = 1;
+        receiver_state_.rtk_mode_fix = true;
         receiver_state_.fix_mode = ReceiverState::STR_FIX_MODE_FIXED_RTK;
         break;
       case FixModeValues::kDeadReckoning:

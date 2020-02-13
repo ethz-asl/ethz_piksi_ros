@@ -78,7 +78,8 @@ bool ReceiverBaseStation::resampleBasePositionCallback(
   wait_for_sampled_position_ = true;
   // Start sampling.
   ros::NodeHandle nh_node("~");
-  position_sampler_->startSampling(req.num_desired_fixes, req.file);
+  const bool kSetEnu = true;
+  position_sampler_->startSampling(req.num_desired_fixes, req.file, kSetEnu);
   ROS_INFO("Start sampling base station position with %d desired fixes.",
            req.num_desired_fixes);
   return true;

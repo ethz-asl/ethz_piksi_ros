@@ -71,31 +71,28 @@ bool DeviceTCP::openSocket() {
   return true;
 }
 
-bool DeviceTCP::open() {
+bool DeviceTCP::openImpl() {
   // this opens the TCP connection.
   return parseId() && openSocket();
 }
 
-int32_t DeviceTCP::write(std::vector<uint8_t> buff) const {
+int32_t DeviceTCP::writeImpl(std::vector<uint8_t> buff) const {
   return send(socket_fd_, buff.data(), buff.size(), 0);
 }
 
-int32_t DeviceTCP::read(uint8_t* buff, uint32_t n) const {
+int32_t DeviceTCP::readImpl(uint8_t* buff, uint32_t n) const {
   // todo optional: add wait blocking until a package is received.
   ssize_t received_length =
       recvfrom(socket_fd_, (void*)buff, n, 0, nullptr, nullptr);
 
-  if (received_length >= 0) {
-    // all good or no data received
-    return received_length;
-  } else {
-    ROS_WARN_STREAM("TCP error " << received_length << " while reading device "
-                                 << id_);
-    return 0;
-  }
+  ROS_ERROR_STREAM_COND(
+      received_length < 0,
+      "TCP error " << received_length << " while reading device " << id_);
+
+  return received_length;
 }
 
-void DeviceTCP::close() {
+void DeviceTCP::closeImpl() {
   // execute non-namespaced C-interface file descriptor close method to close
   // the device
   ::close(socket_fd_);

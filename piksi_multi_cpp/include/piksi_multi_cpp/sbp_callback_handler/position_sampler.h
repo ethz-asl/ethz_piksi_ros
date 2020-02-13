@@ -8,6 +8,7 @@
 #include <Eigen/Dense>
 #include <memory>
 #include <optional>
+#include "piksi_multi_cpp/sbp_callback_handler/geotf_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/ros_time_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 
@@ -18,10 +19,11 @@ class PositionSampler : public SBPCallbackHandler {
   typedef std::shared_ptr<PositionSampler> Ptr;
   PositionSampler(const ros::NodeHandle& nh,
                   const std::shared_ptr<sbp_state_t>& state,
-                  const RosTimeHandler::Ptr& ros_time_handler);
+                  const RosTimeHandler::Ptr& ros_time_handler,
+                  const GeoTfHandler::Ptr& geotf_handler);
 
   void startSampling(const uint32_t num_desired_fixes,
-                     const std::string& file = "");
+                     const std::string& file = "", bool set_enu = false);
   inline bool isSampling() { return !x_ml_.has_value(); }
   bool getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov);
 
@@ -31,20 +33,24 @@ class PositionSampler : public SBPCallbackHandler {
   void callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) override;
   void publishPosition(const ros::Publisher& pub, const Eigen::Vector3d& x,
                        const Eigen::Matrix3d& cov, const uint32_t tow) const;
+  void publishProgress();
   bool savePositionToFile(const Eigen::Vector3d& x, const Eigen::Matrix3d& cov,
                           const uint32_t num_fixes) const;
   std::string getTimeStr() const;
 
   ros::NodeHandle nh_;
   RosTimeHandler::Ptr ros_time_handler_;
+  GeoTfHandler::Ptr geotf_handler_;
   std::optional<ros::Publisher> ml_pos_pub_;
   std::optional<ros::Publisher> kf_pos_pub_;
+  std::optional<ros::Publisher> info_pub_;
   ros::ServiceServer sample_pos_srv_;
 
   // Sampler state.
   std::optional<uint32_t> num_desired_fixes_;
   uint32_t num_fixes_ = 0;
   std::string file_;
+  bool set_enu_ = false;
 
   // Kalman filter state.
   std::optional<Eigen::Vector3d> x_;

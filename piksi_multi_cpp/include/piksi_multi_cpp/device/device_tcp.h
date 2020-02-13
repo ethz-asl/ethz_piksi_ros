@@ -21,12 +21,12 @@ class DeviceTCP : public Device {
     // we don't do anything else here, leave the parsing to the open method.
   }
 
-  bool open() override;
+  bool openImpl() override;
   bool openSocket();
   bool parseId();
-  int32_t read(uint8_t* buff, uint32_t n) const override;
-  int32_t write(std::vector<uint8_t> buff) const override;
-  void close() override;
+  int32_t readImpl(uint8_t* buff, uint32_t n) const override;
+  int32_t writeImpl(std::vector<uint8_t> buff) const override;
+  void closeImpl() override;
 
  private:
   int socket_fd_;     // socket file descriptor

@@ -38,16 +38,23 @@ bool Receiver::init() {
   return true;
 }
 
-bool Receiver::isRunning() const { return process_thread_.joinable(); }
+bool Receiver::isRunning() const { return !thread_exit_requested_.load(); }
 
 void Receiver::process() {
   // Setting thread_exit_requested_ will terminate the thread.
   while (!thread_exit_requested_.load()) {
-    if (!device_.get()) return;
+    if (!device_.get()) {
+      ROS_ERROR("Device pointer invalid.");
+      thread_exit_requested_.store(true);
+    }
     // Pass device read function to sbp_process.
     int result =
         sbp_process(state_.get(), &piksi_multi_cpp::Device::read_redirect);
-    if (result < 0) {
+    // Handle errors.
+    if (result == SBP_READ_ERROR) {
+      ROS_ERROR("Device reading error.");
+      thread_exit_requested_.store(true);
+    } else if (result < 0) {
       ROS_WARN_STREAM("Error sbp_process: " << result);
     }
   }

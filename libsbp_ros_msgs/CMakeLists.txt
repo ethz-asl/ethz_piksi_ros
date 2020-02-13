@@ -32,6 +32,14 @@ cs_add_library(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
 
+#########
+# TESTS #
+#########
+catkin_add_gtest(test_ros_conversion
+  test/ros-conversion-test.cpp
+)
+target_link_libraries(test_ros_conversion ${PROJECT_NAME})
+
 catkin_install_python(PROGRAMS bin/generator
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 cs_install()

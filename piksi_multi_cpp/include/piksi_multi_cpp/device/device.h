@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -20,10 +21,10 @@ class Device {
   typedef std::shared_ptr<Device> Ptr;
 
   Device(const Identifier& id);
-  virtual bool open() = 0;
-  virtual int32_t read(uint8_t* buff, uint32_t n) const = 0;
-  virtual int32_t write(std::vector<uint8_t> buff) const = 0;
-  virtual void close() = 0;
+  bool open();
+  int32_t read(uint8_t* buff, uint32_t n);
+  int32_t write(std::vector<uint8_t> buff);
+  void close();
   inline std::string getID() const { return id_; }
 
   // This function will be passed to sbp_process.
@@ -35,7 +36,14 @@ class Device {
   static int32_t write_redirect(uint8_t* buff, uint32_t n, void* context);
 
  protected:
+  virtual bool openImpl() = 0;
+  virtual int32_t readImpl(uint8_t* buff, uint32_t n) const = 0;
+  virtual int32_t writeImpl(std::vector<uint8_t> buff) const = 0;
+  virtual void closeImpl() = 0;
   Identifier id_;
+
+ private:
+  std::mutex mtx_;
 };
 
 }  // namespace piksi_multi_cpp

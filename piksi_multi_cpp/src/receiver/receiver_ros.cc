@@ -21,8 +21,8 @@ ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
       SBPCallbackHandlerFactory::createAllSBPMessageRelays(nh, state_);
   ros_relays_ = SBPCallbackHandlerFactory::createAllRosMessageRelays(
       nh, state_, ros_time_handler, geotf_handler_);
-  position_sampler_ =
-      std::make_shared<PositionSampler>(nh, state_, ros_time_handler);
+  position_sampler_ = std::make_shared<PositionSampler>(
+      nh, state_, ros_time_handler, geotf_handler_);
 
   // Create observation callbacks
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
