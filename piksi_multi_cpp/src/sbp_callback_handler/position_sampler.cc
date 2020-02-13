@@ -1,5 +1,7 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <libsbp_ros_msgs/ros_conversion.h>
+#include <piksi_rtk_msgs/PositionSampling.h>
+#include <piksi_rtk_msgs/PositionWithCovarianceStamped.h>
 #include <ros/assert.h>
 #include <Eigen/Dense>
 #include <chrono>
@@ -31,8 +33,8 @@ PositionSampler::PositionSampler(const ros::NodeHandle& nh,
 void PositionSampler::startSampling(const uint32_t num_desired_fixes,
                                     const std::string& file, bool set_enu) {
   set_enu_ = set_enu;
-  num_desired_fixes_ = num_desired_fixes;
-  if (num_desired_fixes_ < 1) {
+  num_desired_fixes_ = std::optional<uint32_t>(num_desired_fixes);
+  if (num_desired_fixes < 1) {
     ROS_ERROR(
         "Cannot sample position. num_desired_fixes needs to be greater than "
         "0.");
@@ -46,6 +48,7 @@ void PositionSampler::startSampling(const uint32_t num_desired_fixes,
   R_inv_.reset();
   x_ml_.reset();
   P_ml_.reset();
+  ROS_INFO("Start position sampling with %u samples.", num_desired_fixes);
 }
 
 bool PositionSampler::getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov) {
@@ -92,6 +95,10 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
   if (!kf_pos_pub_.has_value()) {
     kf_pos_pub_ = nh_.advertise<piksi_rtk_msgs::PositionWithCovarianceStamped>(
         "position_sampler/kf_position", kQueueSize, kLatchTopic);
+  }
+  if (!info_pub_.has_value()) {
+    info_pub_ = nh_.advertise<piksi_rtk_msgs::PositionSampling>(
+        "position_sampler/position_sampling", kQueueSize, kLatchTopic);
   }
 
   // Cast message.
@@ -142,6 +149,7 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
                    << "; 3-sigma bound: "
                    << P_.value().eigenvalues().real().cwiseSqrt().transpose());
   publishPosition(kf_pos_pub_.value(), x_.value(), P_.value(), sbp_msg->tow);
+  publishProgress();
 
   // Compute final least squares solution.
   if (num_fixes_ >= num_desired_fixes_.value()) {
@@ -153,7 +161,7 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
     x_ml_ = dec.solve(b);
     P_ml_ = A.inverse();
     ROS_INFO_STREAM(
-        "ML estimate: "
+        "Finished sampling. ML estimate: "
         << x_ml_.value().transpose() << "; 3-sigma bound: "
         << P_ml_.value().eigenvalues().real().cwiseSqrt().transpose());
     publishPosition(ml_pos_pub_.value(), x_ml_.value(), P_ml_.value(),
@@ -167,10 +175,6 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
         !savePositionToFile(x_ml_.value(), P_ml_.value(), num_fixes_),
         "Failed to save position to file.");
   }
-
-  // Logging.
-  ROS_INFO_THROTTLE(5.0, "Sampling position %d/%d", num_fixes_,
-                    num_desired_fixes_.value());
 }
 
 void PositionSampler::publishPosition(const ros::Publisher& pub,
@@ -184,6 +188,18 @@ void PositionSampler::publishPosition(const ros::Publisher& pub,
   pos.header.frame_id = "ecef";
   pos.header.stamp = ros_time_handler_->lookupTime(tow);
   pub.publish(pos);
+}
+
+void PositionSampler::publishProgress() {
+  prm::PositionSampling sampling;
+  if (num_desired_fixes_.has_value() && num_desired_fixes_ > 0) {
+    sampling.progress = 100 * num_fixes_ / num_desired_fixes_.value();
+  } else {
+    sampling.progress = 0xFF;  // Error.
+  }
+  if (info_pub_.has_value()) {
+    info_pub_.value().publish(sampling);
+  }
 }
 
 std::string PositionSampler::getTimeStr() const {

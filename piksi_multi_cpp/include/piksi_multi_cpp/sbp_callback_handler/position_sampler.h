@@ -23,8 +23,7 @@ class PositionSampler : public SBPCallbackHandler {
                   const GeoTfHandler::Ptr& geotf_handler);
 
   void startSampling(const uint32_t num_desired_fixes,
-                     const std::string& file = "",
-                     bool set_enu = false);
+                     const std::string& file = "", bool set_enu = false);
   inline bool isSampling() { return !x_ml_.has_value(); }
   bool getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov);
 
@@ -34,6 +33,7 @@ class PositionSampler : public SBPCallbackHandler {
   void callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) override;
   void publishPosition(const ros::Publisher& pub, const Eigen::Vector3d& x,
                        const Eigen::Matrix3d& cov, const uint32_t tow) const;
+  void publishProgress();
   bool savePositionToFile(const Eigen::Vector3d& x, const Eigen::Matrix3d& cov,
                           const uint32_t num_fixes) const;
   std::string getTimeStr() const;
@@ -43,6 +43,7 @@ class PositionSampler : public SBPCallbackHandler {
   GeoTfHandler::Ptr geotf_handler_;
   std::optional<ros::Publisher> ml_pos_pub_;
   std::optional<ros::Publisher> kf_pos_pub_;
+  std::optional<ros::Publisher> info_pub_;
   ros::ServiceServer sample_pos_srv_;
 
   // Sampler state.
