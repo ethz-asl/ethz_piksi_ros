@@ -40,6 +40,7 @@ add_message_files(
     Observation.msg
     PosEcef.msg
     PosEcefCov.msg
+    PositionSampling.msg
     PositionWithCovariance.msg
     PositionWithCovarianceStamped.msg
     PosLlh.msg
