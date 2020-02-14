@@ -46,7 +46,7 @@ void CBtoRawObsConverter::observationCallback(msg_obs_t_var msg) {
 void CBtoRawObsConverter::observationCallback(msg_heartbeat_t msg) {
   // Repack into full SBP Message
   startMessage();
-  sbp_send_message(&sbp_state_, SBP_MSG_HEARTBEAT, 0x00, sizeof(msg),
+  sbp_send_message(&sbp_state_, SBP_MSG_HEARTBEAT, sbp_sender_id_, sizeof(msg),
                    reinterpret_cast<uint8_t*>(&msg),
                    &CBtoRawObsConverter::sbp_write_redirect);
   // this triggers sbp_write_redirect

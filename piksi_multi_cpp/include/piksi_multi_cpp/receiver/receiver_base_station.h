@@ -23,6 +23,7 @@ class ReceiverBaseStation : public ReceiverRos {
       const piksi_rtk_msgs::PositionWithCovarianceStamped::Ptr& msg);
   void setupBaseStationSampling();
 
+  uint16_t sbp_sender_id_ {3173};
   ros::ServiceServer resample_base_position_srv_;
   ros::Subscriber ml_estimate_sub_;
   ros::Subscriber receiver_state_sub_;
