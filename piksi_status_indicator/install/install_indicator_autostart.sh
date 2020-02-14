@@ -9,7 +9,7 @@ if [[ $configure_base_autostart == "Y" || $configure_base_autostart == "y" ]]; t
   else
     echo "Creating new service in /etc/systemd/system/led_status_indicator.service"
   fi
-  
+
   sudo sh -c "tee -a /etc/systemd/system/led_status_indicator.service << END
 
 [Unit]
@@ -33,6 +33,6 @@ fi
 echo "Would you like to set up an udev rule for your arduino? [y or Y to accept]"
 read configure_udev_rules
 if [[ $configure_udev_rules == "Y" || $configure_udev_rules == "y" ]]; then
-  echo "Creating new udev rule. The arduino will then be assigned the device path: /dev/arduino"
-  sudo cp /home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_status_indicator/install/98-arduino.rules /etc/udev/rules.d/.
+  echo "Creating new udev rule. The arduino will then be assigned the device path: /dev/status_leds"
+  sudo cp /home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_status_indicator/install/98-status_leds.rules /etc/udev/rules.d/.
 fi

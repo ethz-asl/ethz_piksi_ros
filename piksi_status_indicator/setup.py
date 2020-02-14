@@ -6,7 +6,6 @@ from catkin_pkg.python_setup import generate_distutils_setup
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
     packages=['piksi_status_indicator'],
-    scripts=['scripts/start_status_indicator'],
     package_dir={'': 'python'})
 
 setup(**setup_args)

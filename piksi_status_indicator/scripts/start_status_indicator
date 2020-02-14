@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from piksi_status_indicator.base_station_indicator import BaseStationIndicator
+from piksi_status_indicator.sampling_indicator import SamplingIndicator
 
 if __name__ == "__main__":
-  indicator = BaseStationIndicator()
+  indicator = SamplingIndicator()
   indicator.run()

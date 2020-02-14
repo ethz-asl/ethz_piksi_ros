@@ -8,14 +8,14 @@ find_package(catkin REQUIRED
     rospy
 )
 
+catkin_python_setup()
+
 catkin_package(
   CATKIN_DEPENDS
     piksi_rtk_msgs
     neostate
     rospy
 )
-
-catkin_python_setup()
 
 catkin_install_python(PROGRAMS scripts/start_status_indicator
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

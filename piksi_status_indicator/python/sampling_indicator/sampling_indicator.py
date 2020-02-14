@@ -2,39 +2,37 @@
 
 import rospy
 
-from piksi_rtk_msgs.msg import PositionWithCovarianceStamped, ReceiverState_V2_6_5
+from piksi_rtk_msgs.msg import PositionSampling, ReceiverState_V2_6_5
 from neostate.led_array import LEDArray
 
 
-class BaseStationIndicator(object):
-    """Base Station Indicator using the Neostate package.
+class SamplingIndicator(object):
+    """Sampling Indicator using the Neostate package.
 
     During survey the leds will increasingly turn green until the sampling has finished.
     Once finished the leds will stay green for 3 seconds and then use blue indicators
     to show how many satellites the base station is seeing (more than 35 satellites results
     in all leds turned on).
-    If the blue indicators are blinking, then the base station fixed mode is not in SBAS. 
+    If the blue indicators are blinking, then the base station fixed mode is not in SBAS.
     """
     def __init__(self):
         rospy.init_node("piksi_status_indicator")
 
-        while not rospy.has_param("piksi_multi_cpp_base/num_desired_fixes"):
-            rospy.logwarn_throttle(5, "[Piksi Status Indicator]: Waiting for <num_desired_fixes> param")
-        self.desired_fixes_ = rospy.get_param("piksi_multi_cpp_base/num_desired_fixes")
-
         num_leds = rospy.get_param("~number_of_leds")
         self.indicator = LEDArray(num_leds)
-        
+
         self.finished_sampling = False
         self.finished_survey = False
 
-        self.green_color_ = [0, 155, 0] 
-        self.blue_color_ = [0, 0, 155] 
-        
+        self.green_color_ = [0, 155, 0]
+        self.blue_color_ = [0, 0, 155]
+
         #TODO(clanegge): Search for namespace of base station
-        self.kf_pos_sub_ = rospy.Subscriber(
-            "/piksi_multi_cpp_base/base_station_receiver_0/position_sampler/kf_position",
-            PositionWithCovarianceStamped,
+        all_topics = rospy.get_published_topics()
+        print all_topics
+        self.sampling_pub_ = rospy.Subscriber(
+            "/piksi_multi_cpp_base/base_station_receiver_0/position_sampler/position_sampling",
+            PositionSampling,
             self.set_sampling_indicators,
             queue_size=1,
         )
@@ -53,13 +51,13 @@ class BaseStationIndicator(object):
     def run(self):
         rospy.loginfo("[Piksi Status Indicator]: Starting base station LED indicator..")
         rospy.spin()
-    
+
     def get_next_off_led(self):
         return  next((idx for idx, val in enumerate(self.indicator.led_status) if val is 0), None)
 
     def set_sampling_indicators(self, msg):
         if msg.header.seq == (self.desired_fixes_ -1):
-            # Sampling finished 
+            # Sampling finished
             self.finished_sampling = True
             self.ml_pos_sub_ = rospy.Subscriber(
             "/piksi_multi_cpp_base/base_station_receiver_0/position_sampler/ml_position",
@@ -127,15 +125,14 @@ class BaseStationIndicator(object):
             if desired_num_leds_on != last_on_led_id or change_blinking_status:
                 # Turn on desired leds
                 led_status = [-1] * desired_num_leds_on
-                
+
                 # if we should blink leds change sign
                 if change_blinking_status:
                     led_status = led_status * (-1)
 
                 # define led ids (here just the range from 0 to desired led)
                 led_id = list(range(0,desired_num_leds_on))
-                
+
                 # update and publish
                 self.indicator.set_led_status(led_id, led_status, [self.blue_color_] * desired_num_leds_on)
                 self.indicator.publish_led_status()
-

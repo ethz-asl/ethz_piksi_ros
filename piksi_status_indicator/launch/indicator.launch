@@ -4,6 +4,6 @@
   </node>
   <!-- Run Status Indicator Link. -->
   <node name="rosserial_server" pkg="rosserial_server" type="serial_node"
-    args="_port:=/dev/arduino _baud:=57600" respawn="false" output="log" required="true" />
+    args="_port:=/dev/status_leds _baud:=57600" respawn="false" output="log" required="true" />
 
 </launch>
