@@ -30,9 +30,12 @@ class CBtoRawObsConverter : public CallbackObservationInterface {
   void observationCallback(msg_heartbeat_t msg) final;
 
   static std::shared_ptr<CBtoRawObsConverter> createFor(
-      const RawObservationInterface::Ptr& consumer) {
+      const RawObservationInterface::Ptr& consumer, const uint16_t sbp_sender_id) {
     auto instance = std::make_shared<CBtoRawObsConverter>();
     instance->raw_consumers_.push_back(consumer);
+
+    // In later piksi versions, this needs to be set.
+    instance->sbp_sender_id_ = sbp_sender_id;
     return instance;
   }
 

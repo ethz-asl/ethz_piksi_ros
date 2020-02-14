@@ -52,7 +52,7 @@ void ReceiverBaseStation::setupUDPSenders() {
       udp_sender_->open();
       // Register with observation callbacks
       obs_cbs_->addObservationCallbackListener(
-          CBtoRawObsConverter::createFor(udp_sender_));
+          CBtoRawObsConverter::createFor(udp_sender_, sbp_sender_id_));
     }
   }
 
@@ -66,7 +66,7 @@ void ReceiverBaseStation::setupUDPSenders() {
 
       // Register with observation callbacks
       obs_cbs_->addObservationCallbackListener(
-          CBtoRawObsConverter::createFor(udp_sender_));
+          CBtoRawObsConverter::createFor(udp_sender_, sbp_sender_id_));
     }
   }
 }
