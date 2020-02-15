@@ -23,7 +23,7 @@ bool ReceiverBaseStation::init() {
   while (!readSetting("system_info", "sbp_sender_id")) {
   }
   sbp_sender_id_ = static_cast<uint16_t>(std::stoul(getValue(), nullptr, 16));
-  ROS_INFO("UDP corrections sender ID: %.4X", sbp_sender_id_);
+  ROS_INFO("UDP corrections sender ID: 0x%.4X", sbp_sender_id_);
   setupUDPSenders();
 
   return true;
