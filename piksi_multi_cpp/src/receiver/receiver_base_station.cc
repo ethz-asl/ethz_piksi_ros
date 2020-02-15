@@ -10,7 +10,23 @@ ReceiverBaseStation::ReceiverBaseStation(const ros::NodeHandle& nh,
                                          const Device::Ptr& device)
     : ReceiverRos(nh, device) {
   setupUDPSenders();
+}
+
+bool ReceiverBaseStation::init() {
+  // Init base class.
+  if (!ReceiverRos::init()) {
+    return false;
+  }
+
+  // Setup UDP senders.
+  while (!readSetting("system_info", "sbp_sender_id")) {
+  }
+  sbp_sender_id_ = std::atol(getValue().c_str());
+  ROS_INFO("UDP corrections sender ID: %u", sbp_sender_id_);
+
   setupBaseStationSampling();
+
+  return true;
 }
 
 // The base station can either be sampled automatically at startup with
