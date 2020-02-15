@@ -2,6 +2,7 @@
 #include <piksi_multi_cpp/observations/udp_observation_sender.h>
 #include <piksi_rtk_msgs/SamplePosition.h>
 #include <boost/algorithm/string.hpp>
+#include <string>
 #include "piksi_multi_cpp/receiver/receiver_base_station.h"
 
 namespace piksi_multi_cpp {
@@ -21,7 +22,7 @@ bool ReceiverBaseStation::init() {
   // Setup UDP senders.
   while (!readSetting("system_info", "sbp_sender_id")) {
   }
-  sbp_sender_id_ = std::atol(getValue().c_str());
+  sbp_sender_id_ = std::stoul(getValue(), nullptr, 16);
   ROS_INFO("UDP corrections sender ID: %u", sbp_sender_id_);
   setupUDPSenders();
 
