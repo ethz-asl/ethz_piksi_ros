@@ -22,8 +22,8 @@ bool ReceiverBaseStation::init() {
   // Setup UDP senders.
   while (!readSetting("system_info", "sbp_sender_id")) {
   }
-  sbp_sender_id_ = std::stoul(getValue(), nullptr, 16);
-  ROS_INFO("UDP corrections sender ID: %u", sbp_sender_id_);
+  sbp_sender_id_ = static_cast<uint16_t>(std::stoul(getValue(), nullptr, 16));
+  ROS_INFO("UDP corrections sender ID: %.4X", sbp_sender_id_);
   setupUDPSenders();
 
   return true;
