@@ -9,7 +9,7 @@ namespace piksi_multi_cpp {
 ReceiverBaseStation::ReceiverBaseStation(const ros::NodeHandle& nh,
                                          const Device::Ptr& device)
     : ReceiverRos(nh, device) {
-  setupUDPSenders();
+      setupBaseStationSampling();
 }
 
 bool ReceiverBaseStation::init() {
@@ -23,8 +23,8 @@ bool ReceiverBaseStation::init() {
   }
   sbp_sender_id_ = std::atol(getValue().c_str());
   ROS_INFO("UDP corrections sender ID: %u", sbp_sender_id_);
+setupUDPSenders();
 
-  setupBaseStationSampling();
 
   return true;
 }
