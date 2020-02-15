@@ -2,6 +2,7 @@
 #include <piksi_multi_cpp/observations/udp_observation_sender.h>
 #include <piksi_rtk_msgs/SamplePosition.h>
 #include <boost/algorithm/string.hpp>
+#include <string>
 #include "piksi_multi_cpp/receiver/receiver_base_station.h"
 
 namespace piksi_multi_cpp {
@@ -9,8 +10,23 @@ namespace piksi_multi_cpp {
 ReceiverBaseStation::ReceiverBaseStation(const ros::NodeHandle& nh,
                                          const Device::Ptr& device)
     : ReceiverRos(nh, device) {
-  setupUDPSenders();
   setupBaseStationSampling();
+}
+
+bool ReceiverBaseStation::init() {
+  // Init base class.
+  if (!ReceiverRos::init()) {
+    return false;
+  }
+
+  // Setup UDP senders.
+  while (!readSetting("system_info", "sbp_sender_id")) {
+  }
+  sbp_sender_id_ = static_cast<uint16_t>(std::stoul(getValue(), nullptr, 16));
+  ROS_INFO("UDP corrections sender ID: 0x%.4X", sbp_sender_id_);
+  setupUDPSenders();
+
+  return true;
 }
 
 // The base station can either be sampled automatically at startup with
