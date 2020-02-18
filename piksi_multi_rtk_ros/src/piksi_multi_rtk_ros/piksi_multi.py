@@ -210,9 +210,9 @@ class PiksiMulti:
             threading.Thread(target=self.ping_base_station_over_wifi).start()
 
         # Handle firmware settings services
-        self.last_section_setting_read = []
-        self.last_setting_read = []
-        self.last_value_read = []
+        self.last_section_setting_read = ""
+        self.last_setting_read = ""
+        self.last_value_read = ""
 
         # Only have start-up reset in base station mode
         if self.base_station_mode:
@@ -1426,9 +1426,9 @@ class PiksiMulti:
         else:
             response.success = False
             response.message = "Please trigger a new 'settings_read_req' via service call."
-            response.section_setting = []
-            response.setting = []
-            response.value = []
+            response.section_setting = ""
+            response.setting = ""
+            response.value = ""
 
         self.clear_last_setting_read()
 
@@ -1588,6 +1588,6 @@ class PiksiMulti:
         self.publishers['mag'].publish(mag_msg)
 
     def clear_last_setting_read(self):
-        self.last_section_setting_read = []
-        self.last_setting_read = []
-        self.last_value_read = []
+        self.last_section_setting_read = ""
+        self.last_setting_read = ""
+        self.last_value_read = ""
