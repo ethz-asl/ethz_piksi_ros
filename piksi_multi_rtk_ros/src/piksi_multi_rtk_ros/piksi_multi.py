@@ -39,7 +39,6 @@ from sbp.piksi import *  # WARNING: piksi is part of the draft messages, could b
 from sbp.observation import *
 from sbp.orientation import *  # WARNING: orientation messages are still draft messages.
 from sbp.settings import *
-from zope.interface.exceptions import Invalid
 # Piksi Multi features an IMU
 from sbp.imu import *
 # Piksi Multi features a Magnetometer Bosh bmm150 : https://www.bosch-sensortec.com/bst/products/all_products/bmm150
