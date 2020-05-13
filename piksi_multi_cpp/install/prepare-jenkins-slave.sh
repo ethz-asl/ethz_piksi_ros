@@ -29,3 +29,6 @@ echo "Installing piksi_multi_cpp dependencies."
 sudo apt install ros-${ROS_VERSION}-eigen-conversions -y
 sudo apt install libserialport-dev -y
 sudo apt install ros-${ROS_VERSION}-rosserial-server -y
+
+echo "Installing glog_catkin dependencies."
+sudo apt install autoconf
