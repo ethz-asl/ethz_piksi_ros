@@ -5,6 +5,7 @@
 #include <linux/gpio.h>
 #include <linux/jiffies.h>
 #include <linux/ktime.h>
+#include <linux/module.h>
 #include <linux/pps_kernel.h>
 #include <linux/workqueue.h>
 
@@ -22,11 +23,11 @@ struct pps_gpio_data data;
 static void gpio_poll(struct work_struct *work);
 static void gpio_wait(struct work_struct *work);
 
-static work_struct poll, wait;
-DECLARE_WORK(poll, &gpio_poll);
-DECLARE_WORK(wait, &gpio_wait);
+struct delayed_work poll, wait;
+DECLARE_DELAYED_WORK(poll, &gpio_poll);
+DECLARE_DELAYED_WORK(wait, &gpio_wait);
 
-static int gpio;
+static int gpio = -1;
 module_param(gpio, int, S_IRUSR);
 MODULE_PARM_DESC(gpio, "PPS GPIO");
 
@@ -53,7 +54,7 @@ static int pps_gpio_add(void) {
   }
 
   /* register PPS source */
-  snprintf(in_data.info.name, PPS_MAX_NAME_LEN - 1, "pps-gpio-poll.0");
+  snprintf(data.pps_info.name, PPS_MAX_NAME_LEN - 1, "pps-gpio-poll.0");
   data.pps_info.mode = PPS_CAPTUREASSERT | PPS_OFFSETASSERT | PPS_OFFSETCLEAR |
                        PPS_CANWAIT | PPS_TSFMT_TSPEC;
   data.pps_info.owner = THIS_MODULE;
@@ -76,8 +77,8 @@ static int pps_gpio_add(void) {
     avg += dur / 100;
   }
 
-  /* Maximum number of GPIO reads. */
-  data.iter = 4 * 1e6 / min;
+  /* Maximum number of GPIO reads. (4ms) */
+  data.iter = 4 * 1000000 / min;
 
   pr_info("Registered GPIO %d as PPS source. Precision [ns] avg: %llu min: "
           "%llu, max: %llu\n",
