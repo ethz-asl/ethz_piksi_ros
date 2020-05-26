@@ -88,7 +88,7 @@ Description=Modprobe pps gpio.
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/sbin/modprobe ${KERNEL_MODULE} gpio=${GPIO_PIN} $PULSE_WIDTH_SETTING$
+ExecStart=/sbin/modprobe ${KERNEL_MODULE} gpio=${GPIO_PIN} $PULSE_WIDTH_SETTING
 ExecStop=/sbin/rmmod ${KERNEL_MODULE}
 
 [Install]
