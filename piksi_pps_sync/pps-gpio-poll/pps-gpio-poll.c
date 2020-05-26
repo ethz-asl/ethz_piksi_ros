@@ -23,13 +23,19 @@ struct pps_gpio_data data;
 static void gpio_poll(struct work_struct *work);
 static void gpio_wait(struct work_struct *work);
 
-struct delayed_work poll, wait;
-DECLARE_DELAYED_WORK(poll, &gpio_poll);
+struct delayed_work wait;
 DECLARE_DELAYED_WORK(wait, &gpio_wait);
+
+struct work_struct poll;
+DECLARE_WORK(poll, &gpio_poll);
 
 static int gpio = 0;
 module_param(gpio, int, S_IRUSR);
 MODULE_PARM_DESC(gpio, "PPS GPIO");
+
+static int pulse_width = 2;
+module_param(pulse_width, int, S_IRUSR);
+MODULE_PARM_DESC(gpio, "PPS pulse width [ms]");
 
 static int pps_gpio_add(void) {
   int i, ret;
@@ -67,49 +73,46 @@ static int pps_gpio_add(void) {
   }
 
   /* Get GPIO timing precision */
-  for (i = 0; i < 100; i++) {
+  for (i = 0; i < 1000; i++) {
     ts1 = ktime_get();
     data.value = gpio_get_value_cansleep(gpio);
     ts2 = ktime_get();
     dur = ktime_to_ns(ts2) - ktime_to_ns(ts1);
     min = dur < min ? dur : min;
     max = dur > max ? dur : max;
-    avg += dur / 100;
+    avg += dur / 1000;
   }
-
-  /* Maximum number of GPIO reads. (4ms) */
-  data.iter = 4 * 1000000 / min;
 
   pr_info("Registered GPIO %d as PPS source. Precision [ns] avg: %llu min: "
           "%llu, max: %llu\n",
           gpio, avg, min, max);
 
+  /* Maximum number of GPIO reads. */
+  data.iter = 4 * pulse_width * 1000000 / min;
+  pr_info("Maximum number of GPIO polls: %d", data.iter);
+
   return 0;
 }
 
 static void gpio_poll(struct work_struct *work) {
-  int new_value, ret;
+  int ret;
 
-  new_value = gpio_get_value_cansleep(gpio);
-
-  if (new_value != 0) {
-    /* got a PPS event, start busy waiting 2 milliseconds before the next
-     * event */
-    ret = queue_delayed_work(data.workqueue, &wait, msecs_to_jiffies(998));
+  if (gpio_get_value_cansleep(gpio)) {
+    /* got a PPS event, start busy waiting shortly before new event. */
+    ret = queue_delayed_work(data.workqueue, &wait,
+                             msecs_to_jiffies(1000 - 2 * pulse_width));
     if (!ret) {
       pr_err("Cannot queue PPS waiting work.\n");
     } else {
-      pr_info("Received initial PPS. Waiting for next.\n");
+      pr_info("Received initial PPS. Busy waiting for next.\n");
     }
   } else {
     /* Probe GPIO again. */
-    ret = queue_delayed_work(data.workqueue, &poll, msecs_to_jiffies(1));
+    ret = queue_work(data.workqueue, &poll);
     if (!ret) {
       pr_err("Cannot queue PPS probing work.\n");
     }
   }
-
-  data.value = new_value;
 
   return;
 }
@@ -119,26 +122,36 @@ static void gpio_wait(struct work_struct *work) {
   bool has_pps = false;
   unsigned long flags;
   struct pps_event_time ts;
-  data.value = 0;
+  data.value = gpio_get_value_cansleep(gpio);
+
+  if (data.value) {
+    pr_warn("PPS already high. Switch back into probing PPS.\n");
+    ret = queue_work(data.workqueue, &poll);
+    if (!ret) {
+      pr_err("Cannot return into PPS probing.\n");
+    }
+    return;
+  }
 
   /* read the GPIO value until the PPS event occurs */
   local_irq_save(flags);
-  for (i = 0; i < data.iter && data.value == 0; i++) {
+  for (i = 0; likely(i < data.iter && !data.value); i++) {
+    pps_get_ts(&ts);
     data.value = gpio_get_value_cansleep(gpio);
   }
-  pps_get_ts(&ts);
   local_irq_restore(flags);
 
   if (i < data.iter) {
     /* Caught PPS. */
     has_pps = true;
-    ret = queue_delayed_work(data.workqueue, &wait, msecs_to_jiffies(999));
+    ret = queue_delayed_work(data.workqueue, &wait,
+                             msecs_to_jiffies(1000 - 2 * pulse_width));
     if (!ret) {
       pr_err("Cannot queue next PPS waiting work.\n");
     }
   } else {
     pr_warn("Missed PPS pulse. Switch into probing PPS.\n");
-    ret = queue_delayed_work(data.workqueue, &poll, msecs_to_jiffies(1));
+    ret = queue_work(data.workqueue, &poll);
     if (!ret) {
       pr_err("Cannot return into PPS probing.\n");
     }
@@ -161,8 +174,8 @@ static int __init pps_gpio_init(void) {
   /* Setup workqueue */
   data.workqueue = create_singlethread_workqueue("pps_polling");
 
-  // Probe GPIO with 1 millisecond. (PPS needs to be at least 2 ms long.)
-  ret = queue_delayed_work(data.workqueue, &poll, msecs_to_jiffies(1));
+  // Probe GPIO.
+  ret = queue_work(data.workqueue, &poll);
   if (!ret) {
     return -EINVAL;
   }
