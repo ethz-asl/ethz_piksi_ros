@@ -90,3 +90,20 @@ sudo systemctl enable pps-modprobe.service
 
 # Install PPS debug tools.
 sudo apt install pps-tools gpsd-clients -y
+
+# Sign kernel module
+# https://askubuntu.com/questions/762254/why-do-i-get-required-key-not-available-when-install-3rd-party-kernel-modules
+echo "Do you wish to sign the kernel module? [y or Y to accept]"
+read sign_kernel_module
+if [[ $sign_kernel_module == "Y" || $sign_kernel_module == "y" ]]; then
+   openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Descriptive name/"
+   sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n pps-gpio-modprobe)
+   sudo mokutil --import MOK.der
+fi
+
+
+echo "Please reboot to take changes into effect? [y or Y to accept]"
+read reboot_now
+if [[ $reboot_now == "Y" || $reboot_now == "y" ]]; then
+  sudo reboot
+fi
