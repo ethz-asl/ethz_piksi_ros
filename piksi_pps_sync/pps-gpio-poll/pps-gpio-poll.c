@@ -183,13 +183,15 @@ static int __init pps_gpio_init(void) {
 }
 
 static int pps_gpio_remove(void) {
-  gpio_free(gpio);
   pps_unregister_source(data.pps);
+  gpio_free(gpio);
   pr_info("Removed GPIO %d as PPS source\n", gpio);
   return 0;
 }
 
 static void __exit pps_gpio_exit(void) {
+  cancel_work_sync(&poll);
+  cancel_delayed_work_sync(&wait);
   flush_workqueue(data.workqueue);
   destroy_workqueue(data.workqueue);
   pps_gpio_remove();
