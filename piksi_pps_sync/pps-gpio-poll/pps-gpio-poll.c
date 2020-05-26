@@ -27,7 +27,7 @@ struct delayed_work poll, wait;
 DECLARE_DELAYED_WORK(poll, &gpio_poll);
 DECLARE_DELAYED_WORK(wait, &gpio_wait);
 
-static int gpio = -1;
+static int gpio = 0;
 module_param(gpio, int, S_IRUSR);
 MODULE_PARM_DESC(gpio, "PPS GPIO");
 
@@ -96,7 +96,7 @@ static void gpio_poll(struct work_struct *work) {
     /* got a PPS event, start busy waiting 2 milliseconds before the next
      * event */
     ret = queue_delayed_work(data.workqueue, &wait, msecs_to_jiffies(998));
-    if (ret == 0) {
+    if (!ret) {
       pr_err("Cannot queue PPS waiting work.\n");
     } else {
       pr_info("Received initial PPS. Waiting for next.\n");
@@ -104,7 +104,7 @@ static void gpio_poll(struct work_struct *work) {
   } else {
     /* Probe GPIO again. */
     ret = queue_delayed_work(data.workqueue, &poll, msecs_to_jiffies(1));
-    if (ret == 0) {
+    if (!ret) {
       pr_err("Cannot queue PPS probing work.\n");
     }
   }
@@ -133,12 +133,15 @@ static void gpio_wait(struct work_struct *work) {
     /* Caught PPS. */
     has_pps = true;
     ret = queue_delayed_work(data.workqueue, &wait, msecs_to_jiffies(999));
-    if (ret == 0) {
+    if (!ret) {
       pr_err("Cannot queue next PPS waiting work.\n");
     }
   } else {
     pr_warn("Missed PPS pulse. Switch into probing PPS.\n");
     ret = queue_delayed_work(data.workqueue, &poll, msecs_to_jiffies(1));
+    if (!ret) {
+      pr_err("Cannot return into PPS probing.\n");
+    }
   }
 
   if (has_pps) {
@@ -160,7 +163,7 @@ static int __init pps_gpio_init(void) {
 
   // Probe GPIO with 1 millisecond. (PPS needs to be at least 2 ms long.)
   ret = queue_delayed_work(data.workqueue, &poll, msecs_to_jiffies(1));
-  if (ret == 0) {
+  if (!ret) {
     return -EINVAL;
   }
 
