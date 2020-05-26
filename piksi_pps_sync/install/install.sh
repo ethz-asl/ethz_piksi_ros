@@ -65,7 +65,7 @@ After=pps.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStartPre=/bin/sleep 90
+ExecStartPre=/bin/sleep 20
 ExecStartPre=/bin/stty -F /dev/${DEVICE} ${BAUD}
 ExecStart=/usr/sbin/gpsd -n -r /dev/${DEVICE}
 
