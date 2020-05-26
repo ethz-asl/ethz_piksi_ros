@@ -3,9 +3,9 @@ echo "Please enter the PPS GPIO pin number, e.g., 250..."
 read GPIO_PIN
 echo "PPS is triggered on pin ${GPIO_PIN}."
 
-echo "Please enter the NMEA UART device, e.g., /dev/ttyS5..."
+echo "Please enter the NMEA UART device, e.g., ttyS5..."
 read DEVICE
-echo "Using serial port ${DEVICE}."
+echo "Using serial port /dev/${DEVICE}."
 
 echo "Please enter the serial port baud rate, e.g., 115200..."
 read BAUD
@@ -34,7 +34,8 @@ cd ..
 
 # Install chrony.
 sudo apt install chrony -y
-sudo systemctl enable chronyd
+sudo systemctl daemon-reload
+sudo systemctl enable chrony.service
 
 echo "Do you wish to append a new PPS refclock to /etc/chrony/chrony.conf? [y or Y to accept]"
 read append_chrony_conf
@@ -58,17 +59,23 @@ if [[ $configure_gpsd == "Y" || $configure_gpsd == "y" ]]; then
 [Unit]
 Description=GPS (Global Positioning System) Daemon
 Requires=gpsd.socket
+After=chrony.service
+After=pps.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStartPre=/bin/stty -F ${DEVICE} ${BAUD}
-ExecStart=/usr/sbin/gpsd -n -r ${DEVICE}
+ExecStartPre=/bin/sleep 90
+ExecStartPre=/bin/stty -F /dev/${DEVICE} ${BAUD}
+ExecStart=/usr/sbin/gpsd -n -r /dev/${DEVICE}
 
 [Install]
 WantedBy=multi-user.target
-WantedBy=chrony.service
 Also=gpsd.socket
+END"
+  sudo rm /etc/udev/rules.d/99-gpsd.rules
+  sudo sh -c "tee -a /etc/udev/rules.d/99-gpsd.rules << END
+SUBSYSTEM==\"tty\", KERNEL==\"${DEVICE}\", TAG+=\"systemd\", ENV{SYSTEMD_WANTS}+=\"gpsd.service\"
 END"
 fi
 
@@ -84,6 +91,8 @@ if [[ $configure_pps == "Y" || $configure_pps == "y" ]]; then
   sudo sh -c "tee -a /etc/systemd/system/pps.service << END
 [Unit]
 Description=Modprobe pps gpio.
+After=gpsd.service
+Before=chrony.service
 
 [Service]
 Type=oneshot
@@ -93,7 +102,6 @@ ExecStop=/sbin/rmmod ${KERNEL_MODULE}
 
 [Install]
 WantedBy=multi-user.target
-WantedBy=chrony.service
 END"
 fi
 
@@ -113,7 +121,6 @@ if [[ $sign_kernel_module == "Y" || $sign_kernel_module == "y" ]]; then
   sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n ${KERNEL_MODULE})
   sudo mokutil --import MOK.der
 fi
-
 
 echo "Please reboot to take changes into effect? [y or Y to accept]"
 read reboot_now
