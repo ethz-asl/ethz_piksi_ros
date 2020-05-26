@@ -13,16 +13,27 @@ echo "Setting baud rate to ${BAUD}."
 
 # Install PPS
 cd ..
-cd pps-gpio-modprobe
 sudo apt install linux-headers-$(uname -r) libelf-dev
+echo "Is your GPIO interruptable? [y or Y to accept]"
+read is_interruptable
+if [[ $is_interruptable == "Y" || $is_interruptable == "y" ]]; then
+  KERNEL_MODULE=pps-gpio-modprobe
+else
+  echo "Please enter the PPS pulse width in milliseconds, e.g., 20..."
+  read PULSE_WIDTH
+  echo "Setting pulse width to ${PULSE_WIDTH}."
+  KERNEL_MODULE=pps-gpio-poll
+fi
+cd ${KERNEL_MODULE}
 make clean
 make
-sudo cp pps-gpio-modprobe.ko /lib/modules/$(uname -r)/kernel/drivers/pps/clients/
+sudo cp *.ko /lib/modules/$(uname -r)/kernel/drivers/pps/clients/
 sudo depmod
 cd ..
 
 # Install chrony.
 sudo apt install chrony -y
+sudo systemctl enable chronyd
 
 echo "Do you wish to append a new PPS refclock to /etc/chrony/chrony.conf? [y or Y to accept]"
 read append_chrony_conf
@@ -67,17 +78,17 @@ sudo systemctl enable gpsd.service
 echo "Do you wish to configure pps? [y or Y to accept]"
 read configure_pps
 if [[ $configure_pps == "Y" || $configure_pps == "y" ]]; then
-  echo "Configuring /etc/systemd/system/pps-modprobe.service"
-  sudo rm /etc/systemd/system/pps-modprobe.service
-  sudo sh -c "tee -a /etc/systemd/system/pps-modprobe.service << END
+  echo "Configuring /etc/systemd/system/pps.service"
+  sudo rm /etc/systemd/system/pps.service
+  sudo sh -c "tee -a /etc/systemd/system/pps.service << END
 [Unit]
 Description=Modprobe pps gpio.
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/sbin/modprobe pps-gpio-modprobe gpio=${GPIO_PIN}
-ExecStop=/sbin/rmmod pps-gpio-modprobe
+ExecStart=/sbin/modprobe ${KERNEL_MODULE} gpio=${GPIO_PIN}
+ExecStop=/sbin/rmmod ${KERNEL_MODULE}
 
 [Install]
 WantedBy=multi-user.target
@@ -86,7 +97,7 @@ END"
 fi
 
 sudo systemctl daemon-reload
-sudo systemctl enable pps-modprobe.service
+sudo systemctl enable pps.service
 
 # Install PPS debug tools.
 sudo apt install pps-tools gpsd-clients -y
@@ -97,7 +108,7 @@ echo "Do you wish to sign the kernel module? [y or Y to accept]"
 read sign_kernel_module
 if [[ $sign_kernel_module == "Y" || $sign_kernel_module == "y" ]]; then
    openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Descriptive name/"
-   sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n pps-gpio-modprobe)
+   sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n ${KERNEL_MODULE})
    sudo mokutil --import MOK.der
 fi
 
