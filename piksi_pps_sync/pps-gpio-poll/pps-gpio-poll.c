@@ -12,7 +12,6 @@
 /* Struct containing static info. */
 struct pps_gpio_data {
   int iter;               /* Maximum number of GPIO reads in wait loop */
-  int value;              /* GPIO value. */
   struct pps_device *pps; /* The PPS device */
   struct pps_source_info pps_info;    /* PPS source information */
   struct workqueue_struct *workqueue; /* Workqueue */
@@ -75,7 +74,7 @@ static int pps_gpio_add(void) {
   /* Get GPIO timing precision */
   for (i = 0; i < 1000; i++) {
     ts1 = ktime_get();
-    data.value = gpio_get_value_cansleep(gpio);
+    gpio_get_value_cansleep(gpio);
     ts2 = ktime_get();
     dur = ktime_to_ns(ts2) - ktime_to_ns(ts1);
     min = dur < min ? dur : min;
@@ -122,9 +121,9 @@ static void gpio_wait(struct work_struct *work) {
   bool has_pps = false;
   unsigned long flags;
   struct pps_event_time ts;
-  data.value = gpio_get_value_cansleep(gpio);
+  int value = gpio_get_value_cansleep(gpio);
 
-  if (data.value) {
+  if (value) {
     pr_warn("PPS already high. Switch back into probing PPS.\n");
     ret = queue_work(data.workqueue, &poll);
     if (!ret) {
@@ -135,9 +134,9 @@ static void gpio_wait(struct work_struct *work) {
 
   /* read the GPIO value until the PPS event occurs */
   local_irq_save(flags);
-  for (i = 0; likely(i < data.iter && !data.value); i++) {
+  for (i = 0; likely(i < data.iter && !value); i++) {
     pps_get_ts(&ts);
-    data.value = gpio_get_value_cansleep(gpio);
+    value = gpio_get_value_cansleep(gpio);
   }
   local_irq_restore(flags);
 
