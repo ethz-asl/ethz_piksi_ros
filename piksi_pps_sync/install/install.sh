@@ -23,6 +23,7 @@ else
   read PULSE_WIDTH
   echo "Setting pulse width to ${PULSE_WIDTH}."
   KERNEL_MODULE=pps-gpio-poll
+  PULSE_WIDTH_SETTING="pulse_width=${PULSE_WIDTH}"
 fi
 cd ${KERNEL_MODULE}
 make clean
@@ -87,7 +88,7 @@ Description=Modprobe pps gpio.
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/sbin/modprobe ${KERNEL_MODULE} gpio=${GPIO_PIN}
+ExecStart=/sbin/modprobe ${KERNEL_MODULE} gpio=${GPIO_PIN} $PULSE_WIDTH_SETTING$
 ExecStop=/sbin/rmmod ${KERNEL_MODULE}
 
 [Install]
