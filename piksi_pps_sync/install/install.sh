@@ -108,9 +108,10 @@ sudo apt install pps-tools gpsd-clients -y
 echo "Do you wish to sign the kernel module? [y or Y to accept]"
 read sign_kernel_module
 if [[ $sign_kernel_module == "Y" || $sign_kernel_module == "y" ]]; then
-   openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Descriptive name/"
-   sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n ${KERNEL_MODULE})
-   sudo mokutil --import MOK.der
+  cd ~
+  openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Descriptive name/"
+  sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n ${KERNEL_MODULE})
+  sudo mokutil --import MOK.der
 fi
 
 
