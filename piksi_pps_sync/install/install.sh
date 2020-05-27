@@ -59,7 +59,6 @@ if [[ $configure_gpsd == "Y" || $configure_gpsd == "y" ]]; then
 [Unit]
 Description=GPS (Global Positioning System) Daemon
 Requires=gpsd.socket
-After=chrony.service
 After=pps.service
 
 [Service]
@@ -91,7 +90,6 @@ if [[ $configure_pps == "Y" || $configure_pps == "y" ]]; then
   sudo sh -c "tee -a /etc/systemd/system/pps.service << END
 [Unit]
 Description=Modprobe pps gpio.
-After=gpsd.service
 Before=chrony.service
 
 [Service]
