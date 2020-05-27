@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt install gpiod libgpiod-dev -y
+
 echo "Setup automatic interface startup."
 
 echo "Please enter the survey gpiochip, e.g., gpiochip3..."
