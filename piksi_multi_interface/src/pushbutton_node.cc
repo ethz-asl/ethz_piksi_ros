@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
   nh.getParam("rate", rate);
 
   std::string chip = "gpiochip0";
-  nh.getParam("chip", rate);
+  nh.getParam("chip", chip);
 
   int line = 0;
   nh.getParam("line", line);
@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
                                        ros::this_node::getName().c_str());
     if (ret < 0) {
       ROS_ERROR("Cannot get GPIO value on chip %s line %d", chip.c_str(), line);
+      ros::spinOnce();
       return 0;
     }
 
