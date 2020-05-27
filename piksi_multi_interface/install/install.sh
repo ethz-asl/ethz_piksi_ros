@@ -14,6 +14,7 @@ if [[ $create_udev == "Y" || $create_udev == "y" ]]; then
   sudo rm /etc/udev/rules.d/99-gpio.rules
   sudo sh -c "tee -a /etc/udev/rules.d/99-gpio.rules << END
 KERNEL==\"${GPIOCHIP}\", GROUP=\"gpio\"
+KERNEL==\"${GPIOCHIP}\", TAG+=\"systemd\", ENV{SYSTEMD_WANTS}+=\"piksi_interface.service\"
 END"
 
   sudo addgroup gpio
@@ -29,7 +30,6 @@ if [[ $configure_autostart == "Y" || $configure_autostart == "y" ]]; then
   sudo sh -c "tee -a /etc/systemd/system/piksi_interface.service << END
 [Unit]
 Description=Piksi interface (push button, status LED)
-After=piksi.service
 
 [Service]
 Type=forking
@@ -40,9 +40,7 @@ User=$USER
 WantedBy=multi-user.target
 END"
 fi
-
 sudo systemctl daemon-reload
-sudo systemctl enable piksi_interface.service
 
 echo "Please reboot to take changes into effect? [y or Y to accept]"
 read reboot_now
