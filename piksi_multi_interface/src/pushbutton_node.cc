@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle nh("~");
 
   // ROS parameters
-  int rate = 1000;
+  int rate = 20;
   nh.getParam("rate", rate);
 
   std::string chip = "gpiochip0";
@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
   bool is_base = piksi_ns.find("base_station_receiver") != std::string::npos;
   std::string service = is_base ? piksi_ns + "/resample_base_position"
                                 : piksi_ns + "/sample_position";
+  ROS_INFO("Pushbutton connected to %s", service.c_str());
   ros::ServiceClient client =
       nh.serviceClient<piksi_rtk_msgs::SamplePosition>(service);
 
@@ -82,7 +83,7 @@ int main(int argc, char** argv) {
       piksi_rtk_msgs::SamplePosition srv;
       srv.request.num_desired_fixes = num_desired_fixes;
       srv.request.set_enu = is_base;
-      client.call(srv);
+      ROS_INFO_COND(client.call(srv), "Start sampling.");
     }
 
     ros::spinOnce();
