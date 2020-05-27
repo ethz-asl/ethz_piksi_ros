@@ -34,4 +34,4 @@ sudo apt install libserialport-dev -y
 sudo apt install ros-${ROS_VERSION}-rosserial-server -y
 
 echo "Installing glog_catkin dependencies."
-sudo apt install autoconf
+sudo apt install autoconf -y
