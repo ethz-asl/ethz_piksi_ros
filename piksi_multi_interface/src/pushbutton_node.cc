@@ -21,9 +21,6 @@ int main(int argc, char** argv) {
   std::string piksi_ns = "/piksi_multi_cpp_base/base_station_receiver_0";
   nh.getParam("piksi_ns", piksi_ns);
 
-  int num_desired_fixes = 1000;
-  nh.getParam("num_desired_fixes", num_desired_fixes);
-
   // Setup sample survey call.
   bool is_base = piksi_ns.find("base_station_receiver") != std::string::npos;
   std::string service = is_base ? piksi_ns + "/resample_base_position"
@@ -31,6 +28,9 @@ int main(int argc, char** argv) {
   ROS_INFO("Pushbutton connected to %s", service.c_str());
   ros::ServiceClient client =
       nh.serviceClient<piksi_rtk_msgs::SamplePosition>(service);
+
+  int num_desired_fixes = is_base ? 1000 : 100;
+  nh.getParam("num_desired_fixes", num_desired_fixes);
 
   ros::Publisher status_pub = nh.advertise<std_msgs::Bool>("status", 1);
 

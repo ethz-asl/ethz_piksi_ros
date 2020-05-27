@@ -5,6 +5,6 @@
     <param name="chip" value="gpiochip3"/>
     <param name="offset" value="0"/>
     <param name="piksi_ns" value="/piksi_multi_cpp_base/base_station_receiver_0"/>
-    <param name="num_desired_fixes" value="100"/>
+    <!--param name="num_desired_fixes" value="100"/-->
   </node>
 </launch>
