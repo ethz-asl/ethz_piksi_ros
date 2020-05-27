@@ -39,13 +39,15 @@ int main(int argc, char** argv) {
   }
 
   // Configure GPIO.
-  if (gpiod_line_request_input(line, ros::this_node::getName().c_str()) < 0) {
+  if (gpiod_line_request_rising_edge_events(
+          line, ros::this_node::getName().c_str()) < 0) {
     ROS_ERROR("Cannot request input GPIO on chip %s line %d", chip.c_str(),
               offset);
     gpiod_line_close_chip(line);
     ros::spinOnce();
     return 0;
   }
+  ROS_INFO("Configured GPIO as input.");
 
   ros::Rate loop_rate(rate);
   while (ros::ok()) {
