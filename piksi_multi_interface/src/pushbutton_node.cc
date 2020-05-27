@@ -14,8 +14,8 @@ int main(int argc, char** argv) {
   std::string chip = "gpiochip0";
   nh.getParam("chip", chip);
 
-  int line = 0;
-  nh.getParam("line", line);
+  int offset = 0;
+  nh.getParam("offset", offset);
 
   ros::Publisher status_pub = nh.advertise<std_msgs::Bool>("status", 1);
 
@@ -28,13 +28,24 @@ int main(int argc, char** argv) {
     return 0;
   }
 
+  // Get Line.
+  auto line = gpiod_chip_get_line(gpio, offset);
+  ROS_INFO_COND(line, "Opened line chip %d.", offset);
+  if (!gpio) {
+    ROS_ERROR("Cannot open line %d on chip %s.", offset, chip.c_str());
+    gpiod_chip_close(gpio);
+    ros::spinOnce();
+    return 0;
+  }
+
   ros::Rate loop_rate(rate);
   while (ros::ok()) {
     std_msgs::Bool status;
-    auto ret = gpiod_ctxless_get_value(chip.c_str(), line, false,
-                                       ros::this_node::getName().c_str());
+    auto ret = gpiod_line_get_value(line);
     if (ret < 0) {
-      ROS_ERROR("Cannot get GPIO value on chip %s line %d", chip.c_str(), line);
+      ROS_ERROR("Cannot get GPIO value on chip %s line %d", chip.c_str(),
+                offset);
+      gpiod_line_close_chip(line);
       ros::spinOnce();
       return 0;
     }
@@ -46,5 +57,6 @@ int main(int argc, char** argv) {
     loop_rate.sleep();
   }
 
+  gpiod_line_close_chip(line);
   return 0;
 }
