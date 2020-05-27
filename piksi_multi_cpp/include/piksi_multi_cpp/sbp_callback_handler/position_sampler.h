@@ -22,7 +22,7 @@ class PositionSampler : public SBPCallbackHandler {
                   const RosTimeHandler::Ptr& ros_time_handler,
                   const GeoTfHandler::Ptr& geotf_handler);
 
-  void startSampling(const uint32_t num_desired_fixes,
+  bool startSampling(const uint32_t num_desired_fixes,
                      const std::string& file = "", bool set_enu = false);
   inline bool isSampling() { return !x_ml_.has_value(); }
   bool getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov);
