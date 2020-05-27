@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 
 #include <gpiod.h>
+#include <piksi_rtk_msgs/SamplePosition.h>
 #include <std_msgs/Bool.h>
 
 int main(int argc, char** argv) {
@@ -16,6 +17,19 @@ int main(int argc, char** argv) {
 
   int offset = 0;
   nh.getParam("offset", offset);
+
+  std::string piksi_ns = "/piksi_multi_cpp_base/base_station_receiver_0";
+  nh.getParam("piksi_ns", piksi_ns);
+
+  int num_desired_fixes = 1000;
+  nh.getParam("num_desired_fixes", num_desired_fixes);
+
+  // Setup sample survey call.
+  bool is_base = piksi_ns.find("base_station_receiver") != std::string::npos;
+  std::string service = is_base ? piksi_ns + "/resample_base_position"
+                                : piksi_ns + "/sample_position";
+  ros::ServiceClient client =
+      nh.serviceClient<piksi_rtk_msgs::SamplePosition>(service);
 
   ros::Publisher status_pub = nh.advertise<std_msgs::Bool>("status", 1);
 
@@ -39,8 +53,7 @@ int main(int argc, char** argv) {
   }
 
   // Configure GPIO.
-  if (gpiod_line_request_rising_edge_events(
-          line, ros::this_node::getName().c_str()) < 0) {
+  if (gpiod_line_request_input(line, ros::this_node::getName().c_str()) < 0) {
     ROS_ERROR("Cannot request input GPIO on chip %s line %d", chip.c_str(),
               offset);
     gpiod_line_close_chip(line);
@@ -63,6 +76,14 @@ int main(int argc, char** argv) {
 
     status.data = ret;
     status_pub.publish(status);
+
+    // Service call logic.
+    if (status.data) {
+      piksi_rtk_msgs::SamplePosition srv;
+      srv.request.num_desired_fixes = num_desired_fixes;
+      srv.request.set_enu = is_base;
+      client.call(srv);
+    }
 
     ros::spinOnce();
     loop_rate.sleep();

@@ -13,4 +13,5 @@
 
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
+  <depend>piksi_rtk_msgs</depend>
 </package>
