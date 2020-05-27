@@ -3,6 +3,6 @@
       <param name="rate" value="1000" />
       <!-- Find chip and line with gpiod cli gpiodetect -->
       <param name="chip" value="gpiochip3" />
-      <param name="line" value="330" />
+      <param name="offset" value="0" />
   </node>
 </launch>
