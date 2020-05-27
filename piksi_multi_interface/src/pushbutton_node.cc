@@ -19,6 +19,15 @@ int main(int argc, char** argv) {
 
   ros::Publisher status_pub = nh.advertise<std_msgs::Bool>("status", 1);
 
+  // Open GPIO
+  auto gpio = gpiod_chip_open_by_name(chip.c_str());
+  ROS_INFO_COND(gpio, "Opened GPIO chip %s.", chip.c_str());
+  if (!gpio) {
+    ROS_ERROR("Cannot open GPIO %s.", chip.c_str());
+    ros::spinOnce();
+    return 0;
+  }
+
   ros::Rate loop_rate(rate);
   while (ros::ok()) {
     std_msgs::Bool status;
