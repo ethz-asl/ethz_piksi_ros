@@ -118,13 +118,11 @@ ros::Subscriber<libsbp_ros_msgs::MsgPosEcef> fix(
 
 // Flash red center LED if corrections occur.
 uint16_t age = 0xFFFF;
-uint32_t prev_color = NONE;
 void corrCb(const libsbp_ros_msgs::MsgAgeCorrections& msg) {
   if (msg.age < age) {
-    prev_color = pixels.getPixelColor(0);
     pixels.setPixelColor(0, RED);
-  } else {
-  //  pixels.setPixelColor(0, prev_color);
+  } else if (pixels.getPixelColor(0) == RED) {
+    pixels.setPixelColor(0, NONE);
   }
 
   age = msg.age;
@@ -137,17 +135,22 @@ ros::Subscriber<libsbp_ros_msgs::MsgAgeCorrections> corr(
 
 // Blink center LED while sampling.
 void sampleCb(const piksi_rtk_msgs::PositionSampling& msg) {
-  uint32_t toggle_ms = 500 * 50 / (msg.progress > 0 ? msg.progress : 1);
+  static uint16_t n_sample = 0;
+  uint8_t nth = (110 - msg.progress) / 10;  // Toggle LED every nth sample.
 
-  auto now = millis();
-  static auto last_sample = now;
-  auto passed = now - last_sample;
-  if (passed > toggle_ms) {
-    pixels.setPixelColor(0, MAGENTA);
-  } else {
-    pixels.setPixelColor(0, NONE);
+  if ((n_sample % nth) == 0) {
+    if (pixels.getPixelColor(0) == MAGENTA) {
+      pixels.setPixelColor(0, NONE);
+    } else if (pixels.getPixelColor(0) == NONE) {
+      pixels.setPixelColor(0, MAGENTA);
+    } else { // Correction flag triggered.
+      n_sample--;
+    }
   }
-  if (passed > 2 * toggle_ms) last_sample = now;
+  n_sample++;
+
+  if (msg.progress == 0) pixels.setPixelColor(0, MAGENTA);
+  if (msg.progress == 100) pixels.setPixelColor(0, NONE);
   pixels.show();
 }
 
@@ -197,5 +200,6 @@ void loop() {
     pixels.clear();
     clear = false;
   }
+
   nh.spinOnce();
 }
