@@ -7,7 +7,6 @@
 #include <ros.h>
 
 #include <libsbp_ros_msgs/MsgAgeCorrections.h>
-#include <libsbp_ros_msgs/MsgMeasurementState.h>
 #include <libsbp_ros_msgs/MsgPosEcef.h>
 
 // Defintiions
@@ -15,9 +14,9 @@
 #define NUMPIXELS 7
 
 // Save Arduino memory.
-#define MAX_SUBSCRIBERS 3
+#define MAX_SUBSCRIBERS 2
 #define MAX_PUBLISHERS 0
-#define INPUT_SIZE 512
+#define INPUT_SIZE 256
 #define OUTPUT_SIZE 256
 
 // NeoPixel
@@ -41,48 +40,14 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 #define FIX_SBAS 6
 uint32_t color_solution = RED;
 bool blinking_solution = false;
-bool toggle = false;
 
 // ROS
 ros::NodeHandle_<ArduinoHardware, MAX_SUBSCRIBERS, MAX_PUBLISHERS, INPUT_SIZE,
                  OUTPUT_SIZE>
     nh;
 
-// Number of LEDs on ring indicate number of satellites observed.
-// Each LED indicates 5 satellites.
-void satCb(const libsbp_ros_msgs::MsgMeasurementState& msg) {
-  int num_sats = 0;
-  for (int i = 0; i < msg.states_length; ++i) {
-    if (msg.states[i].cn0 != 0) num_sats++;
-  }
-
-  // Color LEDs according to number of satellites. If error turn on all.
-  for (int i = 1; i < 7; i++) {
-    if (color_solution == RED || num_sats > i * 5) {
-      pixels.setPixelColor(i, color_solution);
-    } else {
-      pixels.setPixelColor(i, NONE);
-    }
-  }
-
-  // Toggle blinking LEDs.
-  if (blinking_solution) {
-    for (int i = 1; i < 7; i++) {
-      if (toggle && pixels.getPixelColor(i)) {
-        pixels.setPixelColor(i, NONE);
-      }
-    }
-    toggle = !toggle;
-  } else {
-    toggle = false;
-  }
-}
-
-ros::Subscriber<libsbp_ros_msgs::MsgMeasurementState> obs(
-    "/piksi_multi_cpp_base/base_station_receiver_0/sbp/measurement_state",
-    satCb);
-
-// The position solution gives feedback about the current fix.
+// The position solution gives feedback about the current fix and the number of
+// satellites in the fix.
 void fixCb(const libsbp_ros_msgs::MsgPosEcef& msg) {
   uint8_t fix_mode = (msg.flags >> 0) & 0x7;
   switch (fix_mode) {
@@ -118,6 +83,28 @@ void fixCb(const libsbp_ros_msgs::MsgPosEcef& msg) {
       color_solution = RED;
       break;
   }
+
+  // Color LEDs according to number of satellites. If error turn on all.
+  for (int i = 1; i < 7; i++) {
+    if (color_solution == RED || msg.n_sats >= i * 3) {
+      pixels.setPixelColor(i, color_solution);
+    } else {
+      pixels.setPixelColor(i, NONE);
+    }
+  }
+
+  // Toggle blinking LEDs.
+  auto now = millis();
+  static auto last_toggle = now;
+  bool toggle = now - last_toggle > 500;
+  if (toggle && blinking_solution) {
+    for (int i = 1; i < 7; i++) {
+      if (pixels.getPixelColor(i)) {
+        pixels.setPixelColor(i, NONE);
+      }
+    }
+  }
+  if (now - last_toggle > 1000) last_toggle = now;
 }
 
 ros::Subscriber<libsbp_ros_msgs::MsgPosEcef> fix(
@@ -141,21 +128,6 @@ ros::Subscriber<libsbp_ros_msgs::MsgAgeCorrections> corr(
     "/piksi_multi_cpp_base/base_station_receiver_0/sbp/age_corrections",
     corrCb);
 
-void setup() {
-  // NeoPixel
-#if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
-  clock_prescale_set(clock_div_1);
-#endif
-
-  pixels.begin();
-
-  // ROS
-  nh.initNode();
-  nh.subscribe(obs);
-  nh.subscribe(fix);
-  nh.subscribe(corr);
-}
-
 // Rainbow cycle along whole strip.
 long first_pixel_hue = 0;
 void rainbow() {
@@ -170,10 +142,25 @@ void rainbow() {
   }
 }
 
+void setup() {
+  // NeoPixel
+#if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+  clock_prescale_set(clock_div_1);
+#endif
+
+  pixels.begin();
+
+  // ROS
+  nh.initNode();
+  nh.subscribe(fix);
+  nh.subscribe(corr);
+}
+
 bool clear = false;
 void loop() {
   if (!nh.connected()) {
     rainbow();
+    delay(FLASH);
     nh.loginfo("Not connected.");
     clear = true;
   } else if (clear) {
