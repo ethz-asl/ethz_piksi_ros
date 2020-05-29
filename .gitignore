@@ -29,3 +29,4 @@ geodetic_survey_bags/*.bag
 *.symvers
 *.order
 
+*ros_lib*
