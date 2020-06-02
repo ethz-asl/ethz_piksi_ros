@@ -19,9 +19,11 @@ After=network-online.target
 
 [Service]
 Type=forking
+ExecStartPre=/bin/sleep 120
 ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_cpp/install/startup_${TYPE}.sh
 Restart=on-failure
 User=$USER
+TimeoutStartSec=121
 
 [Install]
 WantedBy=multi-user.target
