@@ -29,9 +29,9 @@ ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
 
   if (1) {
     auto logger = std::make_shared<FileObservationLogger>();
-    /*ROS_WARN_STREAM(logger->open("/tmp/tempfile.sbp"));
+    ROS_WARN_STREAM(logger->open("/tmp/tempfile.sbp"));
     obs_cbs_->addObservationCallbackListener(
-        CBtoRawObsConverter::createFor(logger));*/
+        CBtoRawObsConverter::createFor(logger, uint16_t(0x42))); // Hardcoded sender Id for now, as it porbably does not matter
   }
 }
 
