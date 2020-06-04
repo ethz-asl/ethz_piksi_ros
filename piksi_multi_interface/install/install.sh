@@ -42,7 +42,9 @@ After=piksi.service
 
 [Service]
 Type=forking
+ExecStartPre=/bin/sleep 15
 ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET $PORT $BAUD
+Restart=on-failure
 User=$USER
 
 [Install]
