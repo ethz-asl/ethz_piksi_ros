@@ -1,4 +1,4 @@
-#define USE_USBCON
+#define USBCON
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
@@ -143,7 +143,7 @@ void sampleCb(const piksi_rtk_msgs::PositionSampling& msg) {
       pixels.setPixelColor(0, NONE);
     } else if (pixels.getPixelColor(0) == NONE) {
       pixels.setPixelColor(0, MAGENTA);
-    } else { // Correction flag triggered.
+    } else {  // Correction flag triggered.
       n_sample--;
     }
   }
