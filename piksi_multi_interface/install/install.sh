@@ -10,6 +10,12 @@ read GPIOCHIP
 echo "Please enter the survey gpio offset, e.g., 0..."
 read OFFSET
 
+echo "Please enter the status LED port, e.g., /dev/ttyXRUSB0..."
+read PORT
+
+echo "Please enter the status LED baud rate, e.g., 57600..."
+read BAUD
+
 echo "Do you wish to configure UDEV rule for the gpiochip and add user to group gpio? [y or Y to accept]"
 read create_udev
 if [[ $create_udev == "Y" || $create_udev == "y" ]]; then
@@ -32,10 +38,11 @@ if [[ $configure_autostart == "Y" || $configure_autostart == "y" ]]; then
   sudo sh -c "tee -a /etc/systemd/system/piksi_interface.service << END
 [Unit]
 Description=Piksi interface (push button, status LED)
+After=piksi.service
 
 [Service]
 Type=forking
-ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET
+ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET $PORT $BAUD
 User=$USER
 
 [Install]
