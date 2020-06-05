@@ -6,32 +6,32 @@
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "piksi_pushbutton");
-  ros::NodeHandle nh("~");
+  ros::NodeHandle nh("");
+  ros::NodeHandle nh_private("~");
 
   // ROS parameters
   int rate = 20;
-  nh.getParam("rate", rate);
+  nh_private.getParam("rate", rate);
 
   std::string chip = "gpiochip0";
-  nh.getParam("chip", chip);
+  nh_private.getParam("chip", chip);
 
   int offset = 0;
-  nh.getParam("offset", offset);
+  nh_private.getParam("offset", offset);
 
   // Setup sample survey call.
   bool is_base =
       nh.getNamespace().find("base_station_receiver") != std::string::npos;
-  std::string service =
-      is_base ? nh.getUnresolvedNamespace() + "/resample_base_position"
-              : nh.getUnresolvedNamespace() + "/sample_position";
+  std::string service = is_base ? nh.getNamespace() + "/resample_base_position"
+                                : nh.getNamespace() + "/sample_position";
   ROS_INFO("Pushbutton connected to %s", service.c_str());
   ros::ServiceClient client =
       nh.serviceClient<piksi_rtk_msgs::SamplePosition>(service);
 
   int num_desired_fixes = is_base ? 1000 : 100;
-  nh.getParam("num_desired_fixes", num_desired_fixes);
+  nh_private.getParam("num_desired_fixes", num_desired_fixes);
 
-  ros::Publisher status_pub = nh.advertise<std_msgs::Bool>("status", 1);
+  ros::Publisher status_pub = nh_private.advertise<std_msgs::Bool>("status", 1);
 
   // Open GPIO
   auto gpio = gpiod_chip_open_by_name(chip.c_str());
