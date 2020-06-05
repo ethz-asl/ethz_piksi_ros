@@ -53,8 +53,6 @@ END"
 fi
 sudo systemctl daemon-reload
 
-
-
 echo "Do you wish to add user to group dialout? [y or Y to accept]"
 read join_dialout
 if [[ $join_dialout == "Y" || $join_dialout == "y" ]]; then
