@@ -21,8 +21,8 @@ sudo apt install ros-${ROS_VERSION}-tf-conversions -y
 sudo apt install libgdal-dev -y
 
 echo "Installing piksi_rtk_msgs dependencies."
-sudo apt install ros-${ROS_VERSION}-rospy \\
-ros-${ROS_VERSION}-geometry-msgs \\
+sudo apt install ros-${ROS_VERSION}-rospy \
+ros-${ROS_VERSION}-geometry-msgs \
 ros-${ROS_VERSION}-sensor-msgs -y
 
 echo "Installing rqt_gps_rtk_plugin dependencies."
@@ -34,4 +34,4 @@ sudo apt install libserialport-dev -y
 sudo apt install ros-${ROS_VERSION}-rosserial-server -y
 
 echo "Installing glog_catkin dependencies."
-sudo apt install autoconf
+sudo apt install autoconf -y
