@@ -35,7 +35,7 @@ read configure_autostart
 if [[ $configure_autostart == "Y" || $configure_autostart == "y" ]]; then
   echo "Is this a base station? [y or Y]"
   read is_base
-  NS=/rover/piksi/base_station_receiver_0
+  NS=/rover/piksi/position_receiver_0
   if [[ $is_base == "Y" || $is_base == "y" ]]; then
     NS=/piksi_multi_cpp_base/base_station_receiver_0
   fi
