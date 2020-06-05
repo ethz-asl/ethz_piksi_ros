@@ -6,7 +6,7 @@
 #endif
 #include <ros.h>
 
-#include <libsbp_ros_msgs/MsgAgeCorrections.h>
+#include <libsbp_ros_msgs/MsgDgnssStatus.h>
 #include <libsbp_ros_msgs/MsgPosEcef.h>
 #include <piksi_rtk_msgs/PositionSampling.h>
 
@@ -30,7 +30,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 #define BLUE pixels.Color(0, 0, 255)
 #define PURPLE pixels.Color(143, 0, 255)
 #define MAGENTA pixels.Color(255, 0, 255)
-#define FLASH 50  // Flash time ms.
+#define FLASH 10  // Flash time ms.
 
 // State
 #define FIX_INVALID 0
@@ -116,20 +116,24 @@ void fixCb(const libsbp_ros_msgs::MsgPosEcef& msg) {
 ros::Subscriber<libsbp_ros_msgs::MsgPosEcef> fix("sbp/pos_ecef", fixCb);
 
 // Flash red center LED if corrections occur.
-uint16_t age = 0xFFFF;
-void corrCb(const libsbp_ros_msgs::MsgAgeCorrections& msg) {
-  if (msg.age < age) {
-    pixels.setPixelColor(0, RED);
-  } else if (pixels.getPixelColor(0) == RED) {
-    pixels.setPixelColor(0, NONE);
+void corrCb(const libsbp_ros_msgs::MsgDgnssStatus& msg) {
+  uint8_t dgnss_type = (msg.flags >> 0) & 0xF;
+  if (dgnss_type != 0) {
+    auto color = pixels.getPixelColor(0);
+    if (msg.num_signals > 0) {
+      pixels.setPixelColor(0, RED);
+    } else {
+      pixels.setPixelColor(0, YELLOW);
+    }
+    pixels.show();
+    delay(FLASH);
+    pixels.setPixelColor(0, color);
+    pixels.show();
   }
-
-  age = msg.age;
-  pixels.show();
 }
 
-ros::Subscriber<libsbp_ros_msgs::MsgAgeCorrections> corr("sbp/age_corrections",
-                                                         corrCb);
+ros::Subscriber<libsbp_ros_msgs::MsgDgnssStatus> corr("sbp/dgnss_status",
+                                                      corrCb);
 
 // Blink center LED while sampling.
 void sampleCb(const piksi_rtk_msgs::PositionSampling& msg) {
