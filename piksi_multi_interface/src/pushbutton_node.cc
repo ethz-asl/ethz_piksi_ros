@@ -18,13 +18,11 @@ int main(int argc, char** argv) {
   int offset = 0;
   nh.getParam("offset", offset);
 
-  std::string piksi_ns = "/piksi_multi_cpp_base/base_station_receiver_0";
-  nh.getParam("piksi_ns", piksi_ns);
-
   // Setup sample survey call.
-  bool is_base = piksi_ns.find("base_station_receiver") != std::string::npos;
-  std::string service = is_base ? piksi_ns + "/resample_base_position"
-                                : piksi_ns + "/sample_position";
+  bool is_base =
+      nh.getNamespace().find("base_station_receiver") != std::string::npos;
+  std::string service = is_base ? nh.getNamespace() + "/resample_base_position"
+                                : nh.getNamespace() + "/sample_position";
   ROS_INFO("Pushbutton connected to %s", service.c_str());
   ros::ServiceClient client =
       nh.serviceClient<piksi_rtk_msgs::SamplePosition>(service);
