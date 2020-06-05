@@ -17,7 +17,7 @@ endif()
 # BINARIES #
 ############
 cs_add_executable(pushbutton src/pushbutton_node.cc)
-target_link_libraries(pushbutton ${PROJECT_NAME} ${GPIOD_LIBRARY})
+target_link_libraries(pushbutton ${GPIOD_LIBRARY})
 
 cs_install()
 cs_export()
