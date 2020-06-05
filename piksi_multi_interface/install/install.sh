@@ -33,6 +33,13 @@ fi
 echo "Do you wish to configure interface autostart? [y or Y to accept]"
 read configure_autostart
 if [[ $configure_autostart == "Y" || $configure_autostart == "y" ]]; then
+  echo "Is this a base station? [y or Y]"
+  read is_base
+  NS=/rover/piksi
+  if [[ $is_base == "Y" || $is_base == "y" ]]; then
+    NS=/piksi_multi_cpp_base/base_station_receiver_0
+  fi
+
   echo "Configuring /etc/systemd/system/piksi_interface.service"
   sudo rm /etc/systemd/system/piksi_interface.service
   sudo sh -c "tee -a /etc/systemd/system/piksi_interface.service << END
@@ -43,7 +50,7 @@ After=piksi.service
 [Service]
 Type=forking
 ExecStartPre=/bin/sleep 15
-ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET $PORT $BAUD
+ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET $PORT $BAUD $NS
 Restart=on-failure
 User=$USER
 
