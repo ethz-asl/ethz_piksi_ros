@@ -1,5 +1,5 @@
 # Install service.
-echo "Do you wish to configure base station autostart? [y or Y to accept]"
+echo "Do you wish to configure piksi autostart? [y or Y to accept]"
 read configure_base_autostart
 if [[ $configure_base_autostart == "Y" || $configure_base_autostart == "y" ]]; then
   echo "Is this a base station? [y or Y]"
