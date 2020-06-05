@@ -113,8 +113,7 @@ void fixCb(const libsbp_ros_msgs::MsgPosEcef& msg) {
   pixels.show();
 }
 
-ros::Subscriber<libsbp_ros_msgs::MsgPosEcef> fix(
-    "/piksi_multi_cpp_base/base_station_receiver_0/sbp/pos_ecef", fixCb);
+ros::Subscriber<libsbp_ros_msgs::MsgPosEcef> fix("sbp/pos_ecef", fixCb);
 
 // Flash red center LED if corrections occur.
 uint16_t age = 0xFFFF;
@@ -129,9 +128,8 @@ void corrCb(const libsbp_ros_msgs::MsgAgeCorrections& msg) {
   pixels.show();
 }
 
-ros::Subscriber<libsbp_ros_msgs::MsgAgeCorrections> corr(
-    "/piksi_multi_cpp_base/base_station_receiver_0/sbp/age_corrections",
-    corrCb);
+ros::Subscriber<libsbp_ros_msgs::MsgAgeCorrections> corr("sbp/age_corrections",
+                                                         corrCb);
 
 // Blink center LED while sampling.
 void sampleCb(const piksi_rtk_msgs::PositionSampling& msg) {
@@ -155,9 +153,7 @@ void sampleCb(const piksi_rtk_msgs::PositionSampling& msg) {
 }
 
 ros::Subscriber<piksi_rtk_msgs::PositionSampling> sample(
-    "/piksi_multi_cpp_base/base_station_receiver_0/position_sampler/"
-    "position_sampling",
-    sampleCb);
+    "position_sampler/position_sampling", sampleCb);
 
 // Rainbow cycle along whole strip.
 long first_pixel_hue = 0;
