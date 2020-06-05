@@ -21,8 +21,9 @@ int main(int argc, char** argv) {
   // Setup sample survey call.
   bool is_base =
       nh.getNamespace().find("base_station_receiver") != std::string::npos;
-  std::string service = is_base ? nh.getNamespace() + "/resample_base_position"
-                                : nh.getNamespace() + "/sample_position";
+  std::string service =
+      is_base ? nh.getUnresolvedNamespace() + "/resample_base_position"
+              : nh.getUnresolvedNamespace() + "/sample_position";
   ROS_INFO("Pushbutton connected to %s", service.c_str());
   ros::ServiceClient client =
       nh.serviceClient<piksi_rtk_msgs::SamplePosition>(service);
