@@ -90,14 +90,13 @@ void ReceiverBaseStation::setupUDPSenders() {
 bool ReceiverBaseStation::resampleBasePositionCallback(
     piksi_rtk_msgs::SamplePosition::Request& req,
     piksi_rtk_msgs::SamplePosition::Response& res) {
+  if (!position_sampler_->startSampling(req.num_desired_fixes, req.file,
+                                        req.set_enu)) {
+    return false;
+  }
+
   // Set flag to wait for sampling to be finished.
   wait_for_sampled_position_ = true;
-  // Start sampling.
-  ros::NodeHandle nh_node("~");
-  const bool kSetEnu = true;
-  position_sampler_->startSampling(req.num_desired_fixes, req.file, kSetEnu);
-  ROS_INFO("Start sampling base station position with %d desired fixes.",
-           req.num_desired_fixes);
   return true;
 }
 

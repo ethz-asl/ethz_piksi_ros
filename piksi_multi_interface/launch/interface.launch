@@ -1,0 +1,13 @@
+<launch>
+  <arg name="chip" default="gpiochip0" />
+  <arg name="offset" default="0" />
+
+  <node name="piksi_pushbutton" pkg="piksi_multi_interface" type="pushbutton" output="log" required="true">
+    <param name="rate" value="20"/>
+    <!-- Find chip and line with gpiod cli gpiodetect -->
+    <param name="chip" value="$(arg chip)"/>
+    <param name="offset" value="$(arg offset)"/>
+    <param name="piksi_ns" value="/piksi_multi_cpp_base/base_station_receiver_0"/>
+    <!--param name="num_desired_fixes" value="100"/-->
+  </node>
+</launch>

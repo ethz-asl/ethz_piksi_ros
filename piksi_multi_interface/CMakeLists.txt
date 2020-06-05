@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(piksi_multi_interface)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_BUILD_TYPE Release)
+
+find_package(catkin_simple REQUIRED)
+catkin_simple(ALL_DEPS_REQUIRED)
+
+find_library(GPIOD_LIBRARY NAMES libgpiod.so)
+if(NOT GPIOD_LIBRARY)
+  message(FATAL_ERROR "gpiod library not found. Install https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/")
+endif()
+
+#############
+# LIBRARIES #
+#############
+cs_add_library(${PROJECT_NAME}
+                src/neopixel.cc)
+target_link_libraries(${PROJECT_NAME} ${GPIOD_LIBRARY})
+
+############
+# BINARIES #
+############
+cs_add_executable(pushbutton src/pushbutton_node.cc)
+target_link_libraries(pushbutton ${PROJECT_NAME} ${GPIOD_LIBRARY})
+
+cs_install()
+cs_export()

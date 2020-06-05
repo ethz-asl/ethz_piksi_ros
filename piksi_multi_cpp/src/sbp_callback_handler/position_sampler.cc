@@ -30,16 +30,22 @@ PositionSampler::PositionSampler(const ros::NodeHandle& nh,
       "sample_position", &PositionSampler::samplePositionCallback, this);
 }
 
-void PositionSampler::startSampling(const uint32_t num_desired_fixes,
+bool PositionSampler::startSampling(const uint32_t num_desired_fixes,
                                     const std::string& file, bool set_enu) {
-  set_enu_ = set_enu;
-  num_desired_fixes_ = std::optional<uint32_t>(num_desired_fixes);
   if (num_desired_fixes < 1) {
     ROS_ERROR(
         "Cannot sample position. num_desired_fixes needs to be greater than "
         "0.");
-    return;
+    return false;
   }
+
+  if (num_desired_fixes_.has_value() && num_fixes_ < num_desired_fixes_) {
+    ROS_WARN("Cannot sample position. Sampling already running.");
+    return false;
+  }
+
+  set_enu_ = set_enu;
+  num_desired_fixes_ = std::optional<uint32_t>(num_desired_fixes);
   num_fixes_ = 0;
   file_ = file;
   x_.reset();
@@ -49,6 +55,8 @@ void PositionSampler::startSampling(const uint32_t num_desired_fixes,
   x_ml_.reset();
   P_ml_.reset();
   ROS_INFO("Start position sampling with %u samples.", num_desired_fixes);
+
+  return true;
 }
 
 bool PositionSampler::getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov) {
@@ -66,8 +74,7 @@ bool PositionSampler::getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov) {
 bool PositionSampler::samplePositionCallback(
     piksi_rtk_msgs::SamplePosition::Request& req,
     piksi_rtk_msgs::SamplePosition::Response& res) {
-  startSampling(req.num_desired_fixes, req.file, req.set_enu);
-  return true;
+  return startSampling(req.num_desired_fixes, req.file, req.set_enu);
 }
 
 void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
