@@ -52,6 +52,7 @@ WantedBy=multi-user.target
 END"
 fi
 sudo systemctl daemon-reload
+sudo systemctl enable piksi_interface
 
 echo "Do you wish to add user to group dialout? [y or Y to accept]"
 read join_dialout
