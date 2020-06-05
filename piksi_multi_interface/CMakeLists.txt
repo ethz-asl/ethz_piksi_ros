@@ -13,13 +13,6 @@ if(NOT GPIOD_LIBRARY)
   message(FATAL_ERROR "gpiod library not found. Install https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git/")
 endif()
 
-#############
-# LIBRARIES #
-#############
-cs_add_library(${PROJECT_NAME}
-                src/neopixel.cc)
-target_link_libraries(${PROJECT_NAME} ${GPIOD_LIBRARY})
-
 ############
 # BINARIES #
 ############
