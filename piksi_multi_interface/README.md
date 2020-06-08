@@ -34,7 +34,7 @@ The surveyed position is saved in the `ROS_HOME` directory.
 # Hardware Setup
 We setup two almost identical hardware systems to resemble a base station and a survey station.
 Both stations have
-- Flyht Pro Rack Tray 6U 9,5"
+- Flyht Pro Rack 6U 9,5"
 - Battery or shore power supply
 - Antenna drawer
 - Swift L1/L2 GPS/GLONASS/BeiDou mini-survey antenna
