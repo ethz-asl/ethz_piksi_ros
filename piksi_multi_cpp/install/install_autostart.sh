@@ -14,7 +14,6 @@ if [[ $configure_base_autostart == "Y" || $configure_base_autostart == "y" ]]; t
   sudo sh -c "tee -a /etc/systemd/system/piksi.service << END
 [Unit]
 Description=Start piksi automatically on startup.
-Wants=network-online.target
 After=network-online.target
 
 [Service]
