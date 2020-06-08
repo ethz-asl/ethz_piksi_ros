@@ -1,4 +1,5 @@
 uint32 num_desired_fixes
 string file
 bool set_enu
+float64 offset_z # Height of survey pole that will be subtracted from survey.
 ---

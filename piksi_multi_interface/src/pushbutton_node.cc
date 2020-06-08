@@ -31,6 +31,9 @@ int main(int argc, char** argv) {
   int num_desired_fixes = is_base ? 1000 : 100;
   nh_private.getParam("num_desired_fixes", num_desired_fixes);
 
+  double offset_z = is_base ? 0.0 : 2.0;
+  nh_private.getParam("offset_z", offset_z);
+
   ros::Publisher status_pub = nh_private.advertise<std_msgs::Bool>("status", 1);
 
   // Open GPIO
@@ -82,6 +85,7 @@ int main(int argc, char** argv) {
       piksi_rtk_msgs::SamplePosition srv;
       srv.request.num_desired_fixes = num_desired_fixes;
       srv.request.set_enu = is_base;
+      srv.request.offset_z = offset_z;
       ROS_INFO_COND(client.call(srv), "Start sampling.");
     }
 

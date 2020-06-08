@@ -12,6 +12,7 @@
       <param name="chip" value="$(arg chip)"/>
       <param name="offset" value="$(arg offset)"/>
       <!--param name="num_desired_fixes" value="100"/-->
+      <!--param name="offset_z" value="2.0"/-->
     </node>
 
     <node name="piksi_status_led" pkg="rosserial_server" type="serial_node" output="log" required="true">
