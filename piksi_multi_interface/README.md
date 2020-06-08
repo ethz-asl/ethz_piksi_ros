@@ -2,6 +2,7 @@
 This is a push button and status LED interface for the Piksi GNSS receiver.
 It simplifies utilization of RTK GNSS in the field.
 It provides
+- WiFi network with internet access
 - visual feedback on GNSS fix status
 - push button interface to start surveying a base station or survey point position
 
