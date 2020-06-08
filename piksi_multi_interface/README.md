@@ -29,7 +29,7 @@ The surveyed position is saved in the `ROS_HOME` directory.
 | <img src="https://user-images.githubusercontent.com/11293852/84021875-a9a30880-a985-11ea-8a04-82e70a3b2b75.jpg" alt="Status corrections" width="220"/> | Red blinking center     | Receiving RTK corrections                                                                     |
 | <img src="https://user-images.githubusercontent.com/11293852/84021860-a60f8180-a985-11ea-9ae0-5dd12eb4bf0d.jpg" alt="Status sampling" width="220"/> | Magenta blinking center | Surveying position, blinking frequency increases with advanced progress. Stops when finished. |
 
-# Setup
+# Hardware Setup
 We setup two almost identical hardware systems to resemble a base station and a survey station.
 Both stations have
 - Flyht Pro Rack Tray 6U 9,5"
