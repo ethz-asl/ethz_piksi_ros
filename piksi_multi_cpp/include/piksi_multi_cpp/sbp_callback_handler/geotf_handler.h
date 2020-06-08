@@ -28,9 +28,6 @@ class GeoTfHandler {
 
   bool getEnuOriginWgs84(Eigen::Vector3d* enu_origin_wgs84);
 
-  bool convertPosEcefToEnu(const Eigen::Vector3d& pos_ecef,
-                           const Eigen::Vector3d* pos_enu);
-
   inline geotf::GeodeticConverter getGeoTf() const { return geotf_; }
 
   GeoTfHandler(GeoTfHandler const&) = delete;

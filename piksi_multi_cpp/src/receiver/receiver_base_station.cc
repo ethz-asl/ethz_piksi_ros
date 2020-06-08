@@ -91,7 +91,7 @@ bool ReceiverBaseStation::resampleBasePositionCallback(
     piksi_rtk_msgs::SamplePosition::Request& req,
     piksi_rtk_msgs::SamplePosition::Response& res) {
   if (!position_sampler_->startSampling(req.num_desired_fixes, req.file,
-                                        req.set_enu)) {
+                                        req.set_enu, req.offset_z)) {
     return false;
   }
 

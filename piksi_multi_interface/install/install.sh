@@ -10,6 +10,12 @@ read GPIOCHIP
 echo "Please enter the survey gpio offset, e.g., 0..."
 read OFFSET
 
+echo "Please enter the status LED port, e.g., /dev/ttyXRUSB0..."
+read PORT
+
+echo "Please enter the status LED baud rate, e.g., 57600..."
+read BAUD
+
 echo "Do you wish to configure UDEV rule for the gpiochip and add user to group gpio? [y or Y to accept]"
 read create_udev
 if [[ $create_udev == "Y" || $create_udev == "y" ]]; then
@@ -27,15 +33,25 @@ fi
 echo "Do you wish to configure interface autostart? [y or Y to accept]"
 read configure_autostart
 if [[ $configure_autostart == "Y" || $configure_autostart == "y" ]]; then
+  echo "Is this a base station? [y or Y]"
+  read is_base
+  NS=/rover/piksi/position_receiver_0
+  if [[ $is_base == "Y" || $is_base == "y" ]]; then
+    NS=/piksi_multi_cpp_base/base_station_receiver_0
+  fi
+
   echo "Configuring /etc/systemd/system/piksi_interface.service"
   sudo rm /etc/systemd/system/piksi_interface.service
   sudo sh -c "tee -a /etc/systemd/system/piksi_interface.service << END
 [Unit]
 Description=Piksi interface (push button, status LED)
+After=piksi.service
 
 [Service]
 Type=forking
-ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET
+ExecStartPre=/bin/sleep 15
+ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET $PORT $BAUD $NS
+Restart=on-failure
 User=$USER
 
 [Install]
@@ -43,6 +59,13 @@ WantedBy=multi-user.target
 END"
 fi
 sudo systemctl daemon-reload
+sudo systemctl enable piksi_interface
+
+echo "Do you wish to add user to group dialout? [y or Y to accept]"
+read join_dialout
+if [[ $join_dialout == "Y" || $join_dialout == "y" ]]; then
+  sudo usermod -a -G dialout ${USER}
+fi
 
 echo "Please reboot to take changes into effect? [y or Y to accept]"
 read reboot_now
