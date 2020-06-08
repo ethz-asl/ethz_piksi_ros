@@ -15,7 +15,7 @@ This will automatically start the `piksi_multi_cpp` driver, `pushbutton_node`, a
 
 Once the receivers obtain a GNSS fix punch the survey button to start sampling the antenna position.
 By default the base station will average `1000` samples, the survey station `100` samples.
-The survey station subtracts 2 meters from the surveyed position to account for the survey stick.
+The survey station subtracts 2 meters from the surveyed position to account for the survey pole.
 The surveyed position is saved in the `ROS_HOME` directory.
 
 
@@ -104,3 +104,6 @@ The [interface installation script](https://github.com/ethz-asl/ethz_piksi_ros/b
 The [interface installation script](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/firmware/setup.sh) installs the Arduino firmware via command line.
 
 Optionally, [PPS sync installation script](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_pps_sync/install/install.sh) will setup chrony to synchronize the system clock with GNSS time.
+
+# Acknowledgement
+The development of this robotic base station was kindly supported by [Project FindMine](https://www.ue-stiftung.org/findmine) and the Urs Endress Foundation.
