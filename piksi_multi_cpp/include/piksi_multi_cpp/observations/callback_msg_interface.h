@@ -8,16 +8,17 @@
 
 namespace piksi_multi_cpp {
 /*
- * Interface for a class that can handle observation callbacks
+ * Interface for a class that can handle message callbacks
  * from SBP.
+ * More message callbacks can be added here.
  */
-class CallbackObservationInterface {
+class CallbackMsgInterface {
  public:
-  typedef std::shared_ptr<CallbackObservationInterface> Ptr;
-  virtual void observationCallback(msg_base_pos_ecef_t msg) = 0;
-  virtual void observationCallback(msg_glo_biases_t msg) = 0;
-  virtual void observationCallback(msg_obs_t_var msg) = 0;
-  virtual void observationCallback(msg_heartbeat_t msg) = 0;
+  typedef std::shared_ptr<CallbackMsgInterface> Ptr;
+  virtual void messageCallback(msg_base_pos_ecef_t msg) = 0;
+  virtual void messageCallback(msg_glo_biases_t msg) = 0;
+  virtual void messageCallback(msg_obs_t_var msg) = 0;
+  virtual void messageCallback(msg_heartbeat_t msg) = 0;
 };
 
 }  // namespace piksi_multi_cpp
