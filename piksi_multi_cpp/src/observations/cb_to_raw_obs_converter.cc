@@ -53,6 +53,36 @@ void CBtoRawObsConverter::messageCallback(msg_heartbeat_t msg) {
   finishMessage();
 }
 
+void CBtoRawObsConverter::messageCallback(msg_ephemeris_gps_t msg) {
+  // Repack into full SBP Message
+  startMessage();
+  sbp_send_message(&sbp_state_, SBP_MSG_HEARTBEAT, sbp_sender_id_, sizeof(msg),
+                   reinterpret_cast<uint8_t*>(&msg),
+                   &CBtoRawObsConverter::sbp_write_redirect);
+  // this triggers sbp_write_redirect
+  finishMessage();
+}
+
+void CBtoRawObsConverter::messageCallback(msg_ephemeris_glo_t msg) {
+  // Repack into full SBP Message
+  startMessage();
+  sbp_send_message(&sbp_state_, SBP_MSG_HEARTBEAT, sbp_sender_id_, sizeof(msg),
+                   reinterpret_cast<uint8_t*>(&msg),
+                   &CBtoRawObsConverter::sbp_write_redirect);
+  // this triggers sbp_write_redirect
+  finishMessage();
+}
+
+void CBtoRawObsConverter::messageCallback(msg_iono_t msg) {
+  // Repack into full SBP Message
+  startMessage();
+  sbp_send_message(&sbp_state_, SBP_MSG_HEARTBEAT, sbp_sender_id_, sizeof(msg),
+                   reinterpret_cast<uint8_t*>(&msg),
+                   &CBtoRawObsConverter::sbp_write_redirect);
+  // this triggers sbp_write_redirect
+  finishMessage();
+}
+
 void CBtoRawObsConverter::startMessage() { buffer_msg_.clear(); }
 
 void CBtoRawObsConverter::finishMessage() {

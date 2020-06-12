@@ -19,6 +19,9 @@ class CallbackMsgInterface {
   virtual void messageCallback(msg_glo_biases_t msg) = 0;
   virtual void messageCallback(msg_obs_t_var msg) = 0;
   virtual void messageCallback(msg_heartbeat_t msg) = 0;
+  virtual void messageCallback(msg_ephemeris_gps_t msg) = 0;
+  virtual void messageCallback(msg_ephemeris_glo_t msg) = 0;
+  virtual void messageCallback(msg_iono_t msg) = 0;
 };
 
 }  // namespace piksi_multi_cpp

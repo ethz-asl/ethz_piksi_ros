@@ -1,9 +1,7 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_OBS_TYPE_CALLBACK_HANDLER_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_OBS_TYPE_CALLBACK_HANDLER_H_
 #include <libsbp/sbp.h>
-#include <piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h>
 #include <ros/ros.h>
-
 #include <piksi_multi_cpp/observations/callback_msg_interface.h>
 #include <functional>
 

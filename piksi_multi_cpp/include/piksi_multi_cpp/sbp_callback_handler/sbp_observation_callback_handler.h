@@ -1,18 +1,10 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_OBSERVATION_CALLBACK_HANDLER_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_OBSERVATION_CALLBACK_HANDLER_H_
-#include <libsbp/observation.h>
-#include <libsbp/sbp.h>
-#include <libsbp/system.h>
-#include <piksi_multi_cpp/observations/callback_msg_interface.h>
-#include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h>
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_msg_type_callback_handler.h>
 #include <ros/ros.h>
-#include <memory>
-#include <utility>
 
 namespace piksi_multi_cpp {
-namespace s = std::placeholders;
 
 /*
  * Subscribes to all 4 observation type callbacks simultaneously using

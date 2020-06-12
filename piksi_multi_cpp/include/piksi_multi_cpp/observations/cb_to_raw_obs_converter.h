@@ -28,6 +28,9 @@ class CBtoRawObsConverter : public CallbackMsgInterface {
   void messageCallback(msg_glo_biases_t msg) final;
   void messageCallback(msg_obs_t_var msg) final;
   void messageCallback(msg_heartbeat_t msg) final;
+  void messageCallback(msg_ephemeris_gps_t msg) final;
+  void messageCallback(msg_ephemeris_glo_t msg) final;
+  void messageCallback(msg_iono_t msg) final;
 
   static std::shared_ptr<CBtoRawObsConverter> createFor(
       const RawObservationInterface::Ptr& consumer, const uint16_t sbp_sender_id) {
