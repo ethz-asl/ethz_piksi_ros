@@ -18,10 +18,12 @@ void FileObservationLogger::insertObservation(
     const piksi_multi_cpp::RawObservation& data) {
 
   if (log_file_ != nullptr) {
+    file_mtx_.lock();
     // write in chunks of 1byte for now. maybe blocked write might be a bit
     // faster. But because we don't write large amounts of data, it probably
     // doesn't matter too much
     fwrite(data.data(), sizeof(uint8_t), data.size(), log_file_);
+    file_mtx_.unlock();
   }
 }
 

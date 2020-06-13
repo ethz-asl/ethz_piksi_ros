@@ -2,6 +2,7 @@
 #define PIKSI_MULTI_CPP_OBSERVATIONS_FILE_OBSERVATION_LOGGER_H_
 
 #include <piksi_multi_cpp/observations/cb_to_raw_obs_converter.h>
+#include <mutex>
 
 namespace piksi_multi_cpp {
 
@@ -20,9 +21,13 @@ class FileObservationLogger : public RawObservationInterface {
   ~FileObservationLogger();
 
  private:
+  // File pointer.
   FILE* log_file_{nullptr};  // not using fstream, but raw file for performance.
+  
+  // mutex to lock file when writing
+  std::mutex file_mtx_;
 
-  // File pointer etc.
+
 };
 }  // namespace piksi_multi_cpp
 
