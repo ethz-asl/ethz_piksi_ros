@@ -11,6 +11,7 @@
 #include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_observation_callback_handler.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_ephemeris_callback_handler.h"
 
 namespace piksi_multi_cpp {
 
@@ -25,8 +26,9 @@ class ReceiverRos : public SettingsIo {
   // ROS node handle in the correct receiver namespace.
   ros::NodeHandle nh_;
 
-  // Observation callbackhandlers
+  // Observation & Ephemeris callbackhandlers
   std::unique_ptr<SBPObservationCallbackHandler> obs_cbs_;
+  std::unique_ptr<SBPEphemerisCallbackHandler> eph_cbs_;
 
   // get vector valued string params
   std::vector<std::string> getVectorParam(

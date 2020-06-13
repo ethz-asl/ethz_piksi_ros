@@ -16,7 +16,7 @@ class SBPMsgTypeCallbackHandler {
       : state_(state){};
 
   /*
-   * Add listeners to message callbacks specified in interface.
+   * Add listeners to message callbacks.
    */
   void addMsgCallbackListener(const CallbackMsgInterface::Ptr& listener) {
     if (listener.get()) {
