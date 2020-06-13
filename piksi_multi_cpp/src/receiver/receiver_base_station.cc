@@ -1,9 +1,9 @@
+#include "piksi_multi_cpp/receiver/receiver_base_station.h"
 #include <eigen_conversions/eigen_msg.h>
 #include <piksi_multi_cpp/observations/udp_observation_sender.h>
 #include <piksi_rtk_msgs/SamplePosition.h>
 #include <boost/algorithm/string.hpp>
 #include <string>
-#include "piksi_multi_cpp/receiver/receiver_base_station.h"
 
 namespace piksi_multi_cpp {
 
@@ -20,11 +20,17 @@ bool ReceiverBaseStation::init() {
   }
 
   // Setup UDP senders.
-  while (!readSetting("system_info", "sbp_sender_id")) {
-  }
-  sbp_sender_id_ = static_cast<uint16_t>(std::stoul(getValue(), nullptr, 16));
   ROS_INFO("UDP corrections sender ID: 0x%.4X", sbp_sender_id_);
   setupUDPSenders();
+
+  // Start file logger if requested
+  ros::NodeHandle nh_private("~");
+  auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
+  if (log_to_file) {
+    auto log_file_dir =
+        nh_private.param<std::string>("log_file_dir", "/tmp/tmp_observations.sbp");
+    ReceiverRos::startFileLogger(log_file_dir);
+  }
 
   return true;
 }

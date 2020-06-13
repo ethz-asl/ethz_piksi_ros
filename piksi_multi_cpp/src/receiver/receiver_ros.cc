@@ -24,17 +24,35 @@ ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
   position_sampler_ = std::make_shared<PositionSampler>(
       nh, state_, ros_time_handler, geotf_handler_);
 
-  // Create observation & ephemeris callbacks
+  // Create observation callbacks
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
-  eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh, state_);
+}
 
-  if (1) {
-    auto logger = std::make_shared<FileObservationLogger>();
-    ROS_WARN_STREAM(logger->open("/tmp/tempfile.sbp"));
-    obs_cbs_->addMsgCallbackListener(
-        CBtoRawObsConverter::createFor(logger, uint16_t(0x42))); // Hardcoded sender Id for now, as it probably does not matter
-    eph_cbs_->addMsgCallbackListener(CBtoRawObsConverter::createFor(logger, uint16_t(0x42)));
+bool ReceiverRos::init() {
+  if (!Receiver::init()) {
+    return false;
   }
+
+  // Get and store ID of device
+  while (!readSetting("system_info", "sbp_sender_id")) {
+  }
+  sbp_sender_id_ = static_cast<uint16_t>(std::stoul(getValue(), nullptr, 16));
+
+  return true;
+}
+
+void ReceiverRos::startFileLogger(const std::string& log_file_dir) {
+  // Create ephemeris callbacks
+  eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh_, state_);
+
+  auto logger = std::make_shared<FileObservationLogger>();
+  ROS_WARN_STREAM(logger->open(log_file_dir));
+
+  // Add logger as listener to callbacks
+  obs_cbs_->addMsgCallbackListener(CBtoRawObsConverter::createFor(
+      logger, sbp_sender_id_));  
+  eph_cbs_->addMsgCallbackListener(
+      CBtoRawObsConverter::createFor(logger, sbp_sender_id_));
 }
 
 std::vector<std::string> ReceiverRos::getVectorParam(

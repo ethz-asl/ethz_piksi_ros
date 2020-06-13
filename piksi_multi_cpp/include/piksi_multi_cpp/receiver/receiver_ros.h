@@ -10,8 +10,8 @@
 #include "piksi_multi_cpp/sbp_callback_handler/geotf_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
-#include "piksi_multi_cpp/sbp_callback_handler/sbp_observation_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_ephemeris_callback_handler.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_observation_callback_handler.h"
 
 namespace piksi_multi_cpp {
 
@@ -22,9 +22,18 @@ class ReceiverRos : public SettingsIo {
 
   ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device);
 
+  // set up user ID
+  bool init() override;
+
+  void startFileLogger(
+      const std::string& log_file_dir);
+
  protected:
   // ROS node handle in the correct receiver namespace.
   ros::NodeHandle nh_;
+
+  // Sender ID of device
+  uint16_t sbp_sender_id_{0x42};
 
   // Observation & Ephemeris callbackhandlers
   std::unique_ptr<SBPObservationCallbackHandler> obs_cbs_;

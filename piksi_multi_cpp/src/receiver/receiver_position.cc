@@ -19,6 +19,14 @@ bool ReceiverPosition::init() {
   ros::NodeHandle nh_private("~");
   udp_receiver_.start(nh_private.param("udp_observation_port", 26078));
 
+  // Start file logger if requested
+  auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
+  if (log_to_file) {
+    auto log_file_dir =
+        nh_private.param<std::string>("log_file_dir", "/tmp/tmp_observations.sbp");
+    ReceiverRos::startFileLogger(log_file_dir);
+  }
+
   return true;
 }
 
