@@ -49,9 +49,9 @@ void ReceiverRos::startFileLogger(const std::string& log_file_dir) {
   ROS_WARN_STREAM(logger->open(log_file_dir));
 
   // Add logger as listener to callbacks
-  obs_cbs_->addMsgCallbackListener(CBtoRawObsConverter::createFor(
+  obs_cbs_->addObservationCallbackListener(CBtoRawObsConverter::createFor(
       logger, sbp_sender_id_));  
-  eph_cbs_->addMsgCallbackListener(
+  eph_cbs_->addObservationCallbackListener(
       CBtoRawObsConverter::createFor(logger, sbp_sender_id_));
 }
 

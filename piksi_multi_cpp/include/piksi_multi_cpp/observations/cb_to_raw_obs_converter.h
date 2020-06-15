@@ -1,6 +1,6 @@
 #ifndef PIKSI_MULTI_CPP_OBSERVATIONS_CB_TO_RAW_OBS_CONVERTER_H_
 #define PIKSI_MULTI_CPP_OBSERVATIONS_CB_TO_RAW_OBS_CONVERTER_H_
-#include <piksi_multi_cpp/observations/callback_msg_interface.h>
+#include <piksi_multi_cpp/observations/callback_observation_interface.h>
 #include <piksi_multi_cpp/observations/raw_observation_interface.h>
 #include <vector>
 
@@ -20,17 +20,17 @@ namespace piksi_multi_cpp {
  * the RawObservationInterface
  *
  */
-class CBtoRawObsConverter : public CallbackMsgInterface {
+class CBtoRawObsConverter : public CallbackObservationInterface {
  public:
   typename std::shared_ptr<CBtoRawObsConverter> Ptr;
   CBtoRawObsConverter();
-  void messageCallback(msg_base_pos_ecef_t msg) final;
-  void messageCallback(msg_glo_biases_t msg) final;
-  void messageCallback(msg_obs_t_var msg) final;
-  void messageCallback(msg_heartbeat_t msg) final;
-  void messageCallback(msg_ephemeris_gps_t msg) final;
-  void messageCallback(msg_ephemeris_glo_t msg) final;
-  void messageCallback(msg_iono_t msg) final;
+  void observationCallback(msg_base_pos_ecef_t msg) final;
+  void observationCallback(msg_glo_biases_t msg) final;
+  void observationCallback(msg_obs_t_var msg) final;
+  void observationCallback(msg_heartbeat_t msg) final;
+  void observationCallback(msg_ephemeris_gps_t msg) final;
+  void observationCallback(msg_ephemeris_glo_t msg) final;
+  void observationCallback(msg_iono_t msg) final;
 
   static std::shared_ptr<CBtoRawObsConverter> createFor(
       const RawObservationInterface::Ptr& consumer, const uint16_t sbp_sender_id) {

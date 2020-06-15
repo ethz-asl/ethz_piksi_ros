@@ -2,7 +2,7 @@
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_OBS_TYPE_CALLBACK_HANDLER_H_
 #include <libsbp/sbp.h>
 #include <ros/ros.h>
-#include <piksi_multi_cpp/observations/callback_msg_interface.h>
+#include <piksi_multi_cpp/observations/callback_observation_interface.h>
 #include <functional>
 
 namespace piksi_multi_cpp {
@@ -18,7 +18,7 @@ class SBPMsgTypeCallbackHandler {
   /*
    * Add listeners to message callbacks.
    */
-  void addMsgCallbackListener(const CallbackMsgInterface::Ptr& listener) {
+  void addObservationCallbackListener(const CallbackObservationInterface::Ptr& listener) {
     if (listener.get()) {
       listeners_.push_back(listener);
     }
@@ -40,7 +40,7 @@ class SBPMsgTypeCallbackHandler {
   /*
    * Forwards messages to observation listeners.
    * Important: Only compiles if it is used only for sbp messages that can be
-   * consumed by the listeners, i.e. that have a viable messageCallback
+   * consumed by the listeners, i.e. that have a viable observationCallback
    * overload
    * Implemented in header because of template.
    */
@@ -48,12 +48,12 @@ class SBPMsgTypeCallbackHandler {
   void callbackToListeners(const SBPMsgStruct& msg, const uint8_t len) {
     // trigger callback on all listeners
     for (const auto& listener : listeners_) {
-      listener->messageCallback(msg);
+      listener->observationCallback(msg);
     }
   }
 
   std::shared_ptr<sbp_state_t> state_;
-  std::vector<CallbackMsgInterface::Ptr> listeners_{};
+  std::vector<CallbackObservationInterface::Ptr> listeners_{};
 };
 }  // namespace piksi_multi_cpp
 

@@ -6,7 +6,7 @@ CBtoRawObsConverter::CBtoRawObsConverter() : sbp_state_{} {
   sbp_state_set_io_context(&sbp_state_, this);
 }
 
-void CBtoRawObsConverter::messageCallback(msg_base_pos_ecef_t msg) {
+void CBtoRawObsConverter::observationCallback(msg_base_pos_ecef_t msg) {
   startMessage();
   // Repack into full SBP Message
   sbp_send_message(&sbp_state_, SBP_MSG_BASE_POS_ECEF, sbp_sender_id_,
@@ -16,7 +16,7 @@ void CBtoRawObsConverter::messageCallback(msg_base_pos_ecef_t msg) {
   finishMessage();
 }
 
-void CBtoRawObsConverter::messageCallback(msg_glo_biases_t msg) {
+void CBtoRawObsConverter::observationCallback(msg_glo_biases_t msg) {
   // Repack into full SBP Message
   startMessage();
   sbp_send_message(&sbp_state_, SBP_MSG_GLO_BIASES, sbp_sender_id_, sizeof(msg),
@@ -26,7 +26,7 @@ void CBtoRawObsConverter::messageCallback(msg_glo_biases_t msg) {
   finishMessage();
 }
 
-void CBtoRawObsConverter::messageCallback(msg_obs_t_var msg) {
+void CBtoRawObsConverter::observationCallback(msg_obs_t_var msg) {
   // reconstruct raw buffer
   std::vector<uint8_t> observation_buffer;
   observation_buffer.resize(msg.length());
@@ -43,7 +43,7 @@ void CBtoRawObsConverter::messageCallback(msg_obs_t_var msg) {
   finishMessage();
 }
 
-void CBtoRawObsConverter::messageCallback(msg_heartbeat_t msg) {
+void CBtoRawObsConverter::observationCallback(msg_heartbeat_t msg) {
   // Repack into full SBP Message
   startMessage();
   sbp_send_message(&sbp_state_, SBP_MSG_HEARTBEAT, sbp_sender_id_, sizeof(msg),
@@ -53,7 +53,7 @@ void CBtoRawObsConverter::messageCallback(msg_heartbeat_t msg) {
   finishMessage();
 }
 
-void CBtoRawObsConverter::messageCallback(msg_ephemeris_gps_t msg) {
+void CBtoRawObsConverter::observationCallback(msg_ephemeris_gps_t msg) {
   // Repack into full SBP Message
   startMessage();
   sbp_send_message(&sbp_state_, SBP_MSG_EPHEMERIS_GPS, sbp_sender_id_, sizeof(msg),
@@ -63,7 +63,7 @@ void CBtoRawObsConverter::messageCallback(msg_ephemeris_gps_t msg) {
   finishMessage();
 }
 
-void CBtoRawObsConverter::messageCallback(msg_ephemeris_glo_t msg) {
+void CBtoRawObsConverter::observationCallback(msg_ephemeris_glo_t msg) {
   // Repack into full SBP Message
   startMessage();
   sbp_send_message(&sbp_state_, SBP_MSG_EPHEMERIS_GLO, sbp_sender_id_, sizeof(msg),
@@ -73,7 +73,7 @@ void CBtoRawObsConverter::messageCallback(msg_ephemeris_glo_t msg) {
   finishMessage();
 }
 
-void CBtoRawObsConverter::messageCallback(msg_iono_t msg) {
+void CBtoRawObsConverter::observationCallback(msg_iono_t msg) {
   // Repack into full SBP Message
   startMessage();
   sbp_send_message(&sbp_state_, SBP_MSG_IONO, sbp_sender_id_, sizeof(msg),
