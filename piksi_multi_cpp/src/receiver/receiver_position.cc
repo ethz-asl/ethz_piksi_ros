@@ -1,3 +1,7 @@
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+
 #include "piksi_multi_cpp/receiver/receiver_position.h"
 
 namespace piksi_multi_cpp {
@@ -22,9 +26,20 @@ bool ReceiverPosition::init() {
   // Start file logger if requested
   auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
   if (log_to_file) {
-    auto log_file_dir =
-        nh_private.param<std::string>("log_file_dir", "/tmp/tmp_observations.sbp");
-    ReceiverRos::startFileLogger(log_file_dir);
+    std::string log_file_dir =
+        nh_private.param<std::string>("log_file_dir", "./");
+    bool use_date_time_as_filename = true;
+    nh_private.param("use_date_time_as_filename", use_date_time_as_filename,
+                     use_date_time_as_filename);
+    std::string filename = "observations.sbp";
+    if (use_date_time_as_filename) {
+      std::time_t t = std::time(nullptr);
+      std::tm tm = *std::localtime(&t);
+      std::stringstream time_ss;
+      time_ss << std::put_time(&tm, "%Y_%d_%m_%H_%M_%S") << ".sbp";
+      filename = time_ss.str();
+    }
+    ReceiverRos::startFileLogger(log_file_dir + '/' + filename);
   }
 
   return true;
