@@ -27,9 +27,20 @@ bool ReceiverBaseStation::init() {
   ros::NodeHandle nh_private("~");
   auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
   if (log_to_file) {
-    auto log_file_dir =
-        nh_private.param<std::string>("log_file_dir", "/tmp/tmp_observations.sbp");
-    ReceiverRos::startFileLogger(log_file_dir);
+    std::string log_file_dir =
+        nh_private.param<std::string>("log_file_dir", "./");
+    bool use_date_time_as_filename = true;
+    nh_private.param("use_date_time_as_filename", use_date_time_as_filename,
+                     use_date_time_as_filename);
+    std::string filename = "observations.sbp";
+    if (use_date_time_as_filename) {
+      std::time_t t = std::time(nullptr);
+      std::tm tm = *std::localtime(&t);
+      std::stringstream time_ss;
+      time_ss << std::put_time(&tm, "%Y_%d_%m_%H_%M_%S") << ".sbp";
+      filename = time_ss.str();
+    }
+    ReceiverRos::startFileLogger(log_file_dir + '/' + filename);
   }
 
   return true;
@@ -41,8 +52,8 @@ bool ReceiverBaseStation::init() {
 // The number of desired fixes is determined through the parameter
 // `num_desired_fixes` when autosampling or defined in the service call.
 void ReceiverBaseStation::setupBaseStationSampling() {
-  // Subscribe to maximum likelihood estimate and advertise service to overwrite
-  // current base station position.
+  // Subscribe to maximum likelihood estimate and advertise service to
+  // overwrite current base station position.
   resample_base_position_srv_ = nh_.advertiseService(
       "resample_base_position",
       &ReceiverBaseStation::resampleBasePositionCallback, this);
