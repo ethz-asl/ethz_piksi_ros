@@ -30,17 +30,25 @@ PositionSampler::PositionSampler(const ros::NodeHandle& nh,
       "sample_position", &PositionSampler::samplePositionCallback, this);
 }
 
-void PositionSampler::startSampling(const uint32_t num_desired_fixes,
-                                    const std::string& file, bool set_enu) {
-  set_enu_ = set_enu;
-  num_desired_fixes_ = std::optional<uint32_t>(num_desired_fixes);
+bool PositionSampler::startSampling(const uint32_t num_desired_fixes,
+                                    const std::string& file, bool set_enu,
+                                    double offset_z) {
   if (num_desired_fixes < 1) {
     ROS_ERROR(
         "Cannot sample position. num_desired_fixes needs to be greater than "
         "0.");
-    return;
+    return false;
   }
+
+  if (num_desired_fixes_.has_value() && num_fixes_ < num_desired_fixes_) {
+    ROS_WARN("Cannot sample position. Sampling already running.");
+    return false;
+  }
+
+  set_enu_ = set_enu;
+  num_desired_fixes_ = std::optional<uint32_t>(num_desired_fixes);
   num_fixes_ = 0;
+  offset_z_ = offset_z;
   file_ = file;
   x_.reset();
   P_.reset();
@@ -49,6 +57,8 @@ void PositionSampler::startSampling(const uint32_t num_desired_fixes,
   x_ml_.reset();
   P_ml_.reset();
   ROS_INFO("Start position sampling with %u samples.", num_desired_fixes);
+
+  return true;
 }
 
 bool PositionSampler::getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov) {
@@ -66,8 +76,8 @@ bool PositionSampler::getResult(Eigen::Vector3d* x_ecef, Eigen::Matrix3d* cov) {
 bool PositionSampler::samplePositionCallback(
     piksi_rtk_msgs::SamplePosition::Request& req,
     piksi_rtk_msgs::SamplePosition::Response& res) {
-  startSampling(req.num_desired_fixes, req.file, req.set_enu);
-  return true;
+  return startSampling(req.num_desired_fixes, req.file, req.set_enu,
+                       req.offset_z);
 }
 
 void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
@@ -119,6 +129,22 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
   lrm::convertCartesianPoint<msg_pos_ecef_cov_t>(*sbp_msg, &z);
   Eigen::Matrix3d R;
   lrm::convertCartesianCov<msg_pos_ecef_cov_t>(*sbp_msg, &R);
+
+  // Subtract offset. Convert from ECEF to WGS84, subtract, convert back.
+  Eigen::Vector3d z_wgs84 = z;
+  if (geotf_handler_.get() &&
+      geotf_handler_->getGeoTf().convert("ecef", z, "wgs84", &z_wgs84)) {
+    z_wgs84.z() -= offset_z_;
+  } else {
+    ROS_ERROR("Cannot convert ECEF to WGS84.");
+    ROS_ERROR("Ignoring requested sampling offset.");
+  }
+
+  if (!geotf_handler_.get() ||
+      !geotf_handler_->getGeoTf().convert("wgs84", z_wgs84, "ecef", &z)) {
+    ROS_ERROR("Cannot convert WGS84 to ECEF.");
+    ROS_ERROR("Ignoring requested sampling offset.");
+  }
 
   // Cache least square measurement values.
   size_t block_idx = 3 * num_fixes_++;
@@ -297,6 +323,8 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
   fs << "cov_y_z_ecef: " << boost::lexical_cast<std::string>(cov(1, 2))
      << std::endl;
   fs << "cov_z_z_ecef: " << boost::lexical_cast<std::string>(cov(2, 2))
+     << std::endl;
+  fs << "offset_z: " << boost::lexical_cast<std::string>(offset_z_)
      << std::endl;
   fs << "num_fixes: " << boost::lexical_cast<std::string>(num_fixes)
      << std::endl;

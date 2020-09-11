@@ -3,9 +3,9 @@ echo "Please enter the PPS GPIO pin number, e.g., 250..."
 read GPIO_PIN
 echo "PPS is triggered on pin ${GPIO_PIN}."
 
-echo "Please enter the NMEA UART device, e.g., /dev/ttyS5..."
+echo "Please enter the NMEA UART device, e.g., ttyS5..."
 read DEVICE
-echo "Using serial port ${DEVICE}."
+echo "Using serial port /dev/${DEVICE}."
 
 echo "Please enter the serial port baud rate, e.g., 115200..."
 read BAUD
@@ -13,16 +13,29 @@ echo "Setting baud rate to ${BAUD}."
 
 # Install PPS
 cd ..
-cd pps-gpio-modprobe
 sudo apt install linux-headers-$(uname -r) libelf-dev
+echo "Is your GPIO interruptable? [y or Y to accept]"
+read is_interruptable
+if [[ $is_interruptable == "Y" || $is_interruptable == "y" ]]; then
+  KERNEL_MODULE=pps-gpio-modprobe
+else
+  echo "Please enter the PPS pulse width in milliseconds, e.g., 20..."
+  read PULSE_WIDTH
+  echo "Setting pulse width to ${PULSE_WIDTH}."
+  KERNEL_MODULE=pps-gpio-poll
+  PULSE_WIDTH_SETTING="pulse_width=${PULSE_WIDTH}"
+fi
+cd ${KERNEL_MODULE}
 make clean
 make
-sudo cp pps-gpio-modprobe.ko /lib/modules/$(uname -r)/kernel/drivers/pps/clients/
+sudo cp *.ko /lib/modules/$(uname -r)/kernel/drivers/pps/clients/
 sudo depmod
 cd ..
 
 # Install chrony.
 sudo apt install chrony -y
+sudo systemctl daemon-reload
+sudo systemctl enable chrony.service
 
 echo "Do you wish to append a new PPS refclock to /etc/chrony/chrony.conf? [y or Y to accept]"
 read append_chrony_conf
@@ -46,17 +59,22 @@ if [[ $configure_gpsd == "Y" || $configure_gpsd == "y" ]]; then
 [Unit]
 Description=GPS (Global Positioning System) Daemon
 Requires=gpsd.socket
+After=pps.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStartPre=/bin/stty -F ${DEVICE} ${BAUD}
-ExecStart=/usr/sbin/gpsd -n -r ${DEVICE}
+ExecStartPre=/bin/sleep 20
+ExecStartPre=/bin/stty -F /dev/${DEVICE} ${BAUD}
+ExecStart=/usr/sbin/gpsd -n -r /dev/${DEVICE}
 
 [Install]
 WantedBy=multi-user.target
-WantedBy=chrony.service
 Also=gpsd.socket
+END"
+  sudo rm /etc/udev/rules.d/99-gpsd.rules
+  sudo sh -c "tee -a /etc/udev/rules.d/99-gpsd.rules << END
+SUBSYSTEM==\"tty\", KERNEL==\"${DEVICE}\", TAG+=\"systemd\", ENV{SYSTEMD_WANTS}+=\"gpsd.service\"
 END"
 fi
 
@@ -67,26 +85,43 @@ sudo systemctl enable gpsd.service
 echo "Do you wish to configure pps? [y or Y to accept]"
 read configure_pps
 if [[ $configure_pps == "Y" || $configure_pps == "y" ]]; then
-  echo "Configuring /etc/systemd/system/pps-modprobe.service"
-  sudo rm /etc/systemd/system/pps-modprobe.service
-  sudo sh -c "tee -a /etc/systemd/system/pps-modprobe.service << END
+  echo "Configuring /etc/systemd/system/pps.service"
+  sudo rm /etc/systemd/system/pps.service
+  sudo sh -c "tee -a /etc/systemd/system/pps.service << END
 [Unit]
 Description=Modprobe pps gpio.
+Before=chrony.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/sbin/modprobe pps-gpio-modprobe gpio=${GPIO_PIN}
-ExecStop=/sbin/rmmod pps-gpio-modprobe
+ExecStart=/sbin/modprobe ${KERNEL_MODULE} gpio=${GPIO_PIN} $PULSE_WIDTH_SETTING
+ExecStop=/sbin/rmmod ${KERNEL_MODULE}
 
 [Install]
 WantedBy=multi-user.target
-WantedBy=chrony.service
 END"
 fi
 
 sudo systemctl daemon-reload
-sudo systemctl enable pps-modprobe.service
+sudo systemctl enable pps.service
 
 # Install PPS debug tools.
 sudo apt install pps-tools gpsd-clients -y
+
+# Sign kernel module
+# https://askubuntu.com/questions/762254/why-do-i-get-required-key-not-available-when-install-3rd-party-kernel-modules
+echo "Do you wish to sign the kernel module? [y or Y to accept]"
+read sign_kernel_module
+if [[ $sign_kernel_module == "Y" || $sign_kernel_module == "y" ]]; then
+  cd ~
+  openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=Descriptive name/"
+  sudo /usr/src/linux-headers-$(uname -r)/scripts/sign-file sha256 ./MOK.priv ./MOK.der $(modinfo -n ${KERNEL_MODULE})
+  sudo mokutil --import MOK.der
+fi
+
+echo "Please reboot to take changes into effect? [y or Y to accept]"
+read reboot_now
+if [[ $reboot_now == "Y" || $reboot_now == "y" ]]; then
+  sudo reboot
+fi
