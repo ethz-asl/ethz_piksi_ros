@@ -41,18 +41,49 @@ bool ReceiverRos::init() {
   return true;
 }
 
-void ReceiverRos::startFileLogger(const std::string& log_file_dir) {
+bool ReceiverRos::startFileLogger() {
   // Create ephemeris callbacks
   eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh_, state_);
 
+  ros::NodeHandle nh_private("~");
+  // Per default observations are stored in .ros with current date & time
+  // prefixed with "<receiver_type>_" so that observations are stored in
+  // different files if multiple receivers connected
+  auto obs_dir = nh_private.param<std::string>("log_dir", "./");
+  std::string obs_filename;
+  std::size_t receiver_type_pos = nh_.getNamespace().find_last_of("/");
+  std::string obs_prefix =
+      nh_.getNamespace().substr(receiver_type_pos + 1) + "_";
+
+  bool use_custom_filename = nh_private.hasParam("observation_filename");
+  if (!use_custom_filename) {
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+    std::stringstream time_ss;
+    time_ss << std::put_time(&tm, "%Y_%d_%m_%H_%M_%S") << ".sbp";
+    obs_filename = obs_prefix + time_ss.str();
+  } else {
+    // Get filename if custom name set
+    nh_private.getParam("observation_filename", obs_filename);
+    obs_filename = obs_prefix + obs_filename;
+  }
+
   auto logger = std::make_shared<FileObservationLogger>();
-  ROS_WARN_STREAM(logger->open(log_file_dir));
+  if (!logger->open(obs_dir + "/" + obs_filename)) {
+    ROS_WARN_STREAM(
+        "Could not open logger file. Observation are not being stored!");
+    return false;
+  }
 
   // Add logger as listener to callbacks
-  obs_cbs_->addObservationCallbackListener(CBtoRawObsConverter::createFor(
-      logger, sbp_sender_id_));  
+  obs_cbs_->addObservationCallbackListener(
+      CBtoRawObsConverter::createFor(logger, sbp_sender_id_));
   eph_cbs_->addObservationCallbackListener(
       CBtoRawObsConverter::createFor(logger, sbp_sender_id_));
+
+  return true;
+
+  // TODO: add service for start stopping logger here!!
 }
 
 std::vector<std::string> ReceiverRos::getVectorParam(

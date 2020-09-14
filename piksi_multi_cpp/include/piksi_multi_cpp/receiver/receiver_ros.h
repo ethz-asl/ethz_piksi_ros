@@ -25,8 +25,7 @@ class ReceiverRos : public SettingsIo {
   // set up user ID
   bool init() override;
 
-  void startFileLogger(
-      const std::string& log_file_dir);
+  bool startFileLogger();
 
  protected:
   // ROS node handle in the correct receiver namespace.
