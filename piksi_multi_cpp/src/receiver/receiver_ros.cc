@@ -3,7 +3,6 @@
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h>
 
 // SBP message definitions.
-#include <piksi_multi_cpp/observations/file_observation_logger.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
@@ -31,7 +30,10 @@ ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
   ros::NodeHandle nh_private("~");
   auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
   if (log_to_file) {
-    startFileLogger(nh_private);
+    startFileLogger();
+    start_stop_logger_srv_ =
+        nh_.advertiseService("start_stop_obs_logger",
+                             &ReceiverRos::startStopFileLoggerCallback, this);
   }
 }
 
@@ -48,14 +50,12 @@ bool ReceiverRos::init() {
   return true;
 }
 
-bool ReceiverRos::startFileLogger(const ros::NodeHandle &nh_private) {
-  // Create ephemeris callbacks
-  eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh_, state_);
-
+bool ReceiverRos::startFileLogger() {
   // Per default observations are stored in .ros with current date & time
   // prefixed with "<receiver_type>_" so that observations are stored in
   // different files if multiple receivers connected
-  auto obs_dir = nh_private.param<std::string>("log_dir", "./");
+  ros::NodeHandle nh_private("~");
+  auto obs_dir = nh_private.param<std::string>("log_dir", ".");
   std::string obs_filename;
   std::size_t receiver_type_pos = nh_.getNamespace().find_last_of("/");
   std::string obs_prefix =
@@ -66,30 +66,59 @@ bool ReceiverRos::startFileLogger(const ros::NodeHandle &nh_private) {
     std::time_t t = std::time(nullptr);
     std::tm tm = *std::localtime(&t);
     std::stringstream time_ss;
-    time_ss << std::put_time(&tm, "%Y_%d_%m_%H_%M_%S") << ".sbp";
+    time_ss << std::put_time(&tm, "%Y_%d_%m_%H_%M_%S");
     obs_filename = obs_prefix + time_ss.str();
   } else {
     // Get filename if custom name set
     nh_private.getParam("observation_filename", obs_filename);
     obs_filename = obs_prefix + obs_filename;
   }
+  ROS_INFO_STREAM("Logging observations to file: \n\"" << obs_dir << "/" << obs_filename << ".sbp\".");
 
-  auto logger = std::make_shared<FileObservationLogger>();
-  if (!logger->open(obs_dir + "/" + obs_filename)) {
+  // Initialize logger if not already done
+  if (!obs_logger_) {
+    obs_logger_ = std::make_shared<FileObservationLogger>();
+    // Create ephemeris callbacks and add listeners to logger
+    eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh_, state_);
+    // Add logger as listener to callbacks
+    obs_cbs_->addObservationCallbackListener(
+        CBtoRawObsConverter::createFor(obs_logger_, sbp_sender_id_));
+    eph_cbs_->addObservationCallbackListener(
+        CBtoRawObsConverter::createFor(obs_logger_, sbp_sender_id_));
+  }
+
+  // start logging
+  if (obs_logger_->open(obs_dir + "/" + obs_filename) != 0) {
     ROS_WARN_STREAM(
         "Could not open logger file. Observation are not being stored!");
     return false;
   }
 
-  // Add logger as listener to callbacks
-  obs_cbs_->addObservationCallbackListener(
-      CBtoRawObsConverter::createFor(logger, sbp_sender_id_));
-  eph_cbs_->addObservationCallbackListener(
-      CBtoRawObsConverter::createFor(logger, sbp_sender_id_));
-
   return true;
+}
 
-  // TODO: add service for start stopping logger here!!
+bool ReceiverRos::startStopFileLoggerCallback(
+    std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res) {
+
+  if (req.data && !obs_logger_->isLogging()) {
+    // Start logger if not running
+    if (startFileLogger()) {
+      res.success = true;
+      res.message = "Logger succesfully started";
+    } else {
+      res.success = false;
+      res.message = "Failed to start logger.";
+    }
+  } else if (!req.data && obs_logger_->isLogging()) {
+    // Stop logger if runnning
+    obs_logger_->close();
+    res.success = true;
+    res.message = "Stopped logging.";
+  } else {
+    res.success = false;
+    res.message = "Service call failed.";
+  }
+  return true;
 }
 
 std::vector<std::string> ReceiverRos::getVectorParam(

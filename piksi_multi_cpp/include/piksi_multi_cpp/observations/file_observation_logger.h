@@ -17,17 +17,19 @@ class FileObservationLogger : public RawObservationInterface {
   FileObservationLogger() {}
   bool open(const std::string& filename);
   void close();
+
+  // Return status wetherlogger is currently running
+  bool isLogging();
+
   void insertObservation(const RawObservation& data) final;
   ~FileObservationLogger();
 
  private:
   // File pointer.
   FILE* log_file_{nullptr};  // not using fstream, but raw file for performance.
-  
+
   // mutex to lock file when writing
   std::mutex file_mtx_;
-
-
 };
 }  // namespace piksi_multi_cpp
 
