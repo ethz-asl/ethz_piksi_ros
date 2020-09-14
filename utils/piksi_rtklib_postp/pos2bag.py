@@ -103,6 +103,7 @@ class pos2bag(object):
         outbag = rosbag.Bag(outbag_dir + ".bag", "w")
 
         print("Computing time difference")
+        # TODO(clanegge): Add option to add binaries in rosbag time and not utc time
         time_diff = np.empty(0, float)
         for topic, msg, t in inbag.read_messages(topics=[self.pos_ecef_topic]):
             time_diff = np.append(time_diff, msg.header.stamp.to_sec() - t.to_sec())

@@ -31,9 +31,10 @@ set -e
 # Font colors
 BLUE='\033[0;36m'
 MAGENTA='\033[0;35m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# File and directory variables
+# File and directory variables. Observation directory needs to be passed as first argument
 OBSERVATION_DIR=${1%/}
 SOLUTION_DIR=$OBSERVATION_DIR/ppk_solution
 RNX_DIR=$SOLUTION_DIR/rnx_files
@@ -53,22 +54,46 @@ fi
 DATA_NAME="$(basename $OBSERVATION_DIR)"
 SOL_FILE_NAME=ppk_$DATA_NAME
 
+# Check if solution was already computed
 for csv_file in $SOLUTION_DIR/*.csv; do
   if [[ -f "${csv_file}" ]]; then
     echo -e "${MAGENTA}\nFound csv file in solution directory. \nRecompute solution? (previous files will be lost) [Y/n] ${NC}"
     read user_input
     if [[ $user_input == "n" || $user_input == "N" ]]; then
       COMP_SOLUTION=false
+    else
+      # whipe directory
+      rm -r $SOLUTION_DIR
+      mkdir $SOLUTION_DIR
+      mkdir $RNX_DIR
     fi
   fi
 done
 
+# Convert from SBP to RINEX
 if $COMP_SOLUTION; then
+  # If SBP base file found then this will be used instead of swisspos observation files
+  if [[ -f "$OBSERVATION_DIR/base_$DATA_NAME.sbp" ]]; then
+    LOOK_FOR_SWISSPOS_FILES=false
+  else
+    LOOK_FOR_SWISSPOS_FILES=true
+  fi
+
   echo -e "${BLUE}\n=== Converting SBP Binaries to RINEX === \n ${NC}"
-  # Convert from SBP to RINEX
-  for binaries in "$OBSERVATION_DIR"/*.sbp; do
+  for binaries in "$OBSERVATION_DIR"/*$DATA_NAME.sbp; do
     sbp2rinex $binaries -d $RNX_DIR
   done
+
+  if $LOOK_FOR_SWISSPOS_FILES; then
+    if ls $OBSERVATION_DIR/*.20o &>/dev/null && ls $OBSERVATION_DIR/*.20n &>/dev/null; then
+      echo -e "${MAGENTA}\nFound SWISSPOS observation files. Using these to compute PPK Solution.\n ${NC}"
+      cp $OBSERVATION_DIR/*.20o $RNX_DIR/base_$DATA_NAME.obs
+      cp $OBSERVATION_DIR/*.20n $RNX_DIR/base_$DATA_NAME.nav
+    else
+      echo -e "${RED}\nCould not find any base observation files. Aborting.\n ${NC}"
+      exit 1
+    fi
+  fi
 
   echo -e "${BLUE}\n=== Creating PPK Solution === \n ${NC}"
   rnx2rtkp $RNX_DIR/$DATA_NAME.obs $RNX_DIR/$DATA_NAME.nav $RNX_DIR/base_$DATA_NAME.obs $RNX_DIR/base_$DATA_NAME.nav -k $OBSERVATION_DIR/*.conf -o $SOLUTION_DIR/$SOL_FILE_NAME.csv
