@@ -26,6 +26,13 @@ ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
 
   // Create observation callbacks
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
+
+  // Start file logger if requested
+  ros::NodeHandle nh_private("~");
+  auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
+  if (log_to_file) {
+    startFileLogger(nh_private);
+  }
 }
 
 bool ReceiverRos::init() {
@@ -41,11 +48,10 @@ bool ReceiverRos::init() {
   return true;
 }
 
-bool ReceiverRos::startFileLogger() {
+bool ReceiverRos::startFileLogger(const ros::NodeHandle &nh_private) {
   // Create ephemeris callbacks
   eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh_, state_);
 
-  ros::NodeHandle nh_private("~");
   // Per default observations are stored in .ros with current date & time
   // prefixed with "<receiver_type>_" so that observations are stored in
   // different files if multiple receivers connected

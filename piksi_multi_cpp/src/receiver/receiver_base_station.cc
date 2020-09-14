@@ -23,13 +23,6 @@ bool ReceiverBaseStation::init() {
   ROS_INFO("UDP corrections sender ID: 0x%.4X", sbp_sender_id_);
   setupUDPSenders();
 
-  // Start file logger if requested
-  ros::NodeHandle nh_private("~");
-  auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
-  if (log_to_file) {
-    ReceiverRos::startFileLogger();
-  }
-
   return true;
 }
 
