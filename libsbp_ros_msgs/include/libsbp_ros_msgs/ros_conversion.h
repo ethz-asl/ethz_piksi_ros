@@ -72,9 +72,9 @@ inline void convertNedAccuracyToNedCov(const NedAccuracyIn& in,
   ROS_ASSERT(out);
   typedef Eigen::Matrix<double, 3, 3, Eigen::RowMajor> Matrix3dRow;
   Matrix3dRow cov = Matrix3dRow::Zero();
-  cov(0, 0) = in.h_accuracy * in.h_accuracy * kFromMilli;
+  cov(0, 0) = in.h_accuracy * in.h_accuracy * kFromMilliSq;
   cov(1, 1) = cov(0, 0);
-  cov(2, 2) = in.v_accuracy * in.v_accuracy * kFromMilli;
+  cov(2, 2) = in.v_accuracy * in.v_accuracy * kFromMilliSq;
   Matrix3dRow::Map(out->data()) = cov;
 }
 
