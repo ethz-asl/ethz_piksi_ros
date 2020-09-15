@@ -28,6 +28,8 @@ ros::Time convertTowTowfToRosTime(const uint32_t tow, const uint8_t tow_f,
 
 Eigen::Matrix3d getRotationEcefToEnu(const double lat_deg,
                                      const double lon_deg);
+Eigen::Matrix3d getRotationEcefToNed(const double lat_deg,
+                                     const double lon_deg);
 
 template <class CartesianPointIn, class CartesianPointOut>
 inline void convertCartesianPoint(const CartesianPointIn& in,
