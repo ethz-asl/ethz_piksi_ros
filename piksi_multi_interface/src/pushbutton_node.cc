@@ -3,6 +3,7 @@
 #include <gpiod.h>
 #include <piksi_rtk_msgs/SamplePosition.h>
 #include <std_msgs/Bool.h>
+#include <std_srvs/SetBool.h>
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "piksi_pushbutton");
@@ -28,8 +29,15 @@ int main(int argc, char** argv) {
   ros::ServiceClient client =
       nh.serviceClient<piksi_rtk_msgs::SamplePosition>(service);
 
+  std::string obs_service = nh.getNamespace() + "/start_stop_obs_logger";
+  ros::ServiceClient obs_client =
+      nh.serviceClient<std_srvs::SetBool>(obs_service);
+
   int num_desired_fixes = is_base ? 1000 : 100;
   nh_private.getParam("num_desired_fixes", num_desired_fixes);
+
+  int raw_observation_sec = num_desired_fixes / 10;
+  ros::Duration raw_observations_dur(raw_observation_sec, 0);
 
   double offset_z = is_base ? 0.0 : 2.0;
   nh_private.getParam("offset_z", offset_z);
@@ -87,6 +95,14 @@ int main(int argc, char** argv) {
       srv.request.set_enu = is_base;
       srv.request.offset_z = offset_z;
       ROS_INFO_COND(client.call(srv), "Start sampling.");
+
+      std_srvs::SetBool obs_srv;
+      obs_srv.request.data = true;
+      ROS_INFO_COND(obs_client.call(obs_srv), "Start recording observations.");
+      ros::Rate wait_for_obsv(raw_observations_dur);
+      wait_for_obsv.sleep();
+      obs_srv.request.data = false;
+      ROS_INFO_COND(obs_client.call(obs_srv), "Stop recording observations.");
     }
 
     ros::spinOnce();
