@@ -29,11 +29,10 @@ ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
   // Start file logger if requested
   ros::NodeHandle nh_private("~");
   auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
+  start_stop_logger_srv_ = nh_.advertiseService(
+      "start_stop_obs_logger", &ReceiverRos::startStopFileLoggerCallback, this);
   if (log_to_file) {
     startFileLogger();
-    start_stop_logger_srv_ =
-        nh_.advertiseService("start_stop_obs_logger",
-                             &ReceiverRos::startStopFileLoggerCallback, this);
   }
 }
 
@@ -73,7 +72,8 @@ bool ReceiverRos::startFileLogger() {
     nh_private.getParam("observation_filename", obs_filename);
     obs_filename = obs_prefix + obs_filename;
   }
-  ROS_INFO_STREAM("Logging observations to file: \n\"" << obs_dir << "/" << obs_filename << ".sbp\".");
+  ROS_INFO_STREAM("Logging observations to file: \n\""
+                  << obs_dir << "/" << obs_filename << ".sbp\".");
 
   // Initialize logger if not already done
   if (!obs_logger_) {
@@ -99,7 +99,6 @@ bool ReceiverRos::startFileLogger() {
 
 bool ReceiverRos::startStopFileLoggerCallback(
     std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res) {
-
   if (req.data && !obs_logger_->isLogging()) {
     // Start logger if not running
     if (startFileLogger()) {
