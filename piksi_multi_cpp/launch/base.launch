@@ -5,6 +5,9 @@
       <param name="use_gps_time" value="true" />
       <param name="autostart_base_sampling" value="false" />
       <param name="num_desired_fixes" value="2000" />
+      <param name="log_observations_to_file" value="false" />
+      <!--param name="log_dir" value="/tmp" /-->
+      <!--param name="observation_filename" value="piksi.obs" /-->
 
       <param name="base_station_receiver_0/udp_port"
              value="26078"/> <!-- Port on which UDP broadcasts are sent -->
