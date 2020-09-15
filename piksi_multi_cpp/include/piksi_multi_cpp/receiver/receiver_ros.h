@@ -57,6 +57,8 @@ class ReceiverRos : public SettingsIo {
   std::shared_ptr<FileObservationLogger> obs_logger_;
 
  private:
+   void initObsLogger();
+
   // Relaying all SBP messages. Common for all receivers.
   std::vector<SBPCallbackHandler::Ptr> sbp_relays_;
   // Relaying all ROS messages. Common for all receivers.

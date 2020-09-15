@@ -49,6 +49,17 @@ bool ReceiverRos::init() {
   return true;
 }
 
+void ReceiverRos::initObsLogger() {
+  obs_logger_ = std::make_shared<FileObservationLogger>();
+  // Create ephemeris callbacks and add listeners to logger
+  eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh_, state_);
+  // Add logger as listener to callbacks
+  obs_cbs_->addObservationCallbackListener(
+      CBtoRawObsConverter::createFor(obs_logger_, sbp_sender_id_));
+  eph_cbs_->addObservationCallbackListener(
+      CBtoRawObsConverter::createFor(obs_logger_, sbp_sender_id_));
+}
+
 bool ReceiverRos::startFileLogger() {
   // Per default observations are stored in .ros with current date & time
   // prefixed with "<receiver_type>_" so that observations are stored in
@@ -77,14 +88,7 @@ bool ReceiverRos::startFileLogger() {
 
   // Initialize logger if not already done
   if (!obs_logger_) {
-    obs_logger_ = std::make_shared<FileObservationLogger>();
-    // Create ephemeris callbacks and add listeners to logger
-    eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh_, state_);
-    // Add logger as listener to callbacks
-    obs_cbs_->addObservationCallbackListener(
-        CBtoRawObsConverter::createFor(obs_logger_, sbp_sender_id_));
-    eph_cbs_->addObservationCallbackListener(
-        CBtoRawObsConverter::createFor(obs_logger_, sbp_sender_id_));
+    initObsLogger();
   }
 
   // start logging
@@ -99,6 +103,11 @@ bool ReceiverRos::startFileLogger() {
 
 bool ReceiverRos::startStopFileLoggerCallback(
     std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res) {
+  // Initialize logger if not already done
+  if (!obs_logger_) {
+    initObsLogger();
+  }
+
   if (req.data && !obs_logger_->isLogging()) {
     // Start logger if not running
     if (startFileLogger()) {
