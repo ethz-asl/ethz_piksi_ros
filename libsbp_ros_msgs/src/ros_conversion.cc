@@ -101,4 +101,12 @@ Eigen::Matrix3d getRotationEcefToEnu(const double lat_deg,
   return R_ENU_ECEF;
 }
 
+Eigen::Matrix3d getRotationEcefToNed(const double lat_deg,
+                                     const double lon_deg) {
+  auto R_ENU_ECEF = getRotationEcefToEnu(lat_deg, lon_deg);
+  return (Eigen::Matrix3d() << R_ENU_ECEF.row(1), R_ENU_ECEF.row(0),
+          -R_ENU_ECEF.row(2))
+      .finished();
+}
+
 }  // namespace libsbp_ros_msgs
