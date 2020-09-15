@@ -7,7 +7,7 @@
       <param name="num_desired_fixes" value="2000" />
       <param name="log_observations_to_file" value="false" />
       <!--param name="log_dir" value="/tmp" /-->
-      <!--param name="observation_filename" value="piksi.obs" /-->
+      <!--param name="observation_filename" value="raw_observations" /-->
 
       <param name="base_station_receiver_0/udp_port"
              value="26078"/> <!-- Port on which UDP broadcasts are sent -->
