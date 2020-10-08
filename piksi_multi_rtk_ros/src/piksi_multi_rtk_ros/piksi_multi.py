@@ -1564,8 +1564,9 @@ class PiksiMulti:
         gyro_range = 2000 / (2**gyro_conf) # 125 to 2000 dps
         self.gyro_scale = gyro_range * PiksiMulti.kGyroPrescale
 
-        self.has_imu_scale = True
-        rospy.loginfo_once("Received IMU scale.")
+        if not self.has_imu_scale:
+            rospy.loginfo("Received IMU scale.")
+        self.has_imu_scale = True  
 
     def cb_sbp_mag_raw(self, msg_raw, **metadata):
         msg = MsgMagRaw(msg_raw)
