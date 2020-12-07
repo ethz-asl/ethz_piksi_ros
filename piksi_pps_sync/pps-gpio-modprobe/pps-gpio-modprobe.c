@@ -93,8 +93,7 @@ static int pps_gpio_add(void) {
   irq_flags = IRQF_TRIGGER_RISING | IRQF_EARLY_RESUME | IRQF_NOBALANCING |
               IRQF_NO_THREAD;
   ret = request_threaded_irq(in_data.irq, pps_gpio_irq_handler, NULL,
-                             get_irqf_trigger_flags(), in_data.info.name,
-                             &in_data);
+                             irq_flags, in_data.info.name, &in_data);
   if (ret) {
     pr_err("Failed to register aquire IRQ %d\n", in_data.irq);
     pps_unregister_source(in_data.pps);
