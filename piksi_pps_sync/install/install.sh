@@ -36,6 +36,7 @@ cd ..
 sudo apt install chrony -y
 sudo systemctl daemon-reload
 sudo systemctl enable chrony.service
+sudo systemctl disable systemd-timesyncd
 
 echo "Do you wish to append a new PPS refclock to /etc/chrony/chrony.conf? [y or Y to accept]"
 read append_chrony_conf

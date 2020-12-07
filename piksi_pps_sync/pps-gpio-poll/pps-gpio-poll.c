@@ -34,7 +34,7 @@ MODULE_PARM_DESC(gpio, "PPS GPIO");
 
 static int pulse_width = 2;
 module_param(pulse_width, int, S_IRUSR);
-MODULE_PARM_DESC(gpio, "PPS pulse width [ms]");
+MODULE_PARM_DESC(pulse_width, "PPS pulse width [ms]");
 
 static int pps_gpio_add(void) {
   int i, ret;
