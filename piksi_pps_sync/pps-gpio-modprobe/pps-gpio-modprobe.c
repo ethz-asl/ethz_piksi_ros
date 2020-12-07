@@ -44,13 +44,10 @@ static irqreturn_t pps_gpio_irq_handler(int irq, void *data) {
   return IRQ_HANDLED;
 }
 
-static unsigned long get_irqf_trigger_flags(void) {
-  return IRQF_TRIGGER_RISING;
-}
-
 static int pps_gpio_add(void) {
   int pps_default_params;
   int ret;
+  int irq_flags;
 
   /* Copy user params. */
   in_data.gpio = gpio;
@@ -93,6 +90,8 @@ static int pps_gpio_add(void) {
   }
 
   /* Register IRQ interrupt handler */
+  irq_flags = IRQF_TRIGGER_RISING | IRQF_EARLY_RESUME | IRQF_NOBALANCING |
+              IRQF_NO_THREAD;
   ret = request_threaded_irq(in_data.irq, pps_gpio_irq_handler, NULL,
                              get_irqf_trigger_flags(), in_data.info.name,
                              &in_data);
@@ -103,7 +102,8 @@ static int pps_gpio_add(void) {
     return -EINVAL;
   }
 
-  pr_info("Registered GPIO %d as PPS source with IRQ %d\n", in_data.gpio, in_data.irq);
+  pr_info("Registered GPIO %d as PPS source with IRQ %d\n", in_data.gpio,
+          in_data.irq);
   return 0;
 }
 
