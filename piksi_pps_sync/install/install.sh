@@ -45,7 +45,7 @@ if [[ $append_chrony_conf == "Y" || $append_chrony_conf == "y" ]]; then
 
 # GPS + PPS
 refclock PPS /dev/pps0 lock NMEA
-refclock SHM 0 delay 0.2 refid NMEA
+refclock SHM 0 offset 0.2 refid NMEA
 END"
 fi
 
