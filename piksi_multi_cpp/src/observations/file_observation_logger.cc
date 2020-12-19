@@ -4,7 +4,6 @@ namespace piksi_multi_cpp {
 bool FileObservationLogger::open(const std::string& filename) {
   if (log_file_ != nullptr) return false;  // can't open if another one is open.
 
-  // If filename already exist do not overwrite but append next free number to filename
   int file_number = 0;
   std::string unique_filename = filename + ".sbp";
   while ((log_file_ = fopen(unique_filename.c_str(), "r"))) {

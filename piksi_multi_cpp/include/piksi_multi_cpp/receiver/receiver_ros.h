@@ -27,8 +27,15 @@ class ReceiverRos : public SettingsIo {
   // set up user ID
   bool init() override;
 
-  // Set up File Logger
+  /**
+   * Set up File Logger.
+   * Per default observations are stored in .ros with current date & time
+   * prefixed with "<receiver_type>_", therefore multiple receivers store
+   * observations into different files.
+   */
   bool startFileLogger();
+
+  // ROS service to start/stop logger
   bool startStopFileLoggerCallback(std_srvs::SetBool::Request& req,
                                    std_srvs::SetBool::Response& res);
 
@@ -57,7 +64,7 @@ class ReceiverRos : public SettingsIo {
   std::shared_ptr<FileObservationLogger> obs_logger_;
 
  private:
-   void initObsLogger();
+  void initObsLogger();
 
   // Relaying all SBP messages. Common for all receivers.
   std::vector<SBPCallbackHandler::Ptr> sbp_relays_;

@@ -16,8 +16,6 @@
         <param name="udp_observation_port"
                value="26078"/> <!-- Port on which UDP broadcasts are received -->
 
-        <param name="log_observations_to_file" value="true" />
-
       	<!-- Autoset ENU origin to startup position. Otherwise it waits for base station position. -->
       	<param name="set_enu_origin_from_current_pos" value="false" />
     </node>

@@ -7,7 +7,7 @@
 namespace piksi_multi_cpp {
 
 /*
- * Subscribes to all 4 observation type callbacks simultaneously using
+ * Subscribes to all 3 observation type callbacks simultaneously using
  * LambdaCallbackHandlers and redirects these messages to all registered
  * listeners.
  *

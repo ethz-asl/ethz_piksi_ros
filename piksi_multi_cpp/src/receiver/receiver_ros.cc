@@ -61,9 +61,6 @@ void ReceiverRos::initObsLogger() {
 }
 
 bool ReceiverRos::startFileLogger() {
-  // Per default observations are stored in .ros with current date & time
-  // prefixed with "<receiver_type>_" so that observations are stored in
-  // different files if multiple receivers connected
   ros::NodeHandle nh_private("~");
   auto obs_dir = nh_private.param<std::string>("log_dir", ".");
   std::string obs_filename;
