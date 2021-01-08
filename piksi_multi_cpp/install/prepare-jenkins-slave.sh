@@ -6,9 +6,6 @@ echo "ROS version: ${ROS_VERSION}"
 # Build dependencies.
 sudo apt-get install -y python-wstool python-catkin-tools
 
-cd ~/catkin_ws/
-catkin config --merge-devel
-
 # Package dependencies.
 echo "Installing libsbp_ros_msgs dependencies."
 sudo apt install -y python-pip
@@ -35,3 +32,6 @@ sudo apt install ros-${ROS_VERSION}-rosserial-server -y
 
 echo "Installing glog_catkin dependencies."
 sudo apt install autoconf -y
+
+echo "Installing piksi_multi_interface dependencies."
+sudo apt install ros-${ROS_VERSION}-rosserial-arduino -y
