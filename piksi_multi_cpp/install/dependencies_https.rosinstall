@@ -3,4 +3,5 @@
 - git: {local-name: geodetic_utils, uri: 'https://github.com/ethz-asl/geodetic_utils.git'}
 - git: {local-name: eigen_catkin, uri: 'https://github.com/ethz-asl/eigen_catkin.git'}
 - git: {local-name: eigen_checks, uri: 'https://github.com/ethz-asl/eigen_checks.git'}
+- git: {local-name: ethz_piksi_ros, uri: 'https://github.com/ethz-asl/ethz_piksi_ros.git'}
 - git: {local-name: glog_catkin, uri: 'https://github.com/ethz-asl/glog_catkin.git'}
