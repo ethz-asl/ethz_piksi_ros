@@ -4,11 +4,11 @@ ROS_VERSION=`rosversion -d`
 echo "ROS version: ${ROS_VERSION}"
 
 # Build dependencies.
-sudo apt-get install -y python-wstool python-catkin-tools
+sudo apt install -y python-wstool python-catkin-tools
 
 # Package dependencies.
 echo "Installing libsbp_ros_msgs dependencies."
-sudo apt install -y python-pip
+sudo apt install -y python-pip libeigen3-dev libgoogle-glog
 pip install jinja2
 pip install setuptools
 pip install voluptuous

@@ -7,7 +7,7 @@ set(CMAKE_BUILD_TYPE Release)
 add_definitions(-DBOOST_DATE_TIME_POSIX_TIME_STD_CONFIG)
 
 find_package(catkin_simple REQUIRED)
-find_package (Eigen3 REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 ###################
 ## AUTOGENERATION #

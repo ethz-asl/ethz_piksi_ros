@@ -1,17 +1,14 @@
+#include <limits>
 #include <random>
 
-#include <eigen-checks/entrypoint.h>
-#include <eigen-checks/gtest.h>
-#include <glog/logging.h>
 #include <gtest/gtest.h>
-
-UNITTEST_ENTRYPOINT
 
 #include "libsbp_ros_msgs/ros_conversion.h"
 
 using namespace libsbp_ros_msgs;
 
 const int kSeed = 123456;
+const double kRes = 1e-9;
 
 std::pair<double, double> createRandomWgs84(std::default_random_engine* re) {
   const double kLatMin = -90.0;
@@ -36,10 +33,10 @@ TEST(RosConversionTest, RandomEcefEnuConversion) {
     auto R_ENU_ECEF = getRotationEcefToEnu(lat_lon.first, lat_lon.second);
     auto R_NED_ECEF = getRotationEcefToNed(lat_lon.first, lat_lon.second);
     // Orthonormal.
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(Eigen::Matrix3d::Identity(),
-                                          R_ENU_ECEF * R_ENU_ECEF.transpose()));
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(Eigen::Matrix3d::Identity(),
-                                          R_NED_ECEF * R_NED_ECEF.transpose()));
+    EXPECT_TRUE(Eigen::Matrix3d::Identity().isApprox(
+        R_ENU_ECEF * R_ENU_ECEF.transpose(), kRes));
+    EXPECT_TRUE(Eigen::Matrix3d::Identity().isApprox(
+        R_NED_ECEF * R_NED_ECEF.transpose(), kRes));
 
     Eigen::Vector3d ENU_v_E = Eigen::Vector3d::UnitX();
     Eigen::Vector3d ENU_v_N = Eigen::Vector3d::UnitY();
@@ -49,16 +46,16 @@ TEST(RosConversionTest, RandomEcefEnuConversion) {
     Eigen::Vector3d NED_v_U = -Eigen::Vector3d::UnitZ();
 
     auto R_ENU_NED = R_ENU_ECEF * R_NED_ECEF.transpose();
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(R_ENU_NED * NED_v_E, ENU_v_E));
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(R_ENU_NED * NED_v_N, ENU_v_N));
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(R_ENU_NED * NED_v_U, ENU_v_U));
+    EXPECT_TRUE((R_ENU_NED * NED_v_E).isApprox(ENU_v_E, kRes));
+    EXPECT_TRUE((R_ENU_NED * NED_v_N).isApprox(ENU_v_N, kRes));
+    EXPECT_TRUE((R_ENU_NED * NED_v_U).isApprox(ENU_v_U, kRes));
 
     auto R_NED_ENU = R_NED_ECEF * R_ENU_ECEF.transpose();
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(R_NED_ENU * ENU_v_E, NED_v_E));
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(R_NED_ENU * ENU_v_N, NED_v_N));
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(R_NED_ENU * ENU_v_U, NED_v_U));
+    EXPECT_TRUE((R_NED_ENU * ENU_v_E).isApprox(NED_v_E, kRes));
+    EXPECT_TRUE((R_NED_ENU * ENU_v_N).isApprox(NED_v_N, kRes));
+    EXPECT_TRUE((R_NED_ENU * ENU_v_U).isApprox(NED_v_U, kRes));
 
-    EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(R_ENU_NED, R_NED_ENU.transpose()));
+    EXPECT_TRUE(R_ENU_NED.isApprox(R_NED_ENU.transpose(), kRes));
   }
 }
 
@@ -73,7 +70,7 @@ TEST(RosConversionTest, GreenichEcefToEnuConversion) {
   // Expected:
   Eigen::Matrix<double, 3, 1> ENU_e_ECEF_x_EXP = Eigen::Vector3d::UnitZ();
 
-  EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(ENU_e_ECEF_x, ENU_e_ECEF_x_EXP));
+  EXPECT_TRUE(ENU_e_ECEF_x.isApprox(ENU_e_ECEF_x_EXP, kRes));
 
   // y-axis ECEF points in east direction of ENU at Greenwich.
   // ECEF unit vector in y-direction.
@@ -83,7 +80,7 @@ TEST(RosConversionTest, GreenichEcefToEnuConversion) {
   // Expected:
   Eigen::Matrix<double, 3, 1> ENU_e_ECEF_y_EXP = Eigen::Vector3d::UnitX();
 
-  EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(ENU_e_ECEF_y, ENU_e_ECEF_y_EXP));
+  EXPECT_TRUE(ENU_e_ECEF_y.isApprox(ENU_e_ECEF_y_EXP, kRes));
 
   // z-axis ECEF points in north direction of ENU at Greenwich.
   // ECEF unit vector in z-direction.
@@ -93,5 +90,10 @@ TEST(RosConversionTest, GreenichEcefToEnuConversion) {
   // Expected:
   Eigen::Matrix<double, 3, 1> ENU_e_ECEF_z_EXP = Eigen::Vector3d::UnitY();
 
-  EXPECT_TRUE(EIGEN_MATRIX_EQUAL_DOUBLE(ENU_e_ECEF_z, ENU_e_ECEF_z_EXP));
+  EXPECT_TRUE(ENU_e_ECEF_z.isApprox(ENU_e_ECEF_z_EXP, kRes));
+}
+
+int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
