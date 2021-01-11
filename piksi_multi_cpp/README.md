@@ -13,7 +13,9 @@ catkin config --merge-devel
 Download this package.
 ```
 cd ~/catkin_ws/src
-git clone git@github.com:ethz-asl/ethz_piksi_ros.git
+wstool init
+wstool set --git ethz_piksi_ros git@github.com:ethz-asl/ethz_piksi_ros.git
+wstool update
 ```
 
 Install all [PPA dependencies](install/prepare-jenkins-slave.sh).
