@@ -1,11 +1,7 @@
 # Installation
-Install all [PPA dependencies](install/prepare-jenkins-slave.sh).
-```
-./ethz_piksi_ros/piksi_multi_cpp/install/prepare-jenkins-slave.sh
-```
-
 Create a **merged** catkin workspace.
 ```
+sudo apt install -y python-wstool python-catkin-tools
 cd ~
 mkdir -p catkin_ws/src
 cd catkin_ws
@@ -20,6 +16,11 @@ cd ~/catkin_ws/src
 wstool init
 wstool set --git ethz_piksi_ros git@github.com:ethz-asl/ethz_piksi_ros.git
 wstool update
+```
+
+Install all [PPA dependencies](install/prepare-jenkins-slave.sh).
+```
+./ethz_piksi_ros/piksi_multi_cpp/install/prepare-jenkins-slave.sh
 ```
 
 Next download all individual ROS package dependencies.
