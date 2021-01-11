@@ -20,6 +20,7 @@ wstool update
 
 Install all [PPA dependencies](install/prepare-jenkins-slave.sh).
 ```
+source /opt/ros/melodic/setup.bash
 ./ethz_piksi_ros/piksi_multi_cpp/install/prepare-jenkins-slave.sh
 ```
 
