@@ -27,7 +27,6 @@ source /opt/ros/melodic/setup.bash
 Next download all individual ROS package dependencies.
 **Note**: If you have not setup [SSH keys in GitHub](https://help.github.com/en/enterprise/2.16/user/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) use [dependencies_https.rosinstall](install/dependencies_https.rosinstall).
 ```
-wstool init
 wstool merge ethz_piksi_ros/piksi_multi_cpp/install/dependencies.rosinstall
 wstool update
 ```
