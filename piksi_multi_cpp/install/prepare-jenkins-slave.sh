@@ -8,7 +8,7 @@ sudo apt install -y python-wstool python-catkin-tools
 
 # Package dependencies.
 echo "Installing libsbp_ros_msgs dependencies."
-sudo apt install -y python-pip libeigen3-dev libgoogle-glog
+sudo apt install -y python-pip libeigen3-dev libgoogle-glog-dev libgtest-dev
 pip install jinja2
 pip install setuptools
 pip install voluptuous
