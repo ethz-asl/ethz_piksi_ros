@@ -13,16 +13,18 @@ find_package(Eigen3 REQUIRED)
 ## AUTOGENERATION #
 ###################
 # REQUIRES CATKIN MERGE DEVEL SPACE
-catkin_python_setup() # Must be called before generate_messages (inside catkin_simple) and must be called before running rosrun libsbp_ros_msgs generator
+# Manually set Python path in case workspace is not sourced, yet.
+set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}:${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}")
 execute_process(
   COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/msg
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/include/conversion.h
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/include/sbp_relays.h
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/src/conversion.cc
-  COMMAND rosrun libsbp_ros_msgs generator --verbose
+  COMMAND python2.7 ${CMAKE_CURRENT_SOURCE_DIR}/src/${PROJECT_NAME}/generator ${CATKIN_DEVEL_PREFIX} ${CMAKE_CURRENT_SOURCE_DIR} --verbose
 )
 
 catkin_simple(ALL_DEPS_REQUIRED)
+
 #############
 # LIBRARIES #
 #############
@@ -40,7 +42,5 @@ catkin_add_gtest(test_ros_conversion
 )
 target_link_libraries(test_ros_conversion ${PROJECT_NAME})
 
-catkin_install_python(PROGRAMS bin/generator
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 cs_install()
 cs_export()

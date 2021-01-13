@@ -2,15 +2,15 @@
 
 # Motivated by https://github.com/swift-nav/libsbp/blob/master/generator/sbpg/generator.py
 
-import libsbp_ros_msgs.ros_renderer as renderer
+import ros_renderer as renderer
+
 import sbpg.specs.yaml2 as yaml
 import os
-import rospkg
 import argparse
 import pprint
 
-def create_directory(dir):
-    dir = os.path.abspath(r.get_path('libsbp_ros_msgs') + dir)
+def create_directory(libsbp_ros_msgs_dir, dir):
+    dir = os.path.abspath(libsbp_ros_msgs_dir + dir)
     try:
         os.makedirs(dir)
     except OSError:
@@ -20,6 +20,12 @@ def create_directory(dir):
 
 def get_args():
     parser = argparse.ArgumentParser(description='ROS SBP message generator.')
+    parser.add_argument('catkin_devel_prefix',
+                        nargs=1,
+                        help='The location of the devel space.')
+    parser.add_argument('libsbp_ros_msgs_dir',
+                        nargs=1,
+                        help='Pass the base path of the source.')
     parser.add_argument('-v',
                         '--verbose',
                         action="store_true",
@@ -43,16 +49,16 @@ def is_empty(definition):
 if __name__ == '__main__':
     # Parse input arguments.
     args = get_args().parse_args()
+    renderer.setup_environment(args.libsbp_ros_msgs_dir[0])
 
     # Get the SBP specs.
-    r = rospkg.RosPack()
-    input_dir = os.path.abspath(r.get_path('libsbp_catkin') + '/../../build/libsbp_catkin/libsbp-prefix/src/libsbp/spec/yaml/swiftnav/sbp/')
+    input_dir = os.path.abspath(args.catkin_devel_prefix[0] + '/../build/libsbp_catkin/libsbp-prefix/src/libsbp/spec/yaml/swiftnav/sbp/')
     file_index = yaml.resolve_deps(*yaml.get_files(input_dir))
 
     # Output directories.
-    msg_dir = create_directory('/msg')
-    include_dir = create_directory('/include/libsbp_ros_msgs')
-    src_dir = create_directory('/src')
+    msg_dir = create_directory(args.libsbp_ros_msgs_dir[0], '/msg')
+    include_dir = create_directory(args.libsbp_ros_msgs_dir[0], '/include/libsbp_ros_msgs')
+    src_dir = create_directory(args.libsbp_ros_msgs_dir[0], '/src')
 
     if args.verbose:
         print("Reading files...")

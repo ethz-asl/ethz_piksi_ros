@@ -1,20 +1,8 @@
 #!/usr/bin/env python
 
-import libsbp_ros_msgs
 import jinja2
-import rospkg
 import copy
 import re
-
-R = rospkg.RosPack()
-JENV = jinja2.Environment(block_start_string = '((*',
-                          block_end_string = '*))',
-                          variable_start_string = '(((',
-                          variable_end_string = ')))',
-                          comment_start_string = '((=',
-                          comment_end_string = '=))',
-                          loader=jinja2.FileSystemLoader(searchpath=R.get_path('libsbp_ros_msgs') + '/resources'),
-                          )
 
 CALLBACK_TEMPLATE_NAME = 'callback_template.j2'
 CONVERSION_TEMPLATE_HEADER_NAME = 'conversion_template_header.j2'
@@ -157,19 +145,6 @@ def to_msg_definition(identifier):
     """
     return "SBP_" + identifier
 
-JENV.filters['to_title'] = to_title
-JENV.filters['to_comment'] = to_comment
-JENV.filters['to_unit'] = to_unit
-JENV.filters['to_type'] = to_type
-JENV.filters['to_identifier'] = to_identifier
-JENV.filters['to_hex'] = to_hex
-JENV.filters['to_sbp_file_name'] = to_sbp_file_name
-JENV.filters['to_sbp_struct'] = to_sbp_struct
-JENV.filters['to_topic'] = to_topic
-JENV.filters['is_default_type'] = is_default_type
-JENV.filters['is_default_array_type'] = is_default_array_type
-JENV.filters['to_msg_definition'] = to_msg_definition
-
 def render_msgs(output_dir, all_specs, verbose):
     """
     Renders a ROS message for each spec definition.
@@ -226,3 +201,30 @@ def render_cb_export(output_dir, all_specs, verbose):
         f.write(ros_template.render(
             all_specs=all_specs
         ))
+
+
+
+def setup_environment(source_dir):
+    print("Setting up JENV with source_dir: %s" % (source_dir))
+    global JENV
+    JENV = jinja2.Environment(block_start_string = '((*',
+                              block_end_string = '*))',
+                              variable_start_string = '(((',
+                              variable_end_string = ')))',
+                              comment_start_string = '((=',
+                              comment_end_string = '=))',
+                              loader=jinja2.FileSystemLoader(searchpath=source_dir + '/resources'),
+                              )
+
+    JENV.filters['to_title'] = to_title
+    JENV.filters['to_comment'] = to_comment
+    JENV.filters['to_unit'] = to_unit
+    JENV.filters['to_type'] = to_type
+    JENV.filters['to_identifier'] = to_identifier
+    JENV.filters['to_hex'] = to_hex
+    JENV.filters['to_sbp_file_name'] = to_sbp_file_name
+    JENV.filters['to_sbp_struct'] = to_sbp_struct
+    JENV.filters['to_topic'] = to_topic
+    JENV.filters['is_default_type'] = is_default_type
+    JENV.filters['is_default_array_type'] = is_default_array_type
+    JENV.filters['to_msg_definition'] = to_msg_definition
