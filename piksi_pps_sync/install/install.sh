@@ -1,14 +1,26 @@
 #!/bin/bash
-echo "Please enter the PPS GPIO pin number, e.g., 250..."
-read GPIO_PIN
+if [ "$1" == "" ]; then
+    echo "Please enter the PPS GPIO pin number, e.g., 250..."
+    read GPIO_PIN
+else
+  GPIO_PIN="$1"
+fi
 echo "PPS is triggered on pin ${GPIO_PIN}."
 
-echo "Please enter the NMEA UART device, e.g., ttyS5..."
-read DEVICE
+if [ "$2" == "" ]; then
+    echo "Please enter the NMEA UART device, e.g., ttyS5..."
+    read DEVICE
+else
+  DEVICE="$2"
+fi
 echo "Using serial port /dev/${DEVICE}."
 
-echo "Please enter the serial port baud rate, e.g., 115200..."
-read BAUD
+if [ "$3" == "" ]; then
+    echo "Please enter the serial port baud rate, e.g., 115200..."
+    read BAUD
+else
+  BAUD="$3"
+fi
 echo "Setting baud rate to ${BAUD}."
 
 # Install PPS
