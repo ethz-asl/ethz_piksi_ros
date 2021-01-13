@@ -14,7 +14,7 @@ find_package(Eigen3 REQUIRED)
 ###################
 # REQUIRES CATKIN MERGE DEVEL SPACE
 # Manually set Python path in case workspace is not sourced, yet.
-set(ENV{PYTHONPATH} "${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}")
+set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}:${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}")
 execute_process(
   COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/msg
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/include/conversion.h
