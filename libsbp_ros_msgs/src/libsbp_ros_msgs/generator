@@ -2,7 +2,12 @@
 
 # Motivated by https://github.com/swift-nav/libsbp/blob/master/generator/sbpg/generator.py
 
-import libsbp_ros_msgs.ros_renderer as renderer
+try:
+    import libsbp_ros_msgs.ros_renderer as renderer
+except ImportError:
+    import ros_renderer as renderer
+    #from ..src.libsbp_ros_msgs import ros_renderer as renderer
+
 import sbpg.specs.yaml2 as yaml
 import os
 import rospkg

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import libsbp_ros_msgs
 import jinja2
 import rospkg
 import copy
