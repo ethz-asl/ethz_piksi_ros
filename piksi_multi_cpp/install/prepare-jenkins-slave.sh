@@ -9,6 +9,7 @@ sudo apt install -y python-wstool python-catkin-tools
 # Package dependencies.
 echo "Installing libsbp_ros_msgs dependencies."
 sudo apt install -y python-pip libeigen3-dev libgoogle-glog-dev libgtest-dev
+sudo apt install -y ros-${ROS_VERSION}-genmsg
 pip install jinja2
 pip install setuptools
 pip install voluptuous
@@ -34,4 +35,5 @@ echo "Installing glog_catkin dependencies."
 sudo apt install autoconf -y
 
 echo "Installing piksi_multi_interface dependencies."
+sudo apt install gpiod libgpiod-dev -y
 sudo apt install ros-${ROS_VERSION}-rosserial-arduino -y
