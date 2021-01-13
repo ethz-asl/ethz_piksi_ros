@@ -16,8 +16,6 @@
   <buildtool_depend>catkin_simple</buildtool_depend>
   <buildtool_depend>libsbp_catkin</buildtool_depend>
 
-  <depend>rospack</depend>
-
   <depend>message_generation</depend>
   <depend>message_runtime</depend>
 </package>
