@@ -28,14 +28,22 @@ bool RosMagRelay::convertSbpToRos(const msg_mag_raw_t& sbp_msg,
   mag->header.stamp = ros_time_handler_->lookupTime(sbp_msg.tow, sbp_msg.tow_f);
   mag->header.frame_id = nh_.getUnresolvedNamespace() + "_mag";
 
-  const double kSensorSensitivity = 1.0 / std::numeric_limits<int16_t>::max();
-  const double kFromMicro = 1.0e-6;
-  const double kMagScaleXY = 1300.0 * kFromMicro * kSensorSensitivity;
-  const double kMagScaleZ = 2500.0 * kFromMicro * kSensorSensitivity;
+  const double kSensorSensitivityDenom = std::numeric_limits<int16_t>::max();
+  const double kFromMicro = 1.0e-6; // sensor output micro teslas
+  const double kMagScaleXY = 1300.0 * kFromMicro;
+  const double kMagScaleZ = 2500.0 * kFromMicro;
 
-  mag->magnetic_field.x = sbp_msg.mag_x * kMagScaleXY;
-  mag->magnetic_field.y = sbp_msg.mag_y * kMagScaleXY;
-  mag->magnetic_field.z = sbp_msg.mag_z * kMagScaleZ;
+  // first scale with sensor sensitivity, to avoid numeric instabilities
+  // like this, the first term (mag / sensor sensitivity) has a magnitude of
+  // about 1 the second term (magscale) is on the order of (1e-6*1e3) = 1.0e-3,
+  // which is no problem. Otherwise, an intermediate of 1e-11 could have
+  // appeared (sensorsensitivity * kFromMicro)
+  mag->magnetic_field.x =
+      (sbp_msg.mag_x / kSensorSensitivityDenom) * kMagScaleXY;
+  mag->magnetic_field.y =
+      (sbp_msg.mag_y / kSensorSensitivityDenom) * kMagScaleXY;
+  mag->magnetic_field.z =
+      (sbp_msg.mag_z / kSensorSensitivityDenom) * kMagScaleZ;
   mag->magnetic_field_covariance[0] = 0.0;  // Validate.
 
   return true;
