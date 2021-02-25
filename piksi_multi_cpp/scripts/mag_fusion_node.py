@@ -8,6 +8,24 @@ import numpy as np
 from tf import transformations
 from sensor_msgs.msg import MagneticField
 
+# Node that helps with GPS-MAG fusion
+#   - Intermediate solution to be tested
+#   - Subscribes to:
+#       - attitude [type odometry]: Used to obtain roll and pitch to compensate mag
+#       - magnetometer [type MagneticField]: Magnetometer data
+#       - gps_in [type Odometry]: GPS position + covariance.
+#
+#   - Publishes
+#       - gps_mag_out [type Oodmetry]: Position + Position covariance from GPS,
+#                                       Orientation: Heading from Magnetometer
+#
+#   - Configurations:
+#       - cov_orientation: Covariance of orientation estimate from Mag (forwarded to output)
+#       - mag_orientation: Orientation of Mag measurement w.r.t. body
+#       - mag_calib_aniv:  A_inverse part of magnetometer calibration
+#       - mag_calib_b:      B part of magnetometer claibration
+#
+#       See calib_mag script for obtaining A_inverse and B.
 
 class MagGpsFusionNode:
 
@@ -106,6 +124,6 @@ class MagGpsFusionNode:
 
 
 if __name__ == "__main__":
-    rospy.init_node('node_name')
+    rospy.init_node('mag_fusion_node')
     node = MagGpsFusionNode()
     rospy.spin()
