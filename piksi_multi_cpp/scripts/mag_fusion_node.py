@@ -4,9 +4,11 @@ import rospy
 import math
 import copy
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseWithCovarianceStamped
 import numpy as np
 from tf import transformations
 from sensor_msgs.msg import MagneticField
+
 
 # Node that helps with GPS-MAG fusion
 #   - Intermediate solution to be tested
@@ -30,32 +32,35 @@ from sensor_msgs.msg import MagneticField
 class MagGpsFusionNode:
 
     def __init__(self):
+
         self._sub_att = rospy.Subscriber("attitude", Odometry, self.attitude_callback)
-        self._sub_mag = rospy.Subscriber("magnetometer", MagneticField, self.mag_callback)
-        self._sub_gps = rospy.Subscriber("gps_in", Odometry, self.gps_callback)
+        self._sub_mag = rospy.Subscriber("mag", MagneticField, self.mag_callback)
+        self._sub_gps = rospy.Subscriber("pose_enu_cov", PoseWithCovarianceStamped,
+                                         self.gps_callback)
 
         self._pub = rospy.Publisher('gps_mag_out', Odometry, queue_size=10)
 
-        self._cov_orientation = np.diag([1.0, 1.0, 1.0])
+        # Todo: Factor out configuration to yaml file or rosparams.
+        self._cov_orientation = np.diag([0.007607716, 0.007607716, 0.007607716])
 
-        self._mag_orientation = np.array([[0, 0, 1.0],
-                                          [-1.0, 0, 0],
-                                          [0, -1.0, 0]])
+        self._mag_orientation = np.eye(3)
 
-        self._mag_calib_Ainv = np.array([[0.79944026, 0.03089624, -0.03358498],
-                                         [0.03089624, 0.77518615, 0.02037754],
-                                         [-0.03358498, 0.02037754, 0.43746608]])
+        self._mag_calib_multiplier = 1E3
 
-        self._mag_calib_B = np.array([-2.88910909416,
-                                      -4.02414976191,
-                                      -4.84443808444])
+        self._mag_calib_Ainv = np.array([[5.38606762e+01, -7.14641776e-03, 1.71967955e+00],
+                                         [-7.14641776e-03, 5.17309889e+01, 4.99221738e+00],
+                                         [1.71967955e+00, 4.99221738e+00, 6.76031190e+01]])
 
-        self._q_odom = None
+        self._mag_calib_B = np.array([0.08355408,
+                                      - 0.04023363,
+                                      -0.04951364])
+
+        self._q_odom = np.array([0, 0, 0, 1.0])
         self._last_heading = None
         self._last_q_heading = None
 
     def rectify(self, mag_data):
-        mag_data *= 1E6  # we assume microteslas here
+        mag_data *= self._mag_calib_multiplier
         # undo distortion
         mag_data_rect = self._mag_calib_Ainv.dot(mag_data - self._mag_calib_B)
 
@@ -63,7 +68,8 @@ class MagGpsFusionNode:
         mag_data_rot = self._mag_orientation.dot(mag_data_rect)
         return mag_data_rot
 
-    # returns 2d field strength in plane
+        # returns 2d field strength in plane
+
     def compensate_roll_pitch(self, mag_data):
         rpy = transformations.euler_from_quaternion(self._q_odom)
         c_r = rpy[0]
@@ -84,7 +90,11 @@ class MagGpsFusionNode:
             rospy.logwarn("No MAG data processed. Check topic mappings")
             return
 
-        final_msg = copy.copy(gps_odom)
+        final_msg = Odometry()
+        final_msg.header.stamp = gps_odom.header.stamp
+        final_msg.header.frame_id = "enu"
+        final_msg.pose.pose.position = gps_odom.pose.pose.position
+        final_msg.pose.covariance = gps_odom.pose.covariance
         final_msg.pose.pose.orientation.x = self._last_q_heading[0]
         final_msg.pose.pose.orientation.y = self._last_q_heading[1]
         final_msg.pose.pose.orientation.z = self._last_q_heading[2]
@@ -94,6 +104,10 @@ class MagGpsFusionNode:
         full_cov = np.array(final_msg.pose.covariance).reshape([6, 6])
         full_cov[3:6, 3:6] = self._cov_orientation
         final_msg.pose.covariance = full_cov.flatten()
+
+        print(np.diag(full_cov))
+        print(full_cov[0:3, 0:3])
+        print(full_cov[3:6, 3:6])
 
         self._pub.publish(final_msg)
 
@@ -109,8 +123,8 @@ class MagGpsFusionNode:
         plane_data = self.compensate_roll_pitch(rect_data)
 
         # get heading and generate odometry message with that quaternion
-        heading = np.arctan2(plane_data[0], plane_data[1]) - math.pi
-        q_head = transformations.quaternion_from_euler(0, 0, -heading, 'rxyz')
+        heading = np.arctan2(rect_data[0], rect_data[1])
+        q_head = transformations.quaternion_from_euler(0, 0, heading, 'rxyz')
 
         self._last_heading = heading
         self._last_q_heading = q_head

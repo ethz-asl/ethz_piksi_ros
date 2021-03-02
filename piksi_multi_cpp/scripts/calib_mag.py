@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 # source: https://thepoorengineer.com/wp-content/uploads/2018/07/calibrateMag.txt
 # Reads a ros bag and outputs magnetometer calibration
 # Tip: Try to rotate magnetometer in all axes.
@@ -5,6 +7,7 @@
 import pandas as pd
 import numpy as np
 import rosbag
+import sys
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import linalg
@@ -86,17 +89,18 @@ def getMag(bag, topic):
 
 def main():
     # get data from rosbag
-    topic = ""      # set to topic with magnetometer data
-    bagfile = ""    # set to bagifle
+    topic = sys.argv[2]  # set to topic with magnetometer data
+    bagfile = sys.argv[1]  # set to bagifle
     bag = rosbag.Bag(bagfile, 'r')
-    df_mag = getMag(bag)
+    df_mag = getMag(bag, topic)
 
     # current scale is in teslas -> convert to microteslas for better
     #   numerical stability of calculation
-    magX = df_mag.values[:,0]*1E6
-    magY = df_mag.values[:,1]*1E6
-    magZ = df_mag.values[:,2]*1E6
+    magX = df_mag.values[:, 0]*1e3
+    magY = df_mag.values[:, 1]*1e3
+    magZ = df_mag.values[:, 2]*1e3
 
+    print(magX)
     fig1 = plt.figure(1)
     ax1 = fig1.add_subplot(111, projection='3d')
 
@@ -117,7 +121,12 @@ def main():
     Q, n, d = fitEllipsoid(magX, magY, magZ)
 
     Qinv = np.linalg.inv(Q)
+    print(Qinv)
     b = -np.dot(Qinv, n)
+
+    print(Q)
+    print(linalg.sqrtm(Q))
+
     Ainv = np.real(1.0 / np.sqrt(np.dot(n.T, np.dot(Qinv, n)) - d) * linalg.sqrtm(Q))
 
     print("A_inv: ")
@@ -159,7 +168,8 @@ def main():
     z = np.outer(np.ones(np.size(u)), np.cos(v))
     ax2.plot_wireframe(x, y, z, rstride=10, cstride=10, alpha=0.5)
     ax2.plot_surface(x, y, z, alpha=0.3, color='b')
-    #plt.show()
+    plt.show()
+
 
 if __name__ == '__main__':
     main()
