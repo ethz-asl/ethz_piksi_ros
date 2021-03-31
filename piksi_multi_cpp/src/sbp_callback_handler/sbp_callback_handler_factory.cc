@@ -10,6 +10,7 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_mag_relay.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_receiver_state.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.h"
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_time_ref_relay.h"
 
 namespace piksi_multi_cpp {
 
@@ -51,6 +52,8 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
   relays.push_back(SBPCallbackHandler::Ptr(new RosBasePosEcefRelay(nh, state)));
   relays.push_back(SBPCallbackHandler::Ptr(
       new RosBasePosLlhRelay(nh, state, geotf_handler)));
+  relays.push_back(
+      SBPCallbackHandler::Ptr(new RosTimeReferenceRelay(nh, state)));
 
   auto ros_receiver_state =
       std::make_shared<RosReceiverState>(nh, state, ros_time_handler);
