@@ -19,6 +19,7 @@ bool RosTimeReferenceRelay::convertSbpToRos(const msg_utc_time_t& sbp_msg,
   ROS_ASSERT(ros_msg);
 
   ros_msg->header.stamp = ros::Time::now();
+  ros_msg->header.frame_id = "UTC";
   ros_msg->time_ref = lrm::convertUtcTimeToRosTime(sbp_msg);
 
   switch (sbp_msg.flags & 0b111) {
