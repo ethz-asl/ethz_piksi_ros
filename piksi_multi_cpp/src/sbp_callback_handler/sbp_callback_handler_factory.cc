@@ -49,6 +49,8 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
   relays.push_back(
       SBPCallbackHandler::Ptr(new RosMagRelay(nh, state, ros_time_handler)));
   relays.push_back(SBPCallbackHandler::Ptr(new RosBasePosEcefRelay(nh, state)));
+  relays.push_back(SBPCallbackHandler::Ptr(
+      new RosBasePosLlhRelay(nh, state, geotf_handler)));
 
   auto ros_receiver_state =
       std::make_shared<RosReceiverState>(nh, state, ros_time_handler);
