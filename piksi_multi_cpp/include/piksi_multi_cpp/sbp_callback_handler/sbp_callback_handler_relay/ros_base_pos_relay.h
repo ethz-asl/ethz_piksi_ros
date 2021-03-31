@@ -13,8 +13,8 @@ class RosBasePosEcefRelay
     : public SBPCallbackHandlerRelay<msg_base_pos_ecef_t,
                                      geometry_msgs::PointStamped> {
  public:
-  inline RosBasePosEcefRelay(const ros::NodeHandle& nh,
-                             const std::shared_ptr<sbp_state_t>& state);
+  RosBasePosEcefRelay(const ros::NodeHandle& nh,
+                      const std::shared_ptr<sbp_state_t>& state);
 
  private:
   bool convertSbpToRos(const msg_base_pos_ecef_t& sbp_msg, const uint8_t len,

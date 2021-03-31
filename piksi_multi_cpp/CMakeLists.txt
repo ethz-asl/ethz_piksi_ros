@@ -28,6 +28,7 @@ cs_add_library(${PROJECT_NAME}
         src/receiver/receiver_ros.cc
         src/receiver/receiver.cc
         src/receiver/settings_io.cc
+        src/sbp_callback_handler/sbp_callback_handler_relay/ros_base_pos_relay.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_relays.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_imu_relay.cc
         src/sbp_callback_handler/sbp_callback_handler_relay/ros_enu_relays.cc

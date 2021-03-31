@@ -3,6 +3,7 @@
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h"
 
+#include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_base_pos_relay.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_enu_relays.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_ext_event_relay.h"
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_relay/ros_imu_relay.h"
@@ -47,6 +48,7 @@ SBPCallbackHandlerFactory::createAllRosMessageRelays(
       SBPCallbackHandler::Ptr(new RosImuRelay(nh, state, ros_time_handler)));
   relays.push_back(
       SBPCallbackHandler::Ptr(new RosMagRelay(nh, state, ros_time_handler)));
+  relays.push_back(SBPCallbackHandler::Ptr(new RosBasePosEcefRelay(nh, state)));
 
   auto ros_receiver_state =
       std::make_shared<RosReceiverState>(nh, state, ros_time_handler);
