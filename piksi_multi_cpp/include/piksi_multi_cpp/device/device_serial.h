@@ -8,6 +8,9 @@ namespace piksi_multi_cpp {
 
 class DeviceSerial : public Device {
  public:
+  /*
+   * Identifier is expected to be of type "<address>@<baud>"
+   */
   DeviceSerial(const Identifier& id);
 
   bool openImpl() override;
