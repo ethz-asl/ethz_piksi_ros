@@ -72,27 +72,24 @@ done
 
 # Convert from SBP to RINEX
 if $COMP_SOLUTION; then
-  # If SBP base file found then this will be used instead of swisspos observation files
-  if [[ -f "$OBSERVATION_DIR/base_$DATA_NAME.sbp" ]]; then
-    LOOK_FOR_SWISSPOS_FILES=false
-  else
-    LOOK_FOR_SWISSPOS_FILES=true
-  fi
-
   echo -e "${BLUE}\n=== Converting SBP Binaries to RINEX === \n ${NC}"
   for binaries in "$OBSERVATION_DIR"/*$DATA_NAME.sbp; do
     sbp2rinex $binaries -d $RNX_DIR
   done
 
+  echo -e "${MAGENTA}\nWould you like to use SwissPos files as reference? (If not an SBP file prefixed with 'base_' needs to be in directory) [Y/n] ${NC}"
+  read user_input
+  if [[ $user_input == "Y" || $user_input == "y" ]]; then
+    LOOK_FOR_SWISSPOS_FILES=true
+  else
+    LOOK_FOR_SWISSPOS_FILES=false
+  fi
+  
+  # Copy SwissPos to correct directory
   if $LOOK_FOR_SWISSPOS_FILES; then
-    if ls $OBSERVATION_DIR/*.20o &>/dev/null && ls $OBSERVATION_DIR/*.20n &>/dev/null; then
       echo -e "${MAGENTA}\nFound SWISSPOS observation files. Using these to compute PPK Solution.\n ${NC}"
-      cp $OBSERVATION_DIR/*.20o $RNX_DIR/base_$DATA_NAME.obs
-      cp $OBSERVATION_DIR/*.20n $RNX_DIR/base_$DATA_NAME.nav
-    else
-      echo -e "${RED}\nCould not find any base observation files. Aborting.\n ${NC}"
-      exit 1
-    fi
+      cp $OBSERVATION_DIR/*.2*o $RNX_DIR/base_$DATA_NAME.obs
+      cp $OBSERVATION_DIR/*.2*n $RNX_DIR/base_$DATA_NAME.nav
   fi
 
   echo -e "${BLUE}\n=== Creating PPK Solution === \n ${NC}"
