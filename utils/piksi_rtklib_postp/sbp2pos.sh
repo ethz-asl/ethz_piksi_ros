@@ -118,3 +118,10 @@ if [[ $user_input == "Y" || $user_input == "y" ]]; then
   ROSBAG=$OBSERVATION_DIR/$DATA_NAME.bag
   python pos2bag.py $ROSBAG $SOLUTION_DIR/$SOL_FILE_NAME.csv $SOLUTION_DIR
 fi
+
+echo -e "${MAGENTA}\nWould you like to compute the mean position of the base station? [Y/n] ${NC}"
+read user_input
+if [[ $user_input == "Y" || $user_input == "y" ]]; then
+  echo -e "${BLUE}\n=== Computing mean base position from values when in FIX mode === \n ${NC}"
+  python compute_base_mean_position.py $SOLUTION_DIR/$SOL_FILE_NAME.csv
+fi
