@@ -1,9 +1,0 @@
-<launch>
-  <arg name="config_type" /> <!-- Set to any "base", "rover", "ref", "att" or "survey" -->
-  <arg name="device_ids" default="usb://*"/> <!-- E.g. "usb://*;tcp://192.168.0.222:55555;serial:///dev/ttyS5@115200" -->
-
-  <node name="piksi_multi_config" pkg="piksi_multi_cpp" type="piksi_multi_config" output="screen">
-      <param name="device_ids" value="$(arg device_ids)" />
-      <param name="config_type" value="$(arg config_type)"/>
-  </node>
-</launch>

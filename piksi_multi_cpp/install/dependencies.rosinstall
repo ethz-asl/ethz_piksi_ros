@@ -1,4 +1,0 @@
-- git: {local-name: catkin_simple, uri: 'git@github.com:catkin/catkin_simple.git', version: 0e62848b12da76c8cc58a1add42b4f894d1ac21e}
-- git: {local-name: libsbp_catkin, uri: 'git@github.com:ethz-asl/libsbp_catkin.git', version: v2.7.4}
-- git: {local-name: geodetic_utils, uri: 'git@github.com:ethz-asl/geodetic_utils.git', version: d096a856d0443cfde521c25c5ed062d95f5334db}
-- git: {local-name: ethz_piksi_ros, uri: 'git@github.com:ethz-asl/ethz_piksi_ros.git'}

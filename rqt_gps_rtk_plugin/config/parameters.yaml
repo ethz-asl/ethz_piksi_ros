@@ -1,8 +1,0 @@
-# Parameters for the rqt_gps_rtk_plugin
-
-piksiReceiverStateTopic: "piksi/debug/receiver_state" #[-] piksi receiver state topic
-piksiBaselineNedTopic: "piksi/baseline_ned" #[-] piksi baseline (in NED frame) topic
-piksiWifiCorrectionsTopic: "piksi/debug/wifi_corrections" #[-] piksi wifi corrections topic
-piksiNavsatfixRtkFixTopic: "piksi/navsatfix_rtk_fix" #[-] piksi navsatfix rtk fix topic
-piksiTimeTopic: "piksi/utc_time" #[-] piksi (utc) time topic
-piksiAgeOfCorrectionsTopic: "piksi/age_of_corrections" #[-] piksi age of corrections topic
