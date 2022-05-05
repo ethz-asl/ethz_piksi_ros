@@ -92,6 +92,7 @@ bool DeviceSerial::openImpl() {
   sp_return result = sp_open(port_, SP_MODE_READ_WRITE);
   if (result != SP_OK) {
     ROS_ERROR("Cannot open port %s: %d", sp_get_port_name(port_), result);
+    ROS_ERROR_COND(result == SP_ERR_FAIL, "%s", sp_last_error_message());
     closeImpl();
     return false;
   }

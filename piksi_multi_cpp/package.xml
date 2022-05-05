@@ -22,4 +22,6 @@
   <depend>eigen_conversions</depend>
   <depend>roslib</depend>
   <depend>geotf</depend>
+
+  <depend>libserialport_catkin</depend>
 </package>
