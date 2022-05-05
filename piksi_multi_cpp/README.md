@@ -1,13 +1,13 @@
 # Installation
 Create a **merged** catkin workspace.
 ```
-sudo apt install -y python-wstool python-catkin-tools
+sudo apt install -y python3-wstool python3-catkin-tools
 cd ~
 mkdir -p catkin_ws/src
 cd catkin_ws
 catkin init
-catkin config --extend /opt/ros/melodic
 catkin config --merge-devel
+catkin config --extend /opt/ros/noetic
 ```
 
 Download this package.
@@ -20,7 +20,7 @@ wstool update
 
 Install all [PPA dependencies](install/prepare-jenkins-slave.sh).
 ```
-source /opt/ros/melodic/setup.bash
+source /opt/ros/noetic/setup.bash
 ./ethz_piksi_ros/piksi_multi_cpp/install/prepare-jenkins-slave.sh
 ```
 
@@ -28,7 +28,7 @@ Next download all individual ROS package dependencies.
 **Note**: If you have not setup [SSH keys in GitHub](https://help.github.com/en/enterprise/2.16/user/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) use [dependencies_https.rosinstall](install/dependencies_https.rosinstall).
 ```
 wstool merge ethz_piksi_ros/piksi_multi_cpp/install/dependencies.rosinstall
-wstool update
+wstool update -j8
 ```
 
 Finally, build the workspace.
