@@ -20,9 +20,9 @@ def create_directory(libsbp_ros_msgs_dir, dir):
 
 def get_args():
     parser = argparse.ArgumentParser(description='ROS SBP message generator.')
-    parser.add_argument('catkin_devel_prefix',
+    parser.add_argument('cmake_binary_dir',
                         nargs=1,
-                        help='The location of the devel space.')
+                        help='The location of the build space.')
     parser.add_argument('libsbp_ros_msgs_dir',
                         nargs=1,
                         help='Pass the base path of the source.')
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     renderer.setup_environment(args.libsbp_ros_msgs_dir[0])
 
     # Get the SBP specs.
-    input_dir = os.path.abspath(args.catkin_devel_prefix[0] + '/../build/libsbp_catkin/libsbp-prefix/src/libsbp/spec/yaml/swiftnav/sbp/')
+    input_dir = os.path.abspath(args.cmake_binary_dir[0] + '/../libsbp_catkin/libsbp-prefix/src/libsbp/spec/yaml/swiftnav/sbp/')
     file_index = yaml.resolve_deps(*yaml.get_files(input_dir))
 
     # Output directories.

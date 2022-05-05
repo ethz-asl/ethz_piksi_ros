@@ -20,7 +20,7 @@ execute_process(
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/include/conversion.h
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/include/sbp_relays.h
   COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/src/conversion.cc
-  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/src/${PROJECT_NAME}/generator ${CATKIN_DEVEL_PREFIX} ${CMAKE_CURRENT_SOURCE_DIR} --verbose
+  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/src/${PROJECT_NAME}/generator ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} --verbose
 )
 
 catkin_simple(ALL_DEPS_REQUIRED)
