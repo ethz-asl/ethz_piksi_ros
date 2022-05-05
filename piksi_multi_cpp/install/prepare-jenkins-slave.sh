@@ -4,15 +4,15 @@ ROS_VERSION=`rosversion -d`
 echo "ROS version: ${ROS_VERSION}"
 
 # Build dependencies.
-sudo apt install -y python-wstool python-catkin-tools
+sudo apt install -y python3-wstool python3-catkin-tools
 
 # Package dependencies.
 echo "Installing libsbp_ros_msgs dependencies."
-sudo apt install -y python-pip libeigen3-dev libgoogle-glog-dev libgtest-dev
+sudo apt install -y python3-pip libeigen3-dev libgoogle-glog-dev libgtest-dev
 sudo apt install -y ros-${ROS_VERSION}-genmsg
-pip install jinja2
-pip install setuptools
-pip install voluptuous
+pip3 install jinja2
+pip3 install setuptools
+pip3 install voluptuous
 
 echo "Installing geodetic_utils and geotf dependencies."
 sudo apt install ros-${ROS_VERSION}-tf-conversions -y
