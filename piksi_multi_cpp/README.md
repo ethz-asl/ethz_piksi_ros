@@ -35,3 +35,15 @@ Finally, build the workspace.
 ```
 catkin build
 ```
+
+# Basic usage Base<->Rover
+1. [Upgrade firmware](https://support.swiftnav.com/support/solutions/articles/44001903720-upgrading-firmware) on your Piksi Multi to **2.4.16** 
+2. Flash rover or base configuration onto your Piksi Multi
+    1. Hookup Piksi Multi onto host computer via USB (you can also specify another [interface here](launch/config.launch#L3)).
+    2. `roslaunch piksi_multi_cpp config.launch config_type:=rover` or<br>`roslaunch piksi_multi_cpp config.launch config_type:=base`
+3. Setup the correction link from base to rover either via UDP broadcast and/or serial modem.
+    1. Specify [UDP broadcast interface](https://github.com/ethz-asl/ethz_piksi_ros/blob/master/piksi_multi_cpp/launch/base.launch#L13) if you want to send corrections via network.
+    2. Setup base and rover [serial modem](https://github.com/ethz-asl/ethz_piksi_ros/wiki/RFD-868x-Modem).
+4. Launch driver on base `roslaunch piksi_multi_cpp base.launch`
+5. Sample base station position once `rosservice call `
+6. After base station sampling you can start the driver on the rover <br>`roslaunch piksi_multi_cpp rover.launch`
