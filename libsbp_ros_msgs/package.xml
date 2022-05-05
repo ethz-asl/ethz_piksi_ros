@@ -14,8 +14,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
-  <buildtool_depend>libsbp_catkin</buildtool_depend>
 
+  <depend>libsbp_catkin</depend>
   <depend>message_generation</depend>
   <depend>message_runtime</depend>
 </package>
