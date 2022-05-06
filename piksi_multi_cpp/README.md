@@ -47,4 +47,4 @@ catkin build
 5. Sample base station position once
     1. ```rosservice call /piksi_multi_cpp_base/base_station_receiver_0/resample_base_position "num_desired_fixes: 1000 file: '/tmp/base_position.txt' set_enu: false offset_z: 0.0"```
     2. Check status of sampling <br>`rostopic echo /piksi_multi_cpp_base/base_station_receiver_0/position_sampler/position_sampling`
-6. After base station sampling you can start the driver on the rover `roslaunch piksi_multi_cpp rover.launch`
+6. **After base station sampling** you can start the driver on the rover `roslaunch piksi_multi_cpp rover.launch`
