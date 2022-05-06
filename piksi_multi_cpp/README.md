@@ -1,12 +1,11 @@
 # Installation
-Create a **merged** catkin workspace on [ROS noetic](http://wiki.ros.org/noetic/Installation/Ubuntu).
+Create a catkin workspace on [ROS noetic](http://wiki.ros.org/noetic/Installation/Ubuntu).
 ```
 sudo apt install -y python3-wstool python3-catkin-tools
 cd ~
 mkdir -p catkin_ws/src
 cd catkin_ws
 catkin init
-catkin config --merge-devel
 catkin config --extend /opt/ros/noetic
 ```
 
