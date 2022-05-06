@@ -59,3 +59,8 @@ Bugs & Feature Requests
 Please report bugs and request features using the [Issue Tracker](https://github.com/ethz-asl/ethz_piksi_ros/issues).
 
 Before reporting a mulfunction in the driver, please have a look at the [Frequently Asked Questions (FAQ)](https://github.com/ethz-asl/ethz_piksi_ros/wiki/FAQ).
+
+**Related projects**
+-------
+Browser Online Visualization [https://github.com/ziliHarvey/GPS-Browser-Visualizer](https://github.com/ziliHarvey/GPS-Browser-Visualizer)<br>
+RVIZ Online Visualization [https://github.com/nobleo/rviz_satellite](https://github.com/nobleo/rviz_satellite)
