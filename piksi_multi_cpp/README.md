@@ -1,12 +1,11 @@
 # Installation
-Create a **merged** catkin workspace.
+Create a catkin workspace on [ROS noetic](http://wiki.ros.org/noetic/Installation/Ubuntu).
 ```
 sudo apt install -y python3-wstool python3-catkin-tools
 cd ~
 mkdir -p catkin_ws/src
 cd catkin_ws
 catkin init
-catkin config --merge-devel
 catkin config --extend /opt/ros/noetic
 ```
 
@@ -48,4 +47,18 @@ catkin build
 5. Sample base station position once
     1. ```rosservice call /piksi_multi_cpp_base/base_station_receiver_0/resample_base_position "num_desired_fixes: 1000 file: '/tmp/base_position.txt' set_enu: false offset_z: 0.0"```
     2. Check status of sampling <br>`rostopic echo /piksi_multi_cpp_base/base_station_receiver_0/position_sampler/position_sampling`
-6. After base station sampling you can start the driver on the rover `roslaunch piksi_multi_cpp rover.launch`
+6. **After base station sampling** you can start the driver on the rover `roslaunch piksi_multi_cpp rover.launch`
+
+# ROS topics
+The driver publishes a set of custom ROS messages within the `/ros` namespace and additionally relays all SBP messages on the `/sbp` namespace.
+Typically the `/ros` messages are most relevant to you.
+In particular
+```
+/ros/vel_ned
+/ros/vel_ned_cov
+/ros/pos_enu
+/ros/pos_enu_cov
+/ros/navsatfix
+/ros/receiver_state
+/sbp/base_pos_ecef
+```

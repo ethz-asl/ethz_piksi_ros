@@ -1,4 +1,7 @@
-ethz_piksi_ros
+# Use [piksi_multi_cpp](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_cpp) with ROS noetic and Piksi Multi Firmware 2.4.16
+Please use the new piksi_multi_cpp driver. The Python driver is not maintained and outdated. If you still want to use the Python driver checkout release [v1.10.0](https://github.com/ethz-asl/ethz_piksi_ros/tree/v1.11.0).
+
+ethz_piksi_ros (outdated)
 ======
 
 This repository contains (python) ROS drivers, tools, launch files, and wikis about how to use Piksi Real Time Kinematic (RTK) GPS device in ROS. There are two different driver versions: one for Piksi V2 and one for Piksi Multi. 
@@ -56,3 +59,8 @@ Bugs & Feature Requests
 Please report bugs and request features using the [Issue Tracker](https://github.com/ethz-asl/ethz_piksi_ros/issues).
 
 Before reporting a mulfunction in the driver, please have a look at the [Frequently Asked Questions (FAQ)](https://github.com/ethz-asl/ethz_piksi_ros/wiki/FAQ).
+
+**Related projects**
+-------
+Browser Online Visualization [https://github.com/ziliHarvey/GPS-Browser-Visualizer](https://github.com/ziliHarvey/GPS-Browser-Visualizer)<br>
+RVIZ Online Visualization [https://github.com/nobleo/rviz_satellite](https://github.com/nobleo/rviz_satellite)
