@@ -36,7 +36,7 @@ catkin build
 ```
 
 # Basic usage Base-Rover
-1. [Upgrade firmware](https://support.swiftnav.com/support/solutions/articles/44001903720-upgrading-firmware) on your Piksi Multi to **2.4.16** 
+1. [Upgrade firmware](https://support.swiftnav.com/support/solutions/articles/44001903720-upgrading-firmware) on your Piksi Multi to **2.4.20** 
 2. Flash rover or base configuration onto your Piksi Multi
     1. Hookup Piksi Multi onto host computer via USB (you can also specify another [interface here](launch/config.launch#L3)).
     2. `roslaunch piksi_multi_cpp config.launch config_type:=rover` or<br>`roslaunch piksi_multi_cpp config.launch config_type:=base`
