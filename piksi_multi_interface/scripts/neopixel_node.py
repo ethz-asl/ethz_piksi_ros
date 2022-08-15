@@ -12,7 +12,7 @@ def status_led():
         idx = (idx % 7)
         pixels[idx + 1] = (255, 0, 0)
         pixels[idx + 2] = (0, 255, 0)
-        pixels[idx + 3) + 1] = (0, 0, 255)
+        pixels[idx + 3] = (0, 0, 255)
         idx = idx + 1
         rate.sleep()
 
