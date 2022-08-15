@@ -110,7 +110,7 @@ The development of this robotic base station was kindly supported by [Project Fi
 
 # Docker
 ```
-docker run -it --network host --env ROS_MASTER_URI=http://$HOSTNAME:11311 ros:noetic
+docker run -it --network host --privileged --env ROS_MASTER_URI=http://$HOSTNAME:11311 ros:noetic
 ``
 
 ```
