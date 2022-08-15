@@ -5,6 +5,7 @@ import neopixel
 
 def status_led():
     pixels = neopixel.NeoPixel(board.D12, n=7, bpp=4)
+    rospy.init_node('status_led', anonymous=True)
     rate = rospy.Rate(10)
     idx = 1
     while not rospy.is_shutdown():
