@@ -19,5 +19,9 @@ endif()
 cs_add_executable(pushbutton src/pushbutton_node.cc)
 target_link_libraries(pushbutton ${GPIOD_LIBRARY})
 
+catkin_install_python(PROGRAMS scripts/neopixel_node.py
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
+
 cs_install()
 cs_export()
