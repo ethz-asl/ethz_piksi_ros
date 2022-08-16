@@ -3,10 +3,12 @@ import rospy
 import board
 import neopixel
 
+from libsbp_ros_msgs.msg import MsgHeartbeat
+
 # Neopixel definitions
 GPIO=board.D12
 NUM_PIXELS=7
-ORDER=neopixel.RGBW
+ORDER=neopixel.GRBW
 BRIGHTNESS=0.1
 pixels = neopixel.NeoPixel(GPIO, n=NUM_PIXELS, pixel_order=ORDER)
 
@@ -65,9 +67,18 @@ def rainbow(first_pixel):
         pixel_index = (i * 256 // NUM_PIXELS) + first_pixel
         pixels[i] = wheel(pixel_index & 255)
 
+def heartbeat_cb(data):
+    global has_heartbeat
+    if not has_heartbeat:
+        pixels.fill(RED)
+    has_heartbeat = True
+    rospy.loginfo_once("Received first heartbeat.")
+
 def status_led():
     rospy.init_node('status_led', anonymous=True)
     pixels.brightness=BRIGHTNESS
+
+    rospy.Subscriber("/piksi_multi_cpp_base/base_station_receiver_0/sbp/heartbeat", MsgHeartbeat, heartbeat_cb)
 
     while not rospy.is_shutdown() and not has_heartbeat:
         global first_pixel_rainbow
