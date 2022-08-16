@@ -33,12 +33,13 @@ FIX_FIXED_RTK=4
 FIX_DEAD_RECKONING=5
 FIX_SBAS=6
 LEDS_PER_SAT=3
-TOGGLE_MS=500
+TOGGLE_HZ=2
 
 color_solution=RED
 blinking_solution=False
 has_heartbeat=False
 first_pixel_rainbow=0
+toggle=True
 
 def wheel(pos):
     # Input a value 0 to 255 to get a color value.
@@ -67,27 +68,66 @@ def rainbow(first_pixel):
         pixel_index = (i * 256 // NUM_PIXELS) + first_pixel
         pixels[i] = wheel(pixel_index & 255)
 
-def heartbeat_cb(data):
+def heartbeat_cb(msg):
     global has_heartbeat
     if not has_heartbeat:
-        pixels.fill(RED)
+        color_solution = RED
+        blinking_solution = False
     has_heartbeat = True
     rospy.loginfo_once("Received first heartbeat.")
 
+def gnss_cb(msg):
+    global blinking_solution, color_solution
+
+    fix_mode = (msg.flags >> 0) & 0x7
+    if fix_mode == FIX_INVALID:
+        color_solution = RED
+        blinking_solution = True
+    elif fix_mode == FIX_SPP:
+        color_solution = ORANGE
+        blinking_solution = False
+    elif fix_mode == FIX_DGNSS:
+        color_solution = PURPLE
+        blinking_solution = False
+    elif fix_mode == FIX_FLOAT_RTK:
+        color_solution = BLUE
+        blinking_solution = True
+    elif fix_mode == FIX_FIXED_RTK:
+        color_solution = BLUE
+        blinking_solution = False
+    elif fix_mode == FIX_DEAD_RECKONING:
+        color_solution = ORANGE
+        blinking_solution = True
+    elif fix_mode == FIX_SBAS:
+        color_solution = GREEN
+        blinking_solution = False
+    else:
+        color_solution = RED
+        blinking_solution = False
+
 def status_led():
+    global first_pixel_rainbow, toggle
+
     rospy.init_node('status_led', anonymous=True)
     pixels.brightness=BRIGHTNESS
 
     rospy.Subscriber("/piksi_multi_cpp_base/base_station_receiver_0/sbp/heartbeat", MsgHeartbeat, heartbeat_cb)
 
-    while not rospy.is_shutdown() and not has_heartbeat:
-        global first_pixel_rainbow
-        rainbow(first_pixel_rainbow)
-        first_pixel_rainbow = (first_pixel_rainbow + 1) % 255
-        rospy.Rate(FLASH_HZ).sleep()
-        rospy.logwarn_throttle(THROTTLE_PERIOD, "No Piksi heartbeat.")
-
-    rospy.spin()
+    while not rospy.is_shutdown():
+        if not has_heartbeat:
+            rainbow(first_pixel_rainbow)
+            first_pixel_rainbow = (first_pixel_rainbow + 1) % 255
+            rospy.Rate(FLASH_HZ).sleep()
+            rospy.logwarn_throttle(THROTTLE_PERIOD, "No Piksi heartbeat.")
+        else:
+            # Color ring and center according to solution 
+            pixels.fill(NONE)
+            for i in range(1,NUM_PIXELS):
+                pixels[i] = color_solution
+            if blinking_solution and toggle:
+                pixels.fill(NONE)
+                toggle = not toggle
+            rospy.Rate(TOGGLE_HZ).sleep()
 
 
 if __name__ == '__main__':
