@@ -107,3 +107,12 @@ Optionally, [PPS sync installation script](https://github.com/ethz-asl/ethz_piks
 
 # Acknowledgement
 The development of this robotic base station was kindly supported by [Project FindMine](https://www.ue-stiftung.org/findmine) and the Urs Endress Foundation.
+
+# Docker
+```
+docker run -it --network host --privileged --env ROS_MASTER_URI=http://$HOSTNAME:11311 ros:noetic
+``
+
+```
+docker exec -it modest_lederberg bash
+```

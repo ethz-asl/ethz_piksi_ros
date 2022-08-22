@@ -13,7 +13,7 @@ Download this package.
 ```
 cd ~/catkin_ws/src
 wstool init
-wstool set --git ethz_piksi_ros git@github.com:ethz-asl/ethz_piksi_ros.git
+wstool set --git ethz_piksi_ros https://github.com/ethz-asl/ethz_piksi_ros.git
 wstool update
 ```
 
@@ -24,9 +24,8 @@ source /opt/ros/noetic/setup.bash
 ```
 
 Next download all individual ROS package dependencies.
-**Note**: If you have not setup [SSH keys in GitHub](https://help.github.com/en/enterprise/2.16/user/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) use [dependencies_https.rosinstall](install/dependencies_https.rosinstall).
 ```
-wstool merge ethz_piksi_ros/piksi_multi_cpp/install/dependencies.rosinstall
+wstool merge ethz_piksi_ros/piksi_multi_cpp/install/dependencies_https.rosinstall
 wstool update -j8
 ```
 

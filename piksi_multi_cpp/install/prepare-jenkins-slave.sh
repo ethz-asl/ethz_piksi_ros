@@ -28,7 +28,7 @@ sudo apt install ros-${ROS_VERSION}-rqt-gui ros-${ROS_VERSION}-rqt-gui-cpp qt5-d
 
 echo "Installing piksi_multi_cpp dependencies."
 sudo apt install ros-${ROS_VERSION}-eigen-conversions -y
-sudo apt install libserialport-dev -y
+sudo apt install libserialport-dev libtool -y
 sudo apt install ros-${ROS_VERSION}-rosserial-server -y
 
 echo "Installing glog_catkin dependencies."
