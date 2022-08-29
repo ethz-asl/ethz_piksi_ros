@@ -108,20 +108,18 @@ int main(int argc, char** argv) {
         ros::spinOnce();
         return 0;
       }
-    } else {
+    } else if (sampled_pos.has_value() && current_pos.has_value()) {
       // Compare stored base station position to current GNSS position.
-      if (sampled_pos.has_value() && current_pos.has_value()) {
-        auto distance = (current_pos.value() - sampled_pos.value()).norm();
-        ROS_INFO("Distance: %.3f", distance);
+      auto distance = (current_pos.value() - sampled_pos.value()).norm();
+      ROS_INFO("Distance: %.3f", distance);
 
-        if (gpiod_line_set_value(line, distance < distance_threshold ? 1 : 0) <
-            0) {
-          ROS_ERROR("Cannot set GPIO value on chip %s line %d", chip.c_str(),
-                    offset);
-          gpiod_line_close_chip(line);
-          ros::spinOnce();
-          return 0;
-        }
+      if (gpiod_line_set_value(line, distance < distance_threshold ? 1 : 0) <
+          0) {
+        ROS_ERROR("Cannot set GPIO value on chip %s line %d", chip.c_str(),
+                  offset);
+        gpiod_line_close_chip(line);
+        ros::spinOnce();
+        return 0;
       }
     }
 
