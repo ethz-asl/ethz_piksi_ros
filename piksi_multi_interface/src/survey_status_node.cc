@@ -111,7 +111,6 @@ int main(int argc, char** argv) {
     } else if (sampled_pos.has_value() && current_pos.has_value()) {
       // Compare stored base station position to current GNSS position.
       auto distance = (current_pos.value() - sampled_pos.value()).norm();
-      ROS_INFO("Distance: %.3f", distance);
 
       if (gpiod_line_set_value(line, distance < distance_threshold ? 1 : 0) <
           0) {
@@ -120,6 +119,14 @@ int main(int argc, char** argv) {
         gpiod_line_close_chip(line);
         ros::spinOnce();
         return 0;
+      }
+
+      if (distance > distance_threshold) {
+        ROS_WARN_THROTTLE(30.0,
+                          "Distance between sampled position and current GNSS "
+                          "position is greater than threshold: %.2d > %.2d. Is "
+                          "the base station sampled correctly?",
+                          distance, distance_threshold);
       }
     }
 
