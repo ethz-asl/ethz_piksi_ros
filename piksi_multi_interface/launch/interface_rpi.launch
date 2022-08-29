@@ -11,7 +11,7 @@
     <arg name="ns" default="/piksi_multi_cpp_base/base_station_receiver_0"/>
 
     <!-- Neopixel settings -->
-    <arg name="brightness" default="1.0"/>
+    <arg name="brightness" default="0.2"/>
 
     <include file="$(find piksi_multi_interface)/launch/interface.launch" pass_all_args="true"/>
 </launch>
