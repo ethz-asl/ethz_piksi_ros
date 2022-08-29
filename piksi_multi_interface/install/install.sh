@@ -8,7 +8,7 @@ echo "Please enter the survey gpiochip, e.g., gpiochip3..."
 read GPIOCHIP
 
 echo "Please enter the survey gpio offset, e.g., 0..."
-read OFFSET
+read OFFSET_PUSHBUTTON
 
 echo "Please enter the status LED port, e.g., /dev/ttyXRUSB0..."
 read PORT
@@ -50,7 +50,7 @@ After=piksi.service
 [Service]
 Type=forking
 ExecStartPre=/bin/sleep 15
-ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET $PORT $BAUD $NS
+ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET_PUSHBUTTON $PORT $BAUD $NS
 Restart=on-failure
 User=$USER
 

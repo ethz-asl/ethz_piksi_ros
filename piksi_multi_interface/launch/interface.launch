@@ -1,6 +1,8 @@
 <launch>
   <arg name="chip" default="gpiochip0"/>
-  <arg name="offset" default="0"/>
+  <arg name="offset_pushbutton" default="0"/>
+  <arg name="display_survey_status" default="false"/>
+  <arg name="offset_survey_status" default="0"/>
   <arg name="active_low" default="false"/>
   <arg name="port" default="/dev/ttyACM0"/>
   <arg name="baud" default="57600"/>
@@ -17,11 +19,18 @@
       <param name="rate" value="20"/>
       <!-- Find chip and line with gpiod cli gpiodetect -->
       <param name="chip" value="$(arg chip)"/>
-      <param name="offset" value="$(arg offset)"/>
+      <param name="offset" value="$(arg offset_pushbutton)"/>
       <param name="active_low" value="$(arg active_low)"/>
       <!--param name="num_desired_fixes" value="100"/-->
       <!--param name="offset_z" value="2.0"/-->
     </node>
+
+    <group if="$(eval arg('display_survey_status'))">
+      <node name="survey_status" pkg="piksi_multi_interface" type="survey_status" output="$(arg output)" required="true">
+        <param name="chip" value="$(arg chip)"/>
+        <param name="offset" value="$(arg offset_survey_status)"/>
+      </node>
+    </group>
 
     <group if="$(eval arg('neopixel_rosserial'))">
       <node name="piksi_status_led" pkg="rosserial_server" type="serial_node" output="$(arg output)" required="true">
