@@ -1,6 +1,7 @@
 <launch>
   <arg name="chip" default="gpiochip0"/>
   <arg name="offset" default="0"/>
+  <arg name="active_low" default="false"/>
   <arg name="port" default="/dev/ttyACM0"/>
   <arg name="baud" default="57600"/>
   <arg name="neopixel_rosserial" default="true" />
@@ -17,6 +18,7 @@
       <!-- Find chip and line with gpiod cli gpiodetect -->
       <param name="chip" value="$(arg chip)"/>
       <param name="offset" value="$(arg offset)"/>
+      <param name="active_low" value="$(arg active_low)"/>
       <!--param name="num_desired_fixes" value="100"/-->
       <!--param name="offset_z" value="2.0"/-->
     </node>

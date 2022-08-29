@@ -34,6 +34,9 @@ int main(int argc, char** argv) {
   double offset_z = is_base ? 0.0 : 2.0;
   nh_private.getParam("offset_z", offset_z);
 
+  bool active_low = false;
+  nh_private.getParam("active_low", active_low);
+
   ros::Publisher status_pub = nh_private.advertise<std_msgs::Bool>("status", 1);
 
   // Open GPIO
@@ -80,8 +83,8 @@ int main(int argc, char** argv) {
     status.data = ret;
     status_pub.publish(status);
 
-    // Service call logic.
-    if (status.data) {
+    // Service call logic. (XOR)
+    if (active_low != status.data) {
       piksi_rtk_msgs::SamplePosition srv;
       srv.request.num_desired_fixes = num_desired_fixes;
       srv.request.set_enu = is_base;
