@@ -1,6 +1,6 @@
 <launch>
     <arg name="chip" default="gpiochip0"/>
-    <arg name="offset" default="4"/>
+    <arg name="offset_pushbutton" default="4"/>
     <arg name="active_low" default="true"/>
     <arg name="display_survey_status" default="true"/>
     <arg name="offset_survey_status" default="3"/>
