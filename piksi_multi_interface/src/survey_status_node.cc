@@ -1,6 +1,8 @@
+#include <geometry_msgs/PointStamped.h>
 #include <gpiod.h>
 #include <piksi_rtk_msgs/PositionSampling.h>
 #include <ros/ros.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 /*
  * Compares broadcasted base station position to current position to check if
@@ -17,6 +19,9 @@ int main(int argc, char** argv) {
 
   double timeout = 1.0;
   nh_private.getParam("timeout", timeout);
+
+  double distance_threshold = 1.0;
+  nh_private.getParam("distance_threshold", distance_threshold);
 
   std::string chip = "gpiochip0";
   nh_private.getParam("chip", chip);
@@ -62,7 +67,8 @@ int main(int argc, char** argv) {
             "/piksi_multi_cpp_base/base_station_receiver_0/position_sampler/"
             "position_sampling",
             nh, ros::Duration(timeout));
-    if (sampling_feedback && (sampling_feedback->progress > -1)) {
+    if (sampling_feedback && (sampling_feedback->progress > -1) &&
+        (sampling_feedback->progress < 100)) {
       // If sampling, toggle LED.
       auto ret = gpiod_line_get_value(line);
       if (ret < 0) {
@@ -83,7 +89,32 @@ int main(int argc, char** argv) {
       }
     } else {
       // Compare stored base station position to current GNSS position.
+      auto sampled_pos =
+          ros::topic::waitForMessage<geometry_msgs::PointStamped>(
+              "/piksi_multi_cpp_base/base_station_receiver_0/ros/base_pos_ecef",
+              nh, ros::Duration(timeout));
 
+      auto current_pos =
+          ros::topic::waitForMessage<geometry_msgs::PointStamped>(
+              "/piksi_multi_cpp_base/base_station_receiver_0/ros/pos_ecef", nh,
+              ros::Duration(timeout));
+
+      if (sampled_pos && current_pos) {
+        Eigen::Vector3d sampled, current;
+        tf2::fromMsg(sampled_pos->point, sampled);
+        tf2::fromMsg(current_pos->point, current);
+        auto distance = (current - sampled).norm();
+        ROS_INFO("Distance: %.3f", distance);
+
+        if (gpiod_line_set_value(line, distance < distance_threshold ? 1 : 0) <
+            0) {
+          ROS_ERROR("Cannot set GPIO value on chip %s line %d", chip.c_str(),
+                    offset);
+          gpiod_line_close_chip(line);
+          ros::spinOnce();
+          return 0;
+        }
+      }
     }
 
     ros::spinOnce();
