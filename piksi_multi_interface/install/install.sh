@@ -4,12 +4,13 @@ sudo apt install gpiod libgpiod-dev -y
 
 echo "Setup automatic interface startup."
 
+echo "Please enter the survey gpiochip, e.g., gpiochip3..."
+read GPIOCHIP
+
 echo "Are the Neopixels interfaced via Arduino? [y or Y to accept]"
 INTERFACE="startup_interface.sh"
 read use_arduino
-if [[ use_arduino == "Y" || use_arduino == "y" ]]; then
-  echo "Please enter the survey gpiochip, e.g., gpiochip3..."
-  read GPIOCHIP
+if [[ $use_arduino == "Y" || $use_arduino == "y" ]]; then
 
   echo "Please enter the survey gpio offset, e.g., 0..."
   read OFFSET_PUSHBUTTON
@@ -26,7 +27,7 @@ fi
 
 echo "Are the Neopixels interfaced via RPI? [y or Y to accept]"
 read use_rpi
-if [[ use_rpi == "Y" || use_rpi == "y" ]]; then
+if [[ $use_rpi == "Y" || $use_rpi == "y" ]]; then
   INTERFACE="startup_interface_rpi.sh"
 fi
 
