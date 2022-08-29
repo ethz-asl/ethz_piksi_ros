@@ -37,3 +37,4 @@ sudo apt install autoconf -y
 echo "Installing piksi_multi_interface dependencies."
 sudo apt install gpiod libgpiod-dev -y
 sudo apt install ros-${ROS_VERSION}-rosserial-arduino -y
+sudo apt install ros-${ROS_VERSION}-tf2-eigen -y
