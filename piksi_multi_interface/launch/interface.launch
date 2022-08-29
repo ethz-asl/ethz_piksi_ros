@@ -3,10 +3,13 @@
   <arg name="offset" default="0"/>
   <arg name="port" default="/dev/ttyACM0"/>
   <arg name="baud" default="57600"/>
+  <arg name="neopixel_rosserial" default="true" />
+  <arg name="neopixel_python" default="false" />
+  <arg name="output" default="log" />
   <arg name="ns" default="/piksi_multi_cpp_base/base_station_receiver_0"/>
 
   <group ns="$(arg ns)">
-    <node name="pushbutton" pkg="piksi_multi_interface" type="pushbutton" output="log" required="true">
+    <node name="pushbutton" pkg="piksi_multi_interface" type="pushbutton" output="$(arg output)" required="true">
       <param name="rate" value="20"/>
       <!-- Find chip and line with gpiod cli gpiodetect -->
       <param name="chip" value="$(arg chip)"/>
@@ -15,9 +18,16 @@
       <!--param name="offset_z" value="2.0"/-->
     </node>
 
-    <node name="piksi_status_led" pkg="rosserial_server" type="serial_node" output="log" required="true">
-      <param name="port" value="$(arg port)"/>
-      <param name="baud" value="$(arg baud)"/>
-    </node>
+    <group if="$(eval arg('neopixel_rosserial'))">
+      <node name="piksi_status_led" pkg="rosserial_server" type="serial_node" output="$(arg output)" required="true">
+        <param name="port" value="$(arg port)"/>
+        <param name="baud" value="$(arg baud)"/>
+      </node>
+    </group>
+
+    <group if="$(eval arg('neopixel_python'))">
+      <node name="neopixel_node" pkg="piksi_multi_interface" type="neopixel_node.py" output="$(arg output)" required="true">
+      </node>
+    </group>
   </group>
 </launch>
