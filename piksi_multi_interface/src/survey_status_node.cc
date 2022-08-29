@@ -4,6 +4,14 @@
 #include <ros/ros.h>
 #include <tf2_eigen/tf2_eigen.h>
 
+#include <optional>
+
+Eigen::Vector3d eigenFromMsg(const geometry_msgs::PointStampedConstPtr& msg) {
+  Eigen::Vector3d pos;
+  tf2::fromMsg(msg->point, pos);
+  return pos;
+}
+
 /*
  * Compares broadcasted base station position to current position to check if
  * surveyed position is valid. Checks position sampling feedback to blink.
@@ -28,6 +36,19 @@ int main(int argc, char** argv) {
 
   int offset = 0;
   nh_private.getParam("offset", offset);
+
+  // ROS subscribers
+  std::optional<Eigen::Vector3d> current_pos, sampled_pos;
+  ros::Subscriber current_sub = nh.subscribe<geometry_msgs::PointStamped>(
+      "/piksi_multi_cpp_base/base_station_receiver_0/ros/pos_ecef", 1,
+      [&](const geometry_msgs::PointStampedConstPtr& msg) {
+        current_pos = eigenFromMsg(msg);
+      });
+  ros::Subscriber sampled_sub = nh.subscribe<geometry_msgs::PointStamped>(
+      "/piksi_multi_cpp_base/base_station_receiver_0/ros/base_pos_ecef", 1,
+      [&](const geometry_msgs::PointStampedConstPtr& msg) {
+        sampled_pos = eigenFromMsg(msg);
+      });
 
   // Open GPIO
   auto gpio = gpiod_chip_open_by_name(chip.c_str());
@@ -89,21 +110,8 @@ int main(int argc, char** argv) {
       }
     } else {
       // Compare stored base station position to current GNSS position.
-      auto sampled_pos =
-          ros::topic::waitForMessage<geometry_msgs::PointStamped>(
-              "/piksi_multi_cpp_base/base_station_receiver_0/ros/base_pos_ecef",
-              nh, ros::Duration(timeout));
-
-      auto current_pos =
-          ros::topic::waitForMessage<geometry_msgs::PointStamped>(
-              "/piksi_multi_cpp_base/base_station_receiver_0/ros/pos_ecef", nh,
-              ros::Duration(timeout));
-
-      if (sampled_pos && current_pos) {
-        Eigen::Vector3d sampled, current;
-        tf2::fromMsg(sampled_pos->point, sampled);
-        tf2::fromMsg(current_pos->point, current);
-        auto distance = (current - sampled).norm();
+      if (sampled_pos.has_value() && current_pos.has_value()) {
+        auto distance = (current_pos.value() - sampled_pos.value()).norm();
         ROS_INFO("Distance: %.3f", distance);
 
         if (gpiod_line_set_value(line, distance < distance_threshold ? 1 : 0) <
