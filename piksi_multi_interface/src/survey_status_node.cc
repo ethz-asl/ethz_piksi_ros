@@ -81,12 +81,21 @@ int main(int argc, char** argv) {
         ros::spinOnce();
         return 0;
       }
+    } else {
+      // Compare stored base station position to current GNSS position.
+
     }
 
     ros::spinOnce();
     loop_rate.sleep();
   }
 
+  // Turn off LED.
+  if (gpiod_line_set_value(line, 0) < 0) {
+    ROS_ERROR("Cannot set GPIO value on chip %s line %d", chip.c_str(), offset);
+  }
+
+  // Release LED.
   gpiod_line_close_chip(line);
   return 0;
 }
