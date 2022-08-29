@@ -86,7 +86,11 @@ int main(int argc, char** argv) {
       srv.request.num_desired_fixes = num_desired_fixes;
       srv.request.set_enu = is_base;
       srv.request.offset_z = offset_z;
-      ROS_INFO_COND(client.call(srv), "Start sampling.");
+      if (client.call(srv)) {
+        ROS_INFO("Start sampling.");
+      } else {
+        ROS_WARN("Cannot call sampling service.");
+      }
     }
 
     ros::spinOnce();
