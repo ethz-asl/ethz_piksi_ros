@@ -9,6 +9,7 @@ read GPIOCHIP
 
 echo "Are the Neopixels interfaced via Arduino? [y or Y to accept]"
 INTERFACE="startup_interface.sh"
+PERMISSION=$USER
 read use_arduino
 if [[ $use_arduino == "Y" || $use_arduino == "y" ]]; then
 
@@ -29,6 +30,7 @@ echo "Are the Neopixels interfaced via RPI? [y or Y to accept]"
 read use_rpi
 if [[ $use_rpi == "Y" || $use_rpi == "y" ]]; then
   INTERFACE="startup_interface_rpi.sh"
+  PERMISSION=$ROOT
 fi
 
 echo "Do you wish to configure UDEV rule for the gpiochip and add user to group gpio? [y or Y to accept]"
@@ -66,9 +68,9 @@ After=piksi.service
 [Service]
 Type=forking
 ExecStartPre=/bin/sleep 15
-ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/$INTERFACE
+ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/$INTERFACE $USER
 Restart=on-failure
-User=$USER
+User=$PERMISSION
 
 [Install]
 WantedBy=multi-user.target
