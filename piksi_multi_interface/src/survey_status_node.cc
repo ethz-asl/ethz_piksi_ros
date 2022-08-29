@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
       if (distance > distance_threshold) {
         ROS_WARN_THROTTLE(30.0,
                           "Distance between sampled position and current GNSS "
-                          "position is greater than threshold: %.2d > %.2d. Is "
+                          "position is greater than threshold: %.2f > %.2f. Is "
                           "the base station sampled correctly?",
                           distance, distance_threshold);
       }
