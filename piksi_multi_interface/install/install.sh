@@ -30,7 +30,7 @@ echo "Are the Neopixels interfaced via RPI? [y or Y to accept]"
 read use_rpi
 if [[ $use_rpi == "Y" || $use_rpi == "y" ]]; then
   INTERFACE="startup_interface_rpi.sh"
-  PERMISSION=$ROOT
+  PERMISSION="root"
 fi
 
 echo "Do you wish to configure UDEV rule for the gpiochip and add user to group gpio? [y or Y to accept]"
