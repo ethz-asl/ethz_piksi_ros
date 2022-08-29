@@ -8,6 +8,9 @@
   <arg name="output" default="log" />
   <arg name="ns" default="/piksi_multi_cpp_base/base_station_receiver_0"/>
 
+  <!-- Neopixel settings -->
+  <arg name="brightness" default="1.0"/>
+
   <group ns="$(arg ns)">
     <node name="pushbutton" pkg="piksi_multi_interface" type="pushbutton" output="$(arg output)" required="true">
       <param name="rate" value="20"/>
@@ -27,6 +30,7 @@
 
     <group if="$(eval arg('neopixel_python'))">
       <node name="neopixel_node" pkg="piksi_multi_interface" type="neopixel_node.py" output="$(arg output)" required="true">
+        <param name="brightness" value="$(arg brightness)"/>
       </node>
     </group>
   </group>

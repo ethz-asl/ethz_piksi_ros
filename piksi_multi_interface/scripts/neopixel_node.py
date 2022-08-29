@@ -131,7 +131,7 @@ def status_led():
     global first_pixel_rainbow, toggle
 
     rospy.init_node('status_led', anonymous=True)
-    pixels.brightness=BRIGHTNESS
+    pixels.brightness=rospy.get_param("~brightness", BRIGHTNESS)
 
     rospy.Subscriber("/piksi_multi_cpp_base/base_station_receiver_0/sbp/heartbeat", MsgHeartbeat, heartbeat_cb)
     rospy.Subscriber("/piksi_multi_cpp_base/base_station_receiver_0/sbp/pos_ecef", MsgPosEcef, pos_ecef_cb)
