@@ -16,4 +16,6 @@
   <depend>piksi_rtk_msgs</depend>
   <depend>libsbp_ros_msgs</depend>
   <depend>rosserial_arduino</depend>
+  <depend>tf2_eigen</depend>
+  <depend>geometry_msgs</depend>
 </package>

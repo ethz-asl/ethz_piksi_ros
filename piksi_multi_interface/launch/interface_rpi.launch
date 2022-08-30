@@ -1,0 +1,17 @@
+<launch>
+    <arg name="chip" default="gpiochip0"/>
+    <arg name="offset_pushbutton" default="4"/>
+    <arg name="active_low" default="true"/>
+    <arg name="display_survey_status" default="true"/>
+    <arg name="offset_survey_status" default="3"/>
+    <arg name="distance_threshold" default="10.0"/>
+    <arg name="neopixel_rosserial" default="false" />
+    <arg name="neopixel_python" default="true" />
+    <arg name="output" default="log" />
+    <arg name="ns" default="/piksi_multi_cpp_base/base_station_receiver_0"/>
+
+    <!-- Neopixel settings -->
+    <arg name="brightness" default="0.2"/>
+
+    <include file="$(find piksi_multi_interface)/launch/interface.launch" pass_all_args="true"/>
+</launch>

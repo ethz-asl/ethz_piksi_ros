@@ -7,14 +7,31 @@ echo "Setup automatic interface startup."
 echo "Please enter the survey gpiochip, e.g., gpiochip3..."
 read GPIOCHIP
 
-echo "Please enter the survey gpio offset, e.g., 0..."
-read OFFSET
+echo "Are the Neopixels interfaced via Arduino? [y or Y to accept]"
+INTERFACE="startup_interface.sh"
+PERMISSION=$USER
+read use_arduino
+if [[ $use_arduino == "Y" || $use_arduino == "y" ]]; then
 
-echo "Please enter the status LED port, e.g., /dev/ttyXRUSB0..."
-read PORT
+  echo "Please enter the survey gpio offset, e.g., 0..."
+  read OFFSET_PUSHBUTTON
 
-echo "Please enter the status LED baud rate, e.g., 57600..."
-read BAUD
+  echo "Please enter the status LED port, e.g., /dev/ttyXRUSB0..."
+  read PORT
+
+  echo "Please enter the status LED baud rate, e.g., 57600..."
+  read BAUD
+
+  INTERFACE="$INTERFACE $GPIOCHIP $OFFSET_PUSHBUTTON $PORT $BAUD"
+fi
+
+
+echo "Are the Neopixels interfaced via RPI? [y or Y to accept]"
+read use_rpi
+if [[ $use_rpi == "Y" || $use_rpi == "y" ]]; then
+  INTERFACE="startup_interface_rpi.sh"
+  PERMISSION="root"
+fi
 
 echo "Do you wish to configure UDEV rule for the gpiochip and add user to group gpio? [y or Y to accept]"
 read create_udev
@@ -39,6 +56,7 @@ if [[ $configure_autostart == "Y" || $configure_autostart == "y" ]]; then
   if [[ $is_base == "Y" || $is_base == "y" ]]; then
     NS=/piksi_multi_cpp_base/base_station_receiver_0
   fi
+  INTERFACE="$INTERFACE $NS"
 
   echo "Configuring /etc/systemd/system/piksi_interface.service"
   sudo rm /etc/systemd/system/piksi_interface.service
@@ -50,9 +68,9 @@ After=piksi.service
 [Service]
 Type=forking
 ExecStartPre=/bin/sleep 15
-ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/startup_interface.sh $GPIOCHIP $OFFSET $PORT $BAUD $NS
+ExecStart=/home/$USER/catkin_ws/src/ethz_piksi_ros/piksi_multi_interface/install/$INTERFACE $USER
 Restart=on-failure
-User=$USER
+User=$PERMISSION
 
 [Install]
 WantedBy=multi-user.target
