@@ -8,15 +8,11 @@ sudo apt install -y python3-wstool python3-catkin-tools
 
 # Package dependencies.
 echo "Installing libsbp_ros_msgs dependencies."
-sudo apt install -y python3-pip libeigen3-dev libgoogle-glog-dev libgtest-dev
+sudo apt install -y python3-pip libeigen3-dev libgoogle-glog-dev libgtest-dev libgeographic-dev
 sudo apt install -y ros-${ROS_VERSION}-genmsg
 pip3 install jinja2
 pip3 install setuptools
 pip3 install voluptuous
-
-echo "Installing geodetic_utils and geotf dependencies."
-sudo apt install ros-${ROS_VERSION}-tf-conversions -y
-sudo apt install libgdal-dev -y
 
 echo "Installing piksi_rtk_msgs dependencies."
 sudo apt install ros-${ROS_VERSION}-rospy \
