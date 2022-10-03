@@ -1,14 +1,16 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_GEOTF_HANDLER_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_GEOTF_HANDLER_H_
 
-#include <geotf/geodetic_converter.h>
 #include <libsbp/navigation.h>
 #include <libsbp_ros_msgs/MsgBasePosEcef.h>
+#include <libsbp_ros_msgs/geo_conversion.h>
 #include <piksi_rtk_msgs/EnuOrigin.h>
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
+
 #include <Eigen/Dense>
 #include <memory>
+
 #include "piksi_multi_cpp/sbp_callback_handler/sbp_lambda_callback_handler.h"
 
 namespace piksi_multi_cpp {
@@ -28,7 +30,9 @@ class GeoTfHandler {
 
   bool getEnuOriginWgs84(Eigen::Vector3d* enu_origin_wgs84);
 
-  inline geotf::GeodeticConverter getGeoTf() const { return geotf_; }
+  inline libsbp_ros_msgs::GeographicConversion getGeoTf() const {
+    return geotf_;
+  }
 
   GeoTfHandler(GeoTfHandler const&) = delete;
   void operator=(GeoTfHandler const&) = delete;
@@ -44,7 +48,7 @@ class GeoTfHandler {
                                   std_srvs::Empty::Response& res);
 
   SBPLambdaCallbackHandler<msg_pos_llh_t> pos_llh_handler_;
-  geotf::GeodeticConverter geotf_;
+  libsbp_ros_msgs::GeographicConversion geotf_;
 
   ros::NodeHandle nh_;
   ros::ServiceServer set_enu_origin_srv_;

@@ -116,10 +116,7 @@ void ReceiverBaseStation::sampledPositionCallback(
 
   Eigen::Vector3d x_ecef, x_wgs84;
   tf::pointMsgToEigen(msg->position.position, x_ecef);
-  if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
-    ROS_ERROR("Failed to convert ECEF to WGS84.");
-    return;
-  }
+  geotf_handler_->getGeoTf().convertEcefToWgs84(x_ecef, &x_wgs84);
 
   ROS_INFO("Writing lat: %.9f lon: %.9f alt: %.9f to %s.", x_wgs84.x(),
            x_wgs84.y(), x_wgs84.z(), nh_.getUnresolvedNamespace().c_str());
