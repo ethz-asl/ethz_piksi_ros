@@ -1,8 +1,11 @@
+#include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
+
 #include <eigen_conversions/eigen_msg.h>
 #include <libsbp_ros_msgs/ros_conversion.h>
 #include <piksi_rtk_msgs/PositionSampling.h>
 #include <piksi_rtk_msgs/PositionWithCovarianceStamped.h>
 #include <ros/assert.h>
+
 #include <Eigen/Dense>
 #include <chrono>
 #include <cstdlib>
@@ -10,7 +13,6 @@
 #include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
-#include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
 
 namespace piksi_multi_cpp {
 
@@ -132,16 +134,17 @@ void PositionSampler::callback(uint16_t sender_id, uint8_t len, uint8_t msg[]) {
 
   // Subtract offset. Convert from ECEF to WGS84, subtract, convert back.
   Eigen::Vector3d z_wgs84 = z;
-  if (geotf_handler_.get() &&
-      geotf_handler_->getGeoTf().convert("ecef", z, "wgs84", &z_wgs84)) {
+  if (geotf_handler_.get()) {
+    geotf_handler_->getGeoTf().convertEcefToWgs84(z, &z_wgs84);
     z_wgs84.z() -= offset_z_;
   } else {
     ROS_ERROR("Cannot convert ECEF to WGS84.");
     ROS_ERROR("Ignoring requested sampling offset.");
   }
 
-  if (!geotf_handler_.get() ||
-      !geotf_handler_->getGeoTf().convert("wgs84", z_wgs84, "ecef", &z)) {
+  if (geotf_handler_.get()) {
+    geotf_handler_->getGeoTf().convertWgs84ToEcef(z_wgs84, &z);
+  } else {
     ROS_ERROR("Cannot convert WGS84 to ECEF.");
     ROS_ERROR("Ignoring requested sampling offset.");
   }
@@ -261,14 +264,14 @@ bool PositionSampler::savePositionToFile(const Eigen::Vector3d& x,
   std::optional<Eigen::Vector3d> x_wgs84;
   if (geotf_handler_.get()) {
     Eigen::Vector3d x_wgs84_temp;
-    if (geotf_handler_->getGeoTf().convert("ecef", x, "wgs84", &x_wgs84_temp))
-      x_wgs84 = std::make_optional(x_wgs84_temp);
+    geotf_handler_->getGeoTf().convertEcefToWgs84(x, &x_wgs84_temp);
+    x_wgs84 = std::make_optional(x_wgs84_temp);
   }
 
   std::optional<Eigen::Vector3d> x_enu;
   if (geotf_handler_.get()) {
     Eigen::Vector3d x_enu_temp;
-    if (geotf_handler_->getGeoTf().convert("ecef", x, "enu", &x_enu_temp))
+    if (geotf_handler_->getGeoTf().convertEcefToEnu(x, &x_enu_temp))
       x_enu = std::make_optional(x_enu_temp);
   }
 

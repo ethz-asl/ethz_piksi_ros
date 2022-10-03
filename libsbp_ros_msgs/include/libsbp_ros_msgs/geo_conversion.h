@@ -30,6 +30,8 @@ class GeographicConversion {
   // (lat, lon, alt), where (lat,lon,alt) are defined w.r.t. WGS84.
   void setEnuFrame(double lat, double lon, double alt);
 
+  void initFromRosParam(const std::string& prefix = "/geotf");
+
  private:
   // Coordinate frame transformations
   std::optional<GeographicLib::LocalCartesian> enu_;

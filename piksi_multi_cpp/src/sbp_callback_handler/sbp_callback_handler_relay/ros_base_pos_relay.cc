@@ -49,8 +49,7 @@ bool RosBasePosLlhRelay::convertSbpToRos(const msg_base_pos_ecef_t& sbp_msg,
   lrm::convertCartesianPoint<msg_base_pos_ecef_t>(sbp_msg, &x_ecef);
 
   if (!geotf_handler_.get()) return false;
-  if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "wgs84", &x_wgs84))
-    return false;
+  geotf_handler_->getGeoTf().convertEcefToWgs84(x_ecef, &x_wgs84);
 
   ros_msg->latitude = x_wgs84.x();
   ros_msg->longitude = x_wgs84.y();

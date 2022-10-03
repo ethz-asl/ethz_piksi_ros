@@ -1,7 +1,6 @@
 #ifndef PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_ENU_RELAYS_H_
 #define PIKSI_MULTI_CPP_SBP_CALLBACK_HANDLER_SBP_CALLBACK_HANDLER_RELAY_ROS_ENU_RELAYS_H_
 
-#include <geotf/geodetic_converter.h>
 #include <libsbp/navigation.h>
 #include <ros/assert.h>
 #include <Eigen/Dense>
@@ -10,6 +9,7 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Vector3.h>
 #include <piksi_rtk_msgs/PositionWithCovarianceStamped.h>
 
@@ -47,7 +47,7 @@ class RosEnuRelay : public RosRelay<SbpMsgType, RosMsgType> {
     libsbp_ros_msgs::convertCartesianPoint<SbpMsgType>(in, &x_ecef);
 
     if (!geotf_handler_.get()) return false;
-    if (!geotf_handler_->getGeoTf().convert("ecef", x_ecef, "enu", x_enu))
+    if (!geotf_handler_->getGeoTf().convertEcefToEnu(x_ecef, x_enu))
       return false;
 
     return true;

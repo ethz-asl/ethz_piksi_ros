@@ -13,15 +13,7 @@ GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
                        SBP_MSG_POS_LLH, state},
       nh_(nh) {
   geotf_.initFromRosParam();
-  if (geotf_.hasFrame("enu")) reset_position_ = ResetEnuOrigin::kNo;
-  ROS_ERROR_COND(
-      !geotf_.addFrameByEPSG("ecef", 4978),
-      "Failed to add frame ecef as EPSG:4978. Be careful using converted "
-      "positions");
-  ROS_ERROR_COND(
-      !geotf_.addFrameByEPSG("wgs84", 4326),
-      "Failed to add frame ecef as EPSG:4326. Be careful using converted "
-      "positions");
+  if (geotf_.hasEnuFrame()) reset_position_ = ResetEnuOrigin::kNo;
 
   set_enu_origin_srv_ = nh_.advertiseService(
       "set_enu_origin", &GeoTfHandler::setEnuOriginCallback, this);
@@ -48,8 +40,7 @@ GeoTfHandler::GeoTfHandler(const ros::NodeHandle& nh,
 
 void GeoTfHandler::setEnuOriginWgs84(const double lat, const double lon,
                                      const double alt) {
-  geotf_.removeFrame("enu");
-  geotf_.addFrameByENUOrigin("enu", lat, lon, alt);
+  geotf_.setEnuFrame(lat, lon, alt);
   reset_position_ = ResetEnuOrigin::kNo;
 }
 
@@ -60,10 +51,7 @@ void GeoTfHandler::setEnuOriginEcef(const double x, const double y,
 
 void GeoTfHandler::setEnuOriginEcef(const Eigen::Vector3d& x_ecef) {
   Eigen::Vector3d x_wgs84;
-  if (!geotf_.convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
-    ROS_ERROR("Failed to convert ECEF to WGS84.");
-    return;
-  }
+  geotf_.convertEcefToWgs84(x_ecef, &x_wgs84);
   setEnuOriginWgs84(x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
 }
 
@@ -71,7 +59,7 @@ bool GeoTfHandler::getEnuOriginWgs84(Eigen::Vector3d* enu_origin_wgs84) {
   ROS_ASSERT(enu_origin_wgs84);
 
   Eigen::Vector3d x_enu_origin_enu = Eigen::Vector3d::Zero();
-  return geotf_.convert("enu", x_enu_origin_enu, "wgs84", enu_origin_wgs84);
+  return geotf_.convertEnuToWgs84(x_enu_origin_enu, enu_origin_wgs84);
 }
 
 void GeoTfHandler::callbackToBasePosEcef(
@@ -79,11 +67,7 @@ void GeoTfHandler::callbackToBasePosEcef(
   if (reset_position_ != ResetEnuOrigin::kFromBase) return;
   Eigen::Vector3d x_ecef, x_wgs84;
   x_ecef << msg->x, msg->y, msg->z;
-  if (!geotf_.convert("ecef", x_ecef, "wgs84", &x_wgs84)) {
-    ROS_ERROR("Cannot convert ECEF to WGS84.");
-    ROS_ERROR("Cannot set ENU origin.");
-    return;
-  }
+  geotf_.convertEcefToWgs84(x_ecef, &x_wgs84);
   setEnuOriginWgs84(x_wgs84.x(), x_wgs84.y(), x_wgs84.z());
 }
 
