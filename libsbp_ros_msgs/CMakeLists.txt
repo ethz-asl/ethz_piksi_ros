@@ -9,6 +9,11 @@ add_definitions(-DBOOST_DATE_TIME_POSIX_TIME_STD_CONFIG)
 find_package(catkin_simple REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+# Workaround to find GeographicLib. With Ubuntu 22.04+ should use GDAL.
+# https://stackoverflow.com/questions/48169653/finding-geographiclib-in-cmake-on-debian
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};/usr/share/cmake/geographiclib")
+find_package(GeographicLib REQUIRED)
+
 ###################
 ## AUTOGENERATION #
 ###################
@@ -29,9 +34,10 @@ catkin_simple(ALL_DEPS_REQUIRED)
 #############
 cs_add_library(${PROJECT_NAME}
   src/conversion.cc
+  src/geo_conversion.cc
   src/ros_conversion.cc
 )
-target_link_libraries(${PROJECT_NAME} Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} Eigen3::Eigen ${GeographicLib_LIBRARIES})
 
 #########
 # TESTS #
@@ -40,6 +46,11 @@ catkin_add_gtest(test_ros_conversion
   test/ros-conversion-test.cpp
 )
 target_link_libraries(test_ros_conversion ${PROJECT_NAME})
+
+catkin_add_gtest(test_geo_conversion
+        test/geo-conversion-test.cpp
+        )
+target_link_libraries(test_geo_conversion ${PROJECT_NAME})
 
 cs_install()
 cs_export()
