@@ -1,4 +1,4 @@
 - git: {local-name: catkin_simple, uri: 'https://github.com/catkin/catkin_simple.git'}
-- git: {local-name: libsbp_catkin, uri: 'https://github.com/ethz-asl/libsbp_catkin.git', version: v2.7.4}
+- git: {local-name: libsbp_catkin, uri: 'https://github.com/ethz-asl/libsbp_catkin.git', version: v2.7.4-1}
 - git: {local-name: ethz_piksi_ros, uri: 'https://github.com/ethz-asl/ethz_piksi_ros.git'}
 - git: {local-name: libserialport_catkin, uri: 'https://github.com/ethz-asl/libserialport_catkin.git', version: 0.1.1-4}
