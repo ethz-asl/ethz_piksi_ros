@@ -1,5 +1,7 @@
-# Use [piksi_multi_cpp](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_cpp) with ROS noetic and Piksi Multi Firmware 2.4.20
+# For ROS1 use [piksi_multi_cpp](https://github.com/ethz-asl/ethz_piksi_ros/tree/master/piksi_multi_cpp) with ROS noetic and Piksi Multi Firmware 2.4.20
 Please use the new piksi_multi_cpp driver. The Python driver is not maintained and outdated. If you still want to use the Python driver checkout release [v1.10.0](https://github.com/ethz-asl/ethz_piksi_ros/tree/v1.11.0).
+
+# For ROS2 use the official [swiftnav-ros2](https://github.com/swift-nav/swiftnav-ros2) driver
 
 ethz_piksi_ros (outdated)
 ======
