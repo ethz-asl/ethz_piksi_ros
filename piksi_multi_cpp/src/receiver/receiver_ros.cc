@@ -3,7 +3,6 @@
 #include <piksi_multi_cpp/sbp_callback_handler/sbp_callback_handler_factory.h>
 
 // SBP message definitions.
-#include <piksi_multi_cpp/observations/file_observation_logger.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include "piksi_multi_cpp/sbp_callback_handler/position_sampler.h"
@@ -27,12 +26,99 @@ ReceiverRos::ReceiverRos(const ros::NodeHandle& nh, const Device::Ptr& device)
   // Create observation callbacks
   obs_cbs_ = std::make_unique<SBPObservationCallbackHandler>(nh, state_);
 
-  if (1) {
-    auto logger = std::make_shared<FileObservationLogger>();
-    /*ROS_WARN_STREAM(logger->open("/tmp/tempfile.sbp"));
-    obs_cbs_->addObservationCallbackListener(
-        CBtoRawObsConverter::createFor(logger));*/
+  // Start file logger if requested
+  ros::NodeHandle nh_private("~");
+  auto log_to_file = nh_private.param<bool>("log_observations_to_file", false);
+  if (log_to_file) {
+    startFileLogger();
+    start_stop_logger_srv_ =
+        nh_.advertiseService("start_stop_obs_logger",
+                             &ReceiverRos::startStopFileLoggerCallback, this);
   }
+}
+
+bool ReceiverRos::init() {
+  if (!Receiver::init()) {
+    return false;
+  }
+
+  // Get and store ID of device
+  while (!readSetting("system_info", "sbp_sender_id")) {
+  }
+  sbp_sender_id_ = static_cast<uint16_t>(std::stoul(getValue(), nullptr, 16));
+
+  return true;
+}
+
+bool ReceiverRos::startFileLogger() {
+  // Per default observations are stored in .ros with current date & time
+  // prefixed with "<receiver_type>_" so that observations are stored in
+  // different files if multiple receivers connected
+  ros::NodeHandle nh_private("~");
+  auto obs_dir = nh_private.param<std::string>("log_dir", ".");
+  std::string obs_filename;
+  std::size_t receiver_type_pos = nh_.getNamespace().find_last_of("/");
+  std::string obs_prefix =
+      nh_.getNamespace().substr(receiver_type_pos + 1) + "_";
+
+  bool use_custom_filename = nh_private.hasParam("observation_filename");
+  if (!use_custom_filename) {
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+    std::stringstream time_ss;
+    time_ss << std::put_time(&tm, "%Y_%d_%m_%H_%M_%S");
+    obs_filename = obs_prefix + time_ss.str();
+  } else {
+    // Get filename if custom name set
+    nh_private.getParam("observation_filename", obs_filename);
+    obs_filename = obs_prefix + obs_filename;
+  }
+  ROS_INFO_STREAM("Logging observations to file: \n\"" << obs_dir << "/" << obs_filename << ".sbp\".");
+
+  // Initialize logger if not already done
+  if (!obs_logger_) {
+    obs_logger_ = std::make_shared<FileObservationLogger>();
+    // Create ephemeris callbacks and add listeners to logger
+    eph_cbs_ = std::make_unique<SBPEphemerisCallbackHandler>(nh_, state_);
+    // Add logger as listener to callbacks
+    obs_cbs_->addObservationCallbackListener(
+        CBtoRawObsConverter::createFor(obs_logger_, sbp_sender_id_));
+    eph_cbs_->addObservationCallbackListener(
+        CBtoRawObsConverter::createFor(obs_logger_, sbp_sender_id_));
+  }
+
+  // start logging
+  if (obs_logger_->open(obs_dir + "/" + obs_filename) != 0) {
+    ROS_WARN_STREAM(
+        "Could not open logger file. Observation are not being stored!");
+    return false;
+  }
+
+  return true;
+}
+
+bool ReceiverRos::startStopFileLoggerCallback(
+    std_srvs::SetBool::Request& req, std_srvs::SetBool::Response& res) {
+
+  if (req.data && !obs_logger_->isLogging()) {
+    // Start logger if not running
+    if (startFileLogger()) {
+      res.success = true;
+      res.message = "Logger succesfully started";
+    } else {
+      res.success = false;
+      res.message = "Failed to start logger.";
+    }
+  } else if (!req.data && obs_logger_->isLogging()) {
+    // Stop logger if runnning
+    obs_logger_->close();
+    res.success = true;
+    res.message = "Stopped logging.";
+  } else {
+    res.success = false;
+    res.message = "Service call failed.";
+  }
+  return true;
 }
 
 std::vector<std::string> ReceiverRos::getVectorParam(
